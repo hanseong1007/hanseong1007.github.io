@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="ko" data-portal-ready="0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f7b63">
+<meta name="format-detection" content="telephone=no">
+<title>경덕농수산 · 통합 로그인</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f7b63'/%3E%3Ctext x='32' y='44' font-family='sans-serif' font-size='34' font-weight='700' text-anchor='middle' fill='white'%3E%EA%B2%BD%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f1f4f2;
+    --card:#ffffff;
+    --ink:#14231d;
+    --ink2:#31423a;
+    --muted:#77877f;
+    --line:#e3e9e5;
+    --line2:#eef2ef;
+    --brand:#0f7b63;
+    --brand-dark:#0a5a48;
+    --brand-soft:#e6f4ef;
+    --brand-line:#bfe0d4;
+    --danger:#c0453c;
+    --danger-soft:#fdecea;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(16,32,22,.05), 0 8px 24px rgba(16,32,22,.04);
+    --safe-b:env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Helvetica Neue",sans-serif;
+    font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%;
+    overflow-x:hidden;
+  }
+  button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+  input,textarea{font-family:inherit;font-size:16px;color:inherit}
+  a{color:inherit;text-decoration:none}
+  b,strong{font-weight:800}
+  [hidden]{display:none !important}
+
+  /* ---------- 로그인 ---------- */
+  #gate{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;
+        padding:26px 16px calc(26px + var(--safe-b))}
+  body[data-view="dash"] #gate{display:none}
+  .gatewrap{width:100%;max-width:420px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:11px;margin:0 0 15px}
+  .bm{width:46px;height:46px;flex:0 0 auto;border-radius:14px;background:var(--brand);color:#fff;
+      display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-1px}
+  .bm.sm{width:36px;height:36px;border-radius:11px;font-size:15px}
+  .brandtxt b{display:block;font-size:16px;letter-spacing:-.3px}
+  .brandtxt span{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+  .authcard{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
+  .authcard h1{margin:0 0 4px;font-size:20px;letter-spacing:-.5px}
+  .lead{margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.45}
+  .field{margin-bottom:11px}
+  .lbl{display:block;font-size:12px;font-weight:800;color:var(--ink2);margin-bottom:6px}
+  .inp{width:100%;height:48px;border:1px solid var(--line);border-radius:12px;padding:0 13px;background:#fbfcfb;outline:none}
+  .inp:focus{border-color:var(--brand-line);background:#fff;box-shadow:0 0 0 3px rgba(15,123,99,.1)}
+  .authrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 9px;font-size:13px}
+  .keep{display:inline-flex;align-items:center;gap:7px;color:var(--ink2);font-weight:700;font-size:13px}
+  .keep input{width:17px;height:17px;accent-color:var(--brand)}
+  .linkbtn{background:none;border:0;padding:2px;color:var(--muted);font-size:12.5px;text-decoration:underline}
+  .authmsg{min-height:19px;font-size:12.5px;font-weight:800;color:var(--danger);margin:0 0 8px;line-height:1.4}
+  .authmsg.ok{color:var(--brand-dark);font-weight:700}
+  .authbtn{width:100%;height:50px;border:0;border-radius:13px;background:var(--brand);color:#fff;
+           font-weight:800;font-size:15.5px;box-shadow:0 6px 14px rgba(15,123,99,.22)}
+  .authbtn:disabled{opacity:.65;box-shadow:none}
+  .authbtn:active{transform:translateY(1px)}
+  .authfoot{margin:12px 0 0;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
+  .gatenote{max-width:420px;margin:14px auto 0;font-size:11.5px;color:var(--muted);text-align:center}
+
+  /* ---------- 대시보드 ---------- */
+  #dash{display:none;min-height:100vh;min-height:100dvh;padding-bottom:calc(26px + var(--safe-b))}
+  body[data-view="dash"] #dash{display:block}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(241,244,242,.94);
+          -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:9px 16px}
+  .chip{margin-left:auto;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 11px 0 4px;
+        border:1px solid var(--line);background:#fff;border-radius:999px;font-size:13px;font-weight:800;
+        box-shadow:0 1px 2px rgba(16,32,22,.04);max-width:52%}
+  .chip .av{width:28px;height:28px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);
+            display:grid;place-items:center;font-weight:800;font-size:13px;border:1px solid var(--brand-line);flex:0 0 auto}
+  .chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  main{max-width:560px;margin:0 auto;padding:18px 16px 0}
+  .hello{margin:0 0 2px;font-size:12.5px;color:var(--muted)}
+  h1.hey{margin:0 0 15px;font-size:22px;letter-spacing:-.7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  h1.hey .hey-in{display:inline-flex;align-items:baseline;letter-spacing:-.7px}
+  .tag{display:inline-flex;align-items:center;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;
+       background:var(--brand-soft);color:var(--brand-dark);border:1px solid var(--brand-line);white-space:nowrap}
+  .tag.gray{background:#f1f3f2;color:var(--muted);border-color:var(--line)}
+  .menu{display:grid;grid-template-columns:1fr;gap:10px;margin:0 0 18px}
+  .mcard{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);
+         border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow);min-height:72px}
+  .mcard:active{background:#f7faf8}
+  .mcard .em{width:44px;height:44px;flex:0 0 auto;border-radius:13px;background:var(--brand-soft);
+             display:grid;place-items:center;font-size:21px}
+  .mcard .tx{flex:1;min-width:0}
+  .mcard .tx b{display:block;font-size:15.5px;letter-spacing:-.3px}
+  .mcard .tx span{display:block;font-size:12px;color:var(--muted);margin-top:2px;
+                  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mcard .ar{color:var(--muted);font-size:17px;flex:0 0 auto}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+        padding:15px;margin:0 0 13px}
+  .card h2{margin:0 0 3px;font-size:15px;letter-spacing:-.3px}
+  .card p.sub{margin:0 0 12px;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .card .sub2{margin:10px 0 0;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .btn{height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;
+       font-weight:800;font-size:13.5px;color:var(--ink2)}
+  .btn.soft{background:var(--brand-soft);border-color:var(--brand-line);color:var(--brand-dark)}
+  .btn.danger{background:#fff;border-color:#efd5d2;color:var(--danger)}
+  .btn:active{transform:translateY(1px)}
+  .btn.xs{height:33px;padding:0 10px;border-radius:9px;font-size:12.5px}
+  .btn[disabled]{opacity:.5}
+  .kv{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;border-top:1px solid var(--line2)}
+  .kv:first-of-type{border-top:0}
+  .kv .k{color:var(--muted);font-weight:700;min-width:56px}
+  .kv .v{font-weight:700;word-break:break-all}
+  .divider{height:1px;background:var(--line2);margin:12px 0}
+  .urow{padding:12px 0;border-top:1px solid var(--line2)}
+  .urow:first-child{border-top:0;padding-top:2px}
+  .urow.me{background:#fbfdfc;border-radius:10px;padding:11px 10px;margin:0 -4px}
+  .urow .ut{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .urow .ut b{font-size:14.5px;letter-spacing:-.2px}
+  .uid{font-size:12px;color:var(--muted)}
+  .urow .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .ureset{display:flex;gap:6px;margin-top:8px}
+  .ureset input{flex:1 1 auto;min-width:0;height:38px;border:1px solid var(--line);border-radius:10px;
+                padding:0 11px;background:#fbfcfb;font-size:14px}
+  .invout{margin-top:10px}
+  .invout textarea{width:100%;height:74px;border:1px solid var(--brand-line);border-radius:11px;padding:9px 10px;
+                   background:var(--brand-soft);color:var(--brand-dark);font-size:11.5px;line-height:1.45;resize:vertical}
+  .field2{margin-bottom:9px}
+  .note{font-size:11.5px;color:var(--muted);line-height:1.5;margin:9px 0 0}
+  .foot{max-width:560px;margin:4px auto 0;padding:0 16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+  .toast{position:fixed;left:50%;bottom:calc(18px + var(--safe-b));transform:translate(-50%,14px);
+         max-width:calc(100vw - 32px);background:#14231d;color:#fff;font-size:13px;font-weight:700;
+         padding:11px 15px;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.22);
+         opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:80;text-align:center;line-height:1.4}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .toast.err{background:#8f2f29}
+
+  @media(min-width:600px){
+    .menu{grid-template-columns:repeat(3,1fr)}
+    .mcard{flex-direction:column;align-items:flex-start;gap:9px;min-height:132px;padding:16px}
+    .mcard .tx span{white-space:normal}
+    .mcard .ar{display:none}
+  }
+  @media(min-width:760px){
+    .topbar .in,main,.foot{max-width:720px}
+    .gatewrap{max-width:440px}
+  }
+</style>
+</head>
+<body data-view="gate">
+
+<!-- ================= 로그인 ================= -->
+<div id="gate" role="main" aria-label="통합 로그인">
+  <div class="gatewrap">
+    <div class="brand">
+      <div class="bm">경덕</div>
+      <div class="brandtxt">
+        <b>(주)경덕농수산</b>
+        <span>통합 로그인 · 발주 · 업무일지 · 근태</span>
+      </div>
+    </div>
+    <form class="authcard" id="login-form" autocomplete="on" novalidate>
+      <h1>통합 로그인</h1>
+      <p class="lead">한 번만 로그인하면 발주·업무일지·근태 화면이 다시 묻지 않고 열립니다.</p>
+      <div class="field">
+        <label class="lbl" for="login-id">아이디</label>
+        <input class="inp" id="login-id" name="username" type="text" autocomplete="username"
+               autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="아이디">
+      </div>
+      <div class="field">
+        <label class="lbl" for="login-pw">비밀번호</label>
+        <input class="inp" id="login-pw" name="password" type="password" autocomplete="current-password" placeholder="비밀번호">
+      </div>
+      <div class="authrow">
+        <label class="keep"><input type="checkbox" id="login-keep" checked> 로그인 유지</label>
+        <button class="linkbtn" id="btn-pw-help" type="button">비밀번호를 잊었으면</button>
+      </div>
+      <div class="authmsg" id="login-msg" role="status" aria-live="polite"></div>
+      <button class="authbtn" id="login-btn" type="submit">로그인</button>
+      <p class="authfoot">계정은 이 기기(브라우저)에만 저장됩니다 · 인터넷으로 공유되지 않습니다</p>
+    </form>
+  </div>
+  <p class="gatenote">직원은 로그인하면 발주 화면으로 바로 들어갑니다.</p>
+</div>
+
+<!-- ================= 대시보드 (관리자) ================= -->
+<div id="dash">
+  <header class="topbar">
+    <div class="in">
+      <div class="bm sm">경덕</div>
+      <div class="brandtxt">
+        <b>(주)경덕농수산</b>
+        <span>통합 로그인</span>
+      </div>
+      <div class="chip" id="who-chip">
+        <span class="av" id="who-av">관</span><span class="nm" id="who-name">-</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <p class="hello" id="today-line">오늘</p>
+    <h1 class="hey"><span class="hey-in"><span id="hey-name">-</span>님</span><span class="tag" id="who-role">관리자</span></h1>
+
+    <nav class="menu" aria-label="업무 메뉴">
+      <a class="mcard" id="menu-order" href="./order-app/" data-app="kd">
+        <span class="em" aria-hidden="true">📦</span>
+        <span class="tx"><b>발주</b><span>거래처 발주 · 바코드 스캔</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+      <a class="mcard" id="menu-worklog" href="./worklog-app/" data-app="kdw">
+        <span class="em" aria-hidden="true">📝</span>
+        <span class="tx"><b>업무일지</b><span>오늘 업무 · 수입지출 일지</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+      <a class="mcard" id="menu-attendance" href="./attendance-app/" data-app="att">
+        <span class="em" aria-hidden="true">📅</span>
+        <span class="tx"><b>근태 · 연차</b><span>출퇴근 · 연차 관리</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+    </nav>
+
+    <section class="card" id="sec-account">
+      <h2>내 계정</h2>
+      <p class="sub">세 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 세 앱에 함께 바뀝니다.</p>
+      <div class="kv"><span class="k">이름</span><span class="v" id="acc-name">-</span></div>
+      <div class="kv"><span class="k">아이디</span><span class="v" id="acc-id">-</span></div>
+      <div class="divider"></div>
+      <div class="row">
+        <button class="btn soft" id="btn-pw-open" type="button">비밀번호 바꾸기</button>
+        <button class="btn" id="btn-logout" type="button">로그아웃</button>
+      </div>
+      <div id="panel-pw" hidden>
+        <div class="divider"></div>
+        <div class="field2">
+          <label class="lbl" for="pw-cur">지금 비밀번호</label>
+          <input class="inp" id="pw-cur" type="password" autocomplete="current-password" placeholder="지금 쓰는 비밀번호">
+        </div>
+        <div class="field2">
+          <label class="lbl" for="pw-new">새 비밀번호 (4자 이상)</label>
+          <input class="inp" id="pw-new" type="password" autocomplete="new-password" placeholder="새 비밀번호">
+        </div>
+        <div class="field2">
+          <label class="lbl" for="pw-new2">새 비밀번호 한 번 더</label>
+          <input class="inp" id="pw-new2" type="password" autocomplete="new-password" placeholder="새 비밀번호 한 번 더">
+        </div>
+        <p class="authmsg" id="pw-msg" role="status" aria-live="polite"></p>
+        <div class="row">
+          <button class="btn soft" id="btn-pw-save" type="button">저장</button>
+          <button class="btn" id="btn-pw-close" type="button">닫기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="sec-users" hidden>
+      <h2>👥 사용자 관리 <span class="tag gray" id="users-count">(0명)</span></h2>
+      <p class="sub">직원을 추가하고 <b>초대 링크</b>를 카톡으로 보내면, 그 직원 휴대폰에서 링크를 눌러 로그인하면 세 앱이 함께 열립니다.</p>
+
+      <div class="field2">
+        <label class="lbl" for="nu-id">아이디 (영문 소문자·숫자 2~20자)</label>
+        <input class="inp" id="nu-id" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="예: kim">
+      </div>
+      <div class="field2">
+        <label class="lbl" for="nu-name">이름</label>
+        <input class="inp" id="nu-name" type="text" autocomplete="off" placeholder="예: 김철수">
+      </div>
+      <div class="field2">
+        <label class="lbl" for="nu-pw">처음 비밀번호 (4자 이상)</label>
+        <input class="inp" id="nu-pw" type="password" autocomplete="new-password" placeholder="직원에게 알려 줄 비밀번호">
+      </div>
+      <div class="row">
+        <button class="btn soft" id="btn-add-user" type="button">직원 추가</button>
+        <button class="btn" id="btn-invite-all" type="button">전체 초대 링크</button>
+      </div>
+      <div class="invout" id="invite-out-wrap" hidden>
+        <textarea id="invite-out" readonly aria-label="초대 링크"></textarea>
+        <p class="note">위 링크를 복사해 카톡으로 보내세요. 링크를 연 직원 휴대폰에 계정이 들어가고, 관리자 계정은 만들어지지 않습니다.</p>
+      </div>
+
+      <div class="divider"></div>
+      <div id="users-list"></div>
+      <p class="sub2">앱(발주·업무일지·근태)의 <b>내 계정 → 사용자 관리</b>에서 만든 계정도 여기로 모입니다.
+        비밀번호 재설정은 세 앱에 함께 적용됩니다.</p>
+    </section>
+
+    <p class="foot">이 포털에서 로그인한 상태로 세 앱을 열면 다시 로그인하지 않습니다.<br>
+      앱에서 로그아웃하면 통합 로그인도 함께 풀립니다.</p>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p style="padding:20px;text-align:center;font-size:13px">로그인하려면 브라우저에서 자바스크립트를 켜 주세요.</p></noscript>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ============================================================
+     0. 작은 도구
+     ============================================================ */
+  function $(s, r){ return (r || document).querySelector(s); }
+  function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+  function rawLS(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } }
+  function jget(k, fb){
+    var v = rawLS(k);
+    if(v === null) return fb;
+    try{ return JSON.parse(v); }catch(e){ return fb; }
+  }
+  function jset(k, v){
+    try{ window.localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; }
+  }
+  function jsetRaw(k, v){ try{ window.localStorage.setItem(k, v); return true; }catch(e){ return false; } }
+  function jrm(k){ try{ window.localStorage.removeItem(k); }catch(e){} }
+  function sraw(k){ try{ return window.sessionStorage.getItem(k); }catch(e){ return null; } }
+  function sset(k, v){ try{ window.sessionStorage.setItem(k, v); }catch(e){} }
+  function srm(k){ try{ window.sessionStorage.removeItem(k); }catch(e){} }
+
+  /* ============================================================
+     1. 암호 도구 — 세 앱과 같은 순수 JS 방식(SHA-256 + XOR 스트림)
+     ============================================================ */
+  function sha256hex(msg){
+    function rr(x, n){ return (x >>> n) | (x << (32 - n)); }
+    var K = [
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ];
+    var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    var bytes = [], i, c, c2, cp;
+    for(i = 0; i < msg.length; i++){
+      c = msg.charCodeAt(i);
+      if(c < 0x80){ bytes.push(c); }
+      else if(c < 0x800){ bytes.push(0xc0 | (c >> 6), 0x80 | (c & 63)); }
+      else if(c < 0xd800 || c >= 0xe000){ bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63)); }
+      else {
+        c2 = msg.charCodeAt(++i);
+        cp = 0x10000 + (((c & 0x3ff) << 10) | (c2 & 0x3ff));
+        bytes.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+      }
+    }
+    var bl = bytes.length * 8, hi = Math.floor(bl / 4294967296);
+    bytes.push(0x80);
+    while(bytes.length % 64 !== 56) bytes.push(0);
+    bytes.push((hi >>> 24) & 255, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255);
+    bytes.push((bl >>> 24) & 255, (bl >>> 16) & 255, (bl >>> 8) & 255, bl & 255);
+    var w = new Array(64), t, off;
+    for(off = 0; off < bytes.length; off += 64){
+      for(t = 0; t < 16; t++){
+        w[t] = (bytes[off + t * 4] << 24) | (bytes[off + t * 4 + 1] << 16) | (bytes[off + t * 4 + 2] << 8) | bytes[off + t * 4 + 3];
+      }
+      for(t = 16; t < 64; t++){
+        var s0 = rr(w[t-15], 7) ^ rr(w[t-15], 18) ^ (w[t-15] >>> 3);
+        var s1 = rr(w[t-2], 17) ^ rr(w[t-2], 19) ^ (w[t-2] >>> 10);
+        w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+      }
+      var a = H[0], b = H[1], c3 = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for(t = 0; t < 64; t++){
+        var S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+        var ch = (e & f) ^ ((~e) & g);
+        var t1 = (h + S1 + ch + K[t] + w[t]) | 0;
+        var S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+        var mj = (a & b) ^ (a & c3) ^ (b & c3);
+        var t2 = (S0 + mj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c3; c3 = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c3) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    return H.map(function(x){ return ('00000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
+  }
+  function newSalt(){
+    var s = '';
+    while(s.length < 16){ s += Math.floor(Math.random() * 36).toString(36); }
+    return s.slice(0, 16) + (Date.now() % 100000).toString(36);
+  }
+  function utf8bin(s){ return unescape(encodeURIComponent(String(s))); }
+  function binutf8(b){ return decodeURIComponent(escape(b)); }
+  function ksBlock(keyHex, i){ return sha256hex(keyHex + '|' + i); }
+  function xorBin(bin, keyHex){
+    var out = [], blk = '', i, j, p;
+    for(i = 0; i < bin.length; i++){
+      j = i & 31;
+      if(j === 0) blk = ksBlock(keyHex, i >> 5);
+      p = j * 2;
+      out.push(String.fromCharCode((bin.charCodeAt(i) & 255) ^ parseInt(blk.substr(p, 2), 16)));
+    }
+    return out.join('');
+  }
+  function wrapK(key, wrapHex){
+    try{ return btoa(xorBin(String(key), String(wrapHex))); }catch(e){ return ''; }
+  }
+  function unwrapK(ct, wrapHex){
+    if(!ct || !wrapHex) return '';
+    var s;
+    try{ s = xorBin(atob(ct), String(wrapHex)); }catch(e){ return ''; }
+    return /^[0-9a-f]{32}$/.test(s) ? s : '';
+  }
+  function hpHash(pw, salt){ return sha256hex('p1|' + salt + '|' + String(pw)); }
+  function hashFor(app, pw, salt){ return sha256hex(APPS[app].hp + salt + '|' + String(pw)); }
+  function matKey(app, salt, hash){ return sha256hex(APPS[app].mk + salt + '|' + hash); }
+  function pwKey(app, salt, pw){
+    var h = sha256hex(APPS[app].pp + salt + '|' + String(pw));
+    for(var i = 0; i < 4096; i++) h = sha256hex(h);
+    return h;
+  }
+
+  /* ============================================================
+     2. 세 앱 · 주소
+     ============================================================ */
+  var APPS = {
+    kd:  { label:'발주', dir:'order-app', users:'kd.users.v1', sess:'kd.session.v1', tmp:'kd.session.tmp.v1',
+           noseed:'kd.noadmin.v1', hp:'kd1|', mk:'kdi1|', pp:'kdw1|',
+           wrap:'kd.u.%s.catwrap.v1', wrapPw:'kd.u.%s.catwrap.pw.v1', adminName:'관리자' },
+    kdw: { label:'업무일지', dir:'worklog-app', users:'kdw.users.v1', sess:'kdw.session.v1', tmp:'kdw.session.tmp.v1',
+           noseed:'kdw.noadmin.v1', hp:'wl1|', mk:'wli1|', pp:'wlw1|',
+           wrap:'kdw.u.%s.seed.v1', wrapPw:'kdw.u.%s.seed.pw.v1', adminName:'박한성' },
+    att: { label:'근태', dir:'attendance-app', users:'att.users.v1', sess:'att.session.v1', tmp:'att.session.tmp.v1',
+           noseed:'att.noadmin.v1', hp:'att1|', mk:'atti1|', pp:'attw1|',
+           wrap:'att.u.%s.seedwrap.v1', wrapPw:'att.u.%s.seedwrap.pw.v1', adminName:'관리자' }
+  };
+  var ORDER = ['kd', 'kdw', 'att'];
+  var P_USERS = 'kd.portal.users.v1';
+  var P_SESS  = 'kd.portal.session.v1';
+  var P_TMP   = 'kd.portal.session.tmp.v1';
+  var P_SSO   = 'kd.portal.sso.v1';
+  var P_NOSEED= 'kd.portal.noadmin.v1';
+
+  function pathOf(app, id){ return APPS[app].wrap.replace('%s', id); }
+
+  function appBase(){
+    try{
+      var q = new URLSearchParams(location.search).get('apps');
+      if(q){ return q.slice(-1) === '/' ? q : q + '/'; }
+    }catch(e){}
+    var saved = rawLS('kd.portal.appbase');
+    if(saved){ return saved.slice(-1) === '/' ? saved : saved + '/'; }
+    var p = location.pathname || '/';
+    if(/\/documents\/portal\/(index\.html)?$/.test(p)) return '../';
+    if(/\/portal\/(index\.html)?$/.test(p)) return '../';
+    return './';
+  }
+  function appUrl(app){ return appBase() + APPS[app].dir + '/'; }
+
+  /* ============================================================
+     3. 계정 저장소 (포털 + 세 앱)
+     ============================================================ */
+  function normId(id){ return String(id || '').trim().toLowerCase(); }
+  function roleOf(idOrUser, name){
+    var isObj = idOrUser && typeof idOrUser === 'object';
+    var id = normId(isObj ? idOrUser.id : idOrUser);
+    var nm = String(isObj ? (idOrUser.name || '') : (name || '')).trim();
+    return (id === 'admin' || id === '박한성' || nm === '박한성') ? 'admin' : 'user';
+  }
+
+  function portalDoc(){
+    var d = jget(P_USERS, null);
+    if(!d || typeof d !== 'object' || !Array.isArray(d.users)) d = { v:1, users:[] };
+    d.users = d.users.filter(function(u){ return u && typeof u.id === 'string' && u.id; });
+    d.users.forEach(function(u){
+      u.id = normId(u.id);
+      if(!u.name) u.name = u.id;
+      u.role = roleOf(u.id, u.name);
+    });
+    var hasAdmin = false;
+    d.users.forEach(function(u){ if(u.id === 'admin') hasAdmin = true; });
+    if(!hasAdmin && !jget(P_NOSEED, false) && !anyAppAdmin()){
+      var salt = newSalt();
+      d.users.unshift({ id:'admin', name:'관리자', role:'admin', salt:salt, hash:hpHash('admin1234', salt),
+                        createdAt:Date.now(), mustChange:true });
+    }
+    d.v = 1;
+    jset(P_USERS, d);
+    return d;
+  }
+  function savePortal(d){ d.v = 1; jset(P_USERS, d); return d; }
+  function findIn(list, id){
+    var n = normId(id);
+    for(var i = 0; i < list.length; i++){ if(list[i] && list[i].id === n) return list[i]; }
+    return null;
+  }
+  function findPortal(id){ return findIn(portalDoc().users, id); }
+
+  function appDoc(app){
+    var d = jget(APPS[app].users, null);
+    if(!d || typeof d !== 'object' || !Array.isArray(d.users)) d = { v:1, users:[] };
+    d.users = d.users.filter(function(u){ return u && typeof u.id === 'string' && u.id; });
+    d.users.forEach(function(u){
+      u.id = normId(u.id);
+      if(!u.name) u.name = u.id;
+      u.role = (u.id === 'admin') ? 'admin' : 'user';
+    });
+    d.v = 1;
+    return d;
+  }
+  function saveApp(app, d){ d.v = 1; jset(APPS[app].users, d); return d; }
+  function findAppUser(app, id){ return findIn(appDoc(app).users, id); }
+  function anyAppAdmin(){
+    for(var i = 0; i < ORDER.length; i++){ if(findAppUser(ORDER[i], 'admin')) return true; }
+    return false;
+  }
+  function ensureAppUser(app, id, name, pw){
+    var d = appDoc(app), hit = findIn(d.users, id);
+    if(hit){
+      if(name && !hit.name) hit.name = name;
+      saveApp(app, d);
+      return hit;
+    }
+    var salt = newSalt();
+    var nm = String(name || id).slice(0, 20);
+    /* admin 계정의 이름은 앱마다 쓰던 이름을 그대로 둔다 (발주·근태 '관리자', 업무일지 '박한성') */
+    if(normId(id) === 'admin' && APPS[app].adminName) nm = APPS[app].adminName;
+    var u = { id:normId(id), name:nm, role:(normId(id) === 'admin' ? 'admin' : 'user'),
+              salt:salt, hash:hashFor(app, pw, salt), createdAt:Date.now(), mustChange:false };
+    d.users.push(u);
+    saveApp(app, d);
+    return u;
+  }
+  function appSetPassword(app, id, pw, mustChange){
+    var d = appDoc(app), hit = findIn(d.users, id);
+    if(!hit) return null;
+    hit.salt = newSalt();
+    hit.hash = hashFor(app, pw, hit.salt);
+    hit.mustChange = !!mustChange;
+    saveApp(app, d);
+    return hit;
+  }
+  /* 앱(발주·업무일지·근태)에서 만들던 계정을 포털로 모은다 */
+  function mergeFromApps(){
+    var d = portalDoc(), changed = false;
+    ORDER.forEach(function(a){
+      appDoc(a).users.forEach(function(u){
+        if(findIn(d.users, u.id)) return;
+        d.users.push({ id:u.id, name:u.name || u.id, role:roleOf(u.id, u.name),
+                       salt:null, hash:null, createdAt:u.createdAt || Date.now(), mustChange:false });
+        changed = true;
+      });
+    });
+    if(changed) savePortal(d);
+  }
+
+  /* ============================================================
+     4. 앱 잠금 열쇠 (품목 목록 K_cat · 업무일지/근태 예시 열쇠)
+     ============================================================ */
+  var K = { kd:'', kdw:'', att:'' };
+  var SRC = {}, SRCP = {};
+
+  function readMat(app, u){
+    if(!u || !u.salt || !u.hash) return '';
+    var W = jget(pathOf(app, u.id), null);
+    if(!W || !W.salt || !W.ct) return '';
+    return unwrapK(W.ct, matKey(app, W.salt, u.hash));
+  }
+  function writeMat(app, u, key){
+    if(!u || !key) return false;
+    return jset(pathOf(app, u.id), { v:1, salt:u.salt, ct:wrapK(key, matKey(app, u.salt, u.hash)) });
+  }
+  function keyForSync(app){
+    if(K[app]) return K[app];
+    var users = appDoc(app).users;
+    for(var i = 0; i < users.length; i++){
+      var k = readMat(app, users[i]);
+      if(k){ K[app] = k; return k; }
+    }
+    return '';
+  }
+  /* 앱 소스에 있는 비밀번호 랩(CAT_WRAP · SEED_WRAP)을 읽어 처음 기기에서도 열쇠를 푼다 */
+  function wrapConst(app){
+    if(SRC[app]) return Promise.resolve(SRC[app]);
+    if(SRCP[app]) return SRCP[app];
+    SRCP[app] = fetch(appUrl(app) + 'index.html').then(function(r){
+      if(!r.ok) throw new Error('http ' + r.status);
+      return r.text();
+    }).then(function(txt){
+      var re = (app === 'kd')
+        ? /CAT_WRAP\s*=\s*\{\s*v:\s*1,\s*salt:\s*'([^']+)',\s*ct:\s*'([^']+)'/
+        : /SEED_WRAP\s*=\s*\{\s*salt:\s*'([^']+)',\s*ct:\s*'([^']+)'/;
+      var m = txt.match(re);
+      if(!m) return null;
+      SRC[app] = { salt:m[1], ct:m[2] };
+      return SRC[app];
+    }).catch(function(){ return null; });
+    return SRCP[app];
+  }
+  function keyFor(app, id, pw){
+    if(K[app]) return Promise.resolve(K[app]);
+    var me = findAppUser(app, id);
+    var k = me ? readMat(app, me) : '';
+    if(k){ K[app] = k; return Promise.resolve(k); }
+    /* 앱이 비밀번호로 감싸 둔 열쇠 (관리자가 비밀번호를 바꾼 기기) */
+    if(pw && me){
+      var PW = jget(APPS[app].wrapPw.replace('%s', me.id), null);
+      if(PW && PW.salt && PW.ct){
+        k = unwrapK(PW.ct, pwKey(app, PW.salt, pw));
+        if(k){ K[app] = k; return Promise.resolve(k); }
+      }
+    }
+    k = keyForSync(app);
+    if(k) return Promise.resolve(k);
+    return wrapConst(app).then(function(c){
+      if(!c) return '';
+      var tries = [];
+      if(pw) tries.push(String(pw));
+      if(tries.indexOf('admin1234') === -1) tries.push('admin1234');
+      for(var i = 0; i < tries.length; i++){
+        var got = unwrapK(c.ct, pwKey(app, c.salt, tries[i]));
+        if(got){ K[app] = got; return got; }
+      }
+      return '';
+    });
+  }
+
+  /* ============================================================
+     5. 로그인 확인 · 계정 관리
+     ============================================================ */
+  function verify(rawId, pw){
+    var id = normId(rawId);
+    if(!id) return { ok:false, msg:'아이디를 넣어 주세요' };
+    if(!pw) return { ok:false, msg:'비밀번호를 넣어 주세요' };
+    var p = findPortal(id);
+    if(p && p.salt && p.hash && hpHash(pw, p.salt) === p.hash) return { ok:true, user:p, via:'portal' };
+    /* 앱에서 쓰던 비밀번호도 그대로 받아 준다 */
+    for(var i = 0; i < ORDER.length; i++){
+      var u = findAppUser(ORDER[i], id);
+      if(u && u.salt && hashFor(ORDER[i], pw, u.salt) === u.hash){
+        return { ok:true, user:adoptUser(id, u.name || (p && p.name) || id, pw), via:ORDER[i] };
+      }
+    }
+    return { ok:false, msg:'아이디 또는 비밀번호가 맞지 않습니다' };
+  }
+  function adoptUser(id, name, pw){
+    var d = portalDoc(), cur = findIn(d.users, id);
+    var salt = newSalt();
+    if(!cur){
+      cur = { id:normId(id), name:String(name || id).slice(0, 20), role:roleOf(id, name),
+              salt:salt, hash:hpHash(pw, salt), createdAt:Date.now(), mustChange:false };
+      d.users.push(cur);
+    }else{
+      cur.salt = salt; cur.hash = hpHash(pw, salt);
+      if(name) cur.name = String(cur.name || name).slice(0, 20);
+      cur.role = roleOf(cur.id, cur.name);
+    }
+    savePortal(d);
+    ORDER.forEach(function(a){ ensureAppUser(a, cur.id, cur.name, pw); });
+    return cur;
+  }
+  function addUser(rawId, rawName, pw){
+    var id = normId(rawId);
+    if(!/^[a-z0-9._-]{2,20}$/.test(id)) return { ok:false, msg:'아이디는 영문 소문자·숫자 2~20자로 넣어 주세요' };
+    if(id === 'admin') return { ok:false, msg:'admin 아이디는 새로 만들 수 없습니다' };
+    if(String(pw || '').length < 4) return { ok:false, msg:'비밀번호는 4자 이상으로 넣어 주세요' };
+    var d = portalDoc();
+    if(findIn(d.users, id)) return { ok:false, msg:'이미 있는 아이디입니다' };
+    for(var i = 0; i < ORDER.length; i++){
+      if(findAppUser(ORDER[i], id)) return { ok:false, msg:'이미 있는 아이디입니다' };
+    }
+    var name = String(rawName || '').trim().slice(0, 20) || id;
+    var salt = newSalt();
+    var cur = { id:id, name:name, role:roleOf(id, name), salt:salt, hash:hpHash(pw, salt),
+                createdAt:Date.now(), mustChange:false };
+    d.users.push(cur);
+    savePortal(d);
+    var recs = {};
+    ORDER.forEach(function(a){ recs[a] = ensureAppUser(a, id, name, pw); });
+    ORDER.forEach(function(a){
+      var k = keyForSync(a);
+      if(k) writeMat(a, recs[a], k);
+    });
+    return { ok:true, user:cur };
+  }
+  function resetUser(rawId, pw){
+    var id = normId(rawId);
+    if(id === 'admin') return { ok:false, msg:'관리자 비밀번호는 내 계정에서 바꿔 주세요' };
+    if(String(pw || '').length < 4) return { ok:false, msg:'새 비밀번호는 4자 이상으로 넣어 주세요' };
+    var d = portalDoc(), cur = findIn(d.users, id);
+    if(!cur) return { ok:false, msg:'없는 사용자입니다' };
+    cur.salt = newSalt(); cur.hash = hpHash(pw, cur.salt); cur.mustChange = true;
+    savePortal(d);
+    ORDER.forEach(function(a){
+      var u = appSetPassword(a, id, pw, true);
+      if(u){ var k = keyForSync(a); if(k) writeMat(a, u, k); }
+    });
+    return { ok:true, msg:(cur.name || id) + ' 비밀번호를 바꿨습니다' };
+  }
+  function deleteUser(rawId){
+    var id = normId(rawId);
+    if(id === 'admin') return { ok:false, msg:'관리자는 삭제할 수 없습니다' };
+    var d = portalDoc(), hit = findIn(d.users, id);
+    if(!hit) return { ok:false, msg:'없는 사용자입니다' };
+    d.users = d.users.filter(function(u){ return u.id !== id; });
+    savePortal(d);
+    ORDER.forEach(function(a){
+      var ad = appDoc(a);
+      ad.users = ad.users.filter(function(u){ return u.id !== id; });
+      saveApp(a, ad);
+      try{
+        var kill = [], p2 = (a === 'kdw' ? 'kdw.u.' : a === 'att' ? 'att.u.' : 'kd.u.') + id + '.';
+        for(var i = 0; i < window.localStorage.length; i++){
+          var k = window.localStorage.key(i);
+          if(k && k.indexOf(p2) === 0) kill.push(k);
+        }
+        kill.forEach(jrm);
+      }catch(e){}
+    });
+    var s = jget(P_SSO, null);
+    if(s && normId(s.userId) === id) jrm(P_SSO);
+    return { ok:true, msg:(hit.name || id) + ' 계정을 삭제했습니다' };
+  }
+  function changeOwnPassword(curPw, newPw){
+    var me = currentUser();
+    if(!me) return { ok:false, msg:'로그인 정보가 없습니다' };
+    var v = verify(me.id, curPw);
+    if(!v.ok) return { ok:false, msg:'지금 비밀번호가 맞지 않습니다' };
+    if(String(newPw || '').length < 4) return { ok:false, msg:'새 비밀번호는 4자 이상으로 넣어 주세요' };
+    var keys = {};
+    ORDER.forEach(function(a){ keys[a] = keyForSync(a); });
+    var d = portalDoc(), cur = findIn(d.users, me.id);
+    cur.salt = newSalt(); cur.hash = hpHash(newPw, cur.salt); cur.mustChange = false;
+    savePortal(d);
+    ORDER.forEach(function(a){
+      var u = appSetPassword(a, me.id, newPw, false);
+      if(u && keys[a]) writeMat(a, u, keys[a]);
+    });
+    setSessions(cur, keepOf());
+    return { ok:true, msg:'비밀번호를 바꿨습니다' };
+  }
+
+  /* ============================================================
+     6. 세션 · 통합 로그인 상태
+     ============================================================ */
+  function setSessions(u, keep){
+    var rec = JSON.stringify({ userId:u.id, ts:Date.now() });
+    ORDER.forEach(function(a){
+      jrm(APPS[a].sess); srm(APPS[a].tmp);
+      if(keep) jsetRaw(APPS[a].sess, rec); else sset(APPS[a].tmp, rec);
+    });
+    var portalPath = (location.pathname || '/').replace(/index\.html$/, '');
+    jset(P_SSO, {
+      v:1, userId:u.id, name:u.name || u.id, role:roleOf(u.id, u.name), keep:!!keep,
+      at:Date.now(), exp: Date.now() + (keep ? 30 * 86400000 : 12 * 3600000),
+      portal: portalPath || '/'
+    });
+    var s = { userId:u.id, ts:Date.now(), keep:!!keep };
+    jrm(P_SESS); srm(P_TMP);
+    if(keep) jset(P_SESS, s); else sset(P_TMP, JSON.stringify(s));
+  }
+  function currentUser(){
+    var s = jget(P_SESS, null);
+    if(!s || !s.userId){
+      try{ s = JSON.parse(sraw(P_TMP) || 'null'); }catch(e){ s = null; }
+    }
+    if(!s || !s.userId) return null;
+    return findPortal(s.userId);
+  }
+  function keepOf(){
+    if(jget(P_SESS, null)) return true;
+    return false;
+  }
+  function clearAll(){
+    ORDER.forEach(function(a){
+      jrm(APPS[a].sess); srm(APPS[a].tmp);
+    });
+    jrm(P_SSO); jrm(P_SESS); srm(P_TMP);
+    K = { kd:'', kdw:'', att:'' };
+  }
+  function logout(){
+    clearAll();
+    document.documentElement.setAttribute('data-role', '');
+    document.body.setAttribute('data-view', 'gate');
+    $('#login-pw').value = '';
+    setMsg($('#login-msg'), '', false);
+    $('#panel-pw').hidden = true;
+    toast('로그아웃했습니다');
+  }
+
+  /* ============================================================
+     7. 초대 링크
+     ============================================================ */
+  function b64urlEnc(str){
+    var b = btoa(unescape(encodeURIComponent(str)));
+    return b.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64urlDec(str){
+    var s = String(str || '').replace(/-/g, '+').replace(/_/g, '/');
+    while(s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  }
+  function inviteUrl(ids){
+    var d = portalDoc(), list = [];
+    d.users.forEach(function(u){
+      if(u.id === 'admin') return;
+      if(ids && ids.indexOf(u.id) === -1) return;
+      var apps = {}, any = false;
+      ORDER.forEach(function(a){
+        var au = findAppUser(a, u.id);
+        if(!au) return;
+        var k = keyForSync(a);
+        apps[a] = { s:au.salt, h:au.hash, c: k ? wrapK(k, matKey(a, au.salt, au.hash)) : '' };
+        any = true;
+      });
+      if(any) list.push({ id:u.id, name:u.name || u.id, apps:apps });
+    });
+    if(!list.length) return '';
+    var me = currentUser();
+    var payload = { v:2, app:'kd-portal', at:Date.now(), from:(me ? me.id : ''), users:list };
+    var base = location.href.split('#')[0];
+    return base + '#invite=' + b64urlEnc(JSON.stringify(payload));
+  }
+  function inviteCopy(ids, okMsg){
+    var url = inviteUrl(ids);
+    if(!url){ toast('보낼 직원 계정이 없습니다 · 직원을 먼저 추가하세요', true); return; }
+    var box = $('#invite-out');
+    if(box){
+      box.value = url;
+      $('#invite-out-wrap').hidden = false;
+    }
+    copyText(url).then(function(){
+      toast(okMsg || '초대 링크를 복사했습니다 · 카톡에 붙여넣어 보내세요');
+    }, function(){
+      toast('복사가 안 되면 아래 초대 링크를 길게 눌러 복사하세요', true);
+    });
+  }
+  function copyText(t){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(t);
+    }
+    return new Promise(function(res, rej){
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ok ? res() : rej(new Error('copy'));
+      }catch(e){ rej(e); }
+    });
+  }
+  function importInvite(token){
+    var data = JSON.parse(b64urlDec(token));
+    if(!data || data.v !== 2 || !Array.isArray(data.users)) throw new Error('bad invite');
+    var fresh = (rawLS(P_USERS) === null);
+    if(fresh){
+      ORDER.forEach(function(a){ jset(APPS[a].noseed, true); });
+      jset(P_NOSEED, true);
+    }
+    var d = portalDoc(), added = [];
+    data.users.forEach(function(x){
+      if(!x || typeof x.id !== 'string') return;
+      var id = normId(x.id).slice(0, 20);
+      if(!/^[a-z0-9._-]{2,20}$/.test(id)) return;
+      var name = String(x.name || id).slice(0, 20);
+      if(!findIn(d.users, id)){
+        d.users.push({ id:id, name:name, role:roleOf(id, name), salt:null, hash:null,
+                       createdAt:Date.now(), mustChange:false });
+        added.push(id);
+      }
+      var apps = x.apps || {};
+      ORDER.forEach(function(a){
+        var rec = apps[a];
+        if(!rec || !rec.s || !rec.h || !rec.c) return;
+        var ad = appDoc(a), hit = findIn(ad.users, id);
+        if(!hit){
+          ad.users.push({ id:id, name:name, role:'user', salt:String(rec.s), hash:String(rec.h),
+                          createdAt:Date.now(), mustChange:false });
+          saveApp(a, ad);
+          hit = findIn(ad.users, id);
+        }
+        /* 이미 있는 계정의 비밀번호는 덮어쓰지 않는다 — 짝이 맞을 때만 열쇠를 넣는다 */
+        if(hit && hit.salt === String(rec.s)){
+          jset(pathOf(a, id), { v:1, salt:String(rec.s), ct:String(rec.c) });
+        }
+      });
+    });
+    savePortal(d);
+    return { added:added };
+  }
+  function importInviteHash(){
+    var h = location.hash || '';
+    var m = h.match(/invite=([^&]+)/);
+    if(!m) return null;
+    var res;
+    try{ res = importInvite(decodeURIComponent(m[1])); }
+    catch(e){ res = { added:[], error:true }; }
+    try{ history.replaceState(null, '', location.pathname + location.search); }
+    catch(e){ location.hash = ''; }
+    return res;
+  }
+
+  /* ============================================================
+     8. 화면
+     ============================================================ */
+  var toastTimer = null;
+  function toast(msg, isErr){
+    var t = $('#toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.className = 'toast on' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.className = 'toast' + (isErr ? ' err' : ''); }, 2600);
+  }
+  function setMsg(el, txt, isErr){
+    if(!el) return;
+    el.className = 'authmsg' + (txt && !isErr ? ' ok' : '');
+    el.textContent = txt || '';
+  }
+  function showGate(msg){
+    document.body.setAttribute('data-view', 'gate');
+    document.documentElement.setAttribute('data-role', '');
+    setMsg($('#login-msg'), msg || '', false);
+  }
+  function todayText(){
+    try{
+      var d = new Date();
+      return new Intl.DateTimeFormat('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' }).format(d);
+    }catch(e){ return ''; }
+  }
+  function renderMenu(){
+    $('#menu-order').href = appUrl('kd');
+    $('#menu-worklog').href = appUrl('kdw');
+    $('#menu-attendance').href = appUrl('att');
+  }
+  function renderDash(u){
+    var nm = u.name || u.id;
+    var admin = roleOf(u.id, u.name) === 'admin';
+    $('#who-av').textContent = nm.slice(0, 1);
+    $('#who-name').textContent = nm;
+    $('#hey-name').textContent = nm;
+    $('#who-role').textContent = admin ? '관리자' : '직원';
+    $('#who-role').className = 'tag' + (admin ? '' : ' gray');
+    $('#acc-name').textContent = nm;
+    $('#acc-id').textContent = u.id;
+    $('#today-line').textContent = todayText();
+    $('#sec-users').hidden = !admin;
+    if(admin) renderUsers();
+  }
+  function openDash(){
+    var u = currentUser();
+    if(!u){ showGate(''); return; }
+    if(roleOf(u.id, u.name) !== 'admin'){
+      document.documentElement.setAttribute('data-role', 'user');
+      location.replace(appUrl('kd'));
+      return;
+    }
+    document.documentElement.setAttribute('data-role', 'admin');
+    document.body.setAttribute('data-view', 'dash');
+    renderDash(u);
+  }
+  function renderUsers(){
+    var d = portalDoc();
+    var list = d.users.slice();
+    list.sort(function(x, y){
+      var ax = (x.id === 'admin') ? 0 : 1, ay = (y.id === 'admin') ? 0 : 1;
+      if(ax !== ay) return ax - ay;
+      return String(x.name || x.id).localeCompare(String(y.name || y.id), 'ko');
+    });
+    $('#users-count').textContent = '(' + list.length + '명)';
+    var me = currentUser();
+    var html = list.map(function(u){
+      var admin = roleOf(u.id, u.name) === 'admin';
+      var mine = me && me.id === u.id;
+      return '<div class="urow' + (mine ? ' me' : '') + '" data-uid="' + esc(u.id) + '">' +
+        '<div class="ut"><b>' + esc(u.name || u.id) + '</b>' +
+        '<span class="uid">' + esc(u.id) + '</span>' +
+        '<span class="tag' + (admin ? '' : ' gray') + '">' + (admin ? '관리자' : '직원') + '</span>' +
+        (mine ? '<span class="tag gray">나</span>' : '') + '</div>' +
+        (admin ? '' :
+          '<div class="acts">' +
+          '<button class="btn xs" type="button" data-reset="' + esc(u.id) + '">비밀번호 재설정</button>' +
+          '<button class="btn xs" type="button" data-invite="' + esc(u.id) + '">초대 링크</button>' +
+          '<button class="btn xs danger" type="button" data-del="' + esc(u.id) + '">삭제</button>' +
+          '</div>' +
+          '<div class="ureset" data-resetbox="' + esc(u.id) + '" hidden>' +
+          '<input type="password" autocomplete="new-password" placeholder="새 비밀번호 (4자 이상)" data-resetpw="' + esc(u.id) + '">' +
+          '<button class="btn xs soft" type="button" data-resetok="' + esc(u.id) + '">저장</button>' +
+          '</div>') +
+        '</div>';
+    });
+    $('#users-list').innerHTML = html.join('');
+  }
+  function go(app){
+    var u = currentUser();
+    if(!u){ showGate(''); return; }
+    setSessions(u, keepOf());
+    location.href = appUrl(app);
+  }
+
+  /* ---------- 이벤트 ---------- */
+  var BUSY = false;
+  function doLogin(){
+    if(BUSY) return;
+    var idv = $('#login-id').value, pw = $('#login-pw').value, keep = $('#login-keep').checked;
+    var msg = $('#login-msg'), btn = $('#login-btn');
+    if(!normId(idv) || !pw){ setMsg(msg, '아이디와 비밀번호를 넣어 주세요', true); return; }
+    var v = verify(idv, pw);
+    if(!v.ok){
+      setMsg(msg, v.msg, true);
+      $('#login-pw').value = '';
+      $('#login-pw').focus();
+      return;
+    }
+    BUSY = true;
+    btn.disabled = true;
+    setMsg(msg, '로그인 중…', false);
+    var user = v.user;
+    ORDER.forEach(function(a){ ensureAppUser(a, user.id, user.name, pw); });
+    var jobs = ORDER.map(function(a){
+      return keyFor(a, user.id, pw).then(function(k){
+        var u = findAppUser(a, user.id);
+        if(u && k) writeMat(a, u, k);
+        return !!k;
+      });
+    });
+    Promise.all(jobs).then(function(got){
+      BUSY = false;
+      btn.disabled = false;
+      setMsg(msg, '', false);
+      var rec = findPortal(user.id) || user;
+      setSessions(rec, keep);
+      if(roleOf(rec.id, rec.name) === 'admin'){
+        openDash();
+        var bad = [];
+        ORDER.forEach(function(a, i){ if(!got[i]) bad.push(APPS[a].label); });
+        if(bad.length) toast(bad.join('·') + ' 잠금 열쇠를 확인하지 못했습니다 · 그 앱에서 한 번 로그인하면 정리됩니다', true);
+        else toast('로그인했습니다');
+      }else{
+        document.documentElement.setAttribute('data-role', 'user');
+        location.replace(appUrl('kd'));
+      }
+    });
+  }
+  function onUsersClick(e){
+    var t = e.target.closest('[data-reset],[data-invite],[data-del],[data-resetok]');
+    if(!t) return;
+    if(t.hasAttribute('data-invite')){
+      inviteCopy([t.getAttribute('data-invite')], '초대 링크를 복사했습니다');
+      return;
+    }
+    if(t.hasAttribute('data-reset')){
+      var id = t.getAttribute('data-reset');
+      var box = document.querySelector('[data-resetbox="' + id + '"]');
+      if(box){
+        box.hidden = !box.hidden;
+        if(!box.hidden){ var inp = box.querySelector('input'); if(inp) inp.focus(); }
+      }
+      return;
+    }
+    if(t.hasAttribute('data-resetok')){
+      var id2 = t.getAttribute('data-resetok');
+      var i2 = document.querySelector('[data-resetpw="' + id2 + '"]');
+      var r = resetUser(id2, i2 ? i2.value : '');
+      toast(r.msg, !r.ok);
+      if(r.ok) renderUsers();
+      return;
+    }
+    if(t.hasAttribute('data-del')){
+      var id3 = t.getAttribute('data-del');
+      if(t.getAttribute('data-arm') === '1'){
+        var r3 = deleteUser(id3);
+        toast(r3.msg, !r3.ok);
+        renderUsers();
+        return;
+      }
+      t.setAttribute('data-arm', '1');
+      t.textContent = '정말 삭제? (한 번 더)';
+      setTimeout(function(){
+        if(t && t.isConnected){ t.removeAttribute('data-arm'); t.textContent = '삭제'; }
+      }, 4000);
+    }
+  }
+  function bind(){
+    $('#login-form').addEventListener('submit', function(e){ e.preventDefault(); doLogin(); });
+    $('#btn-pw-help').addEventListener('click', function(){
+      setMsg($('#login-msg'), '관리자에게 비밀번호 재설정을 요청하세요.', false);
+    });
+    $('#who-chip').addEventListener('click', function(){
+      var el = $('#sec-account');
+      if(el && el.scrollIntoView) el.scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+    $('#btn-logout').addEventListener('click', logout);
+    $('#btn-pw-open').addEventListener('click', function(){
+      $('#panel-pw').hidden = false;
+      $('#pw-cur').focus();
+    });
+    $('#btn-pw-close').addEventListener('click', function(){
+      $('#panel-pw').hidden = true;
+      $('#pw-msg').textContent = '';
+    });
+    $('#btn-pw-save').addEventListener('click', function(){
+      var a = $('#pw-new').value, b = $('#pw-new2').value;
+      if(a !== b){ setMsg($('#pw-msg'), '새 비밀번호를 두 번 똑같이 넣어 주세요', true); return; }
+      var r = changeOwnPassword($('#pw-cur').value, a);
+      if(!r.ok){ setMsg($('#pw-msg'), r.msg, true); return; }
+      $('#pw-cur').value = ''; $('#pw-new').value = ''; $('#pw-new2').value = '';
+      setMsg($('#pw-msg'), r.msg, false);
+      openDash();
+      toast(r.msg);
+    });
+    $('#btn-add-user').addEventListener('click', function(){
+      var r = addUser($('#nu-id').value, $('#nu-name').value, $('#nu-pw').value);
+      if(!r.ok){ toast(r.msg, true); return; }
+      $('#nu-id').value = ''; $('#nu-name').value = ''; $('#nu-pw').value = '';
+      renderUsers();
+      toast((r.user.name || r.user.id) + ' 계정을 추가했습니다 · 초대 링크를 보내세요');
+    });
+    $('#btn-invite-all').addEventListener('click', function(){
+      inviteCopy(null, '전체 직원 초대 링크를 복사했습니다');
+    });
+    $('#users-list').addEventListener('click', onUsersClick);
+    $$('.mcard').forEach(function(a){
+      a.addEventListener('click', function(e){
+        e.preventDefault();
+        go(a.getAttribute('data-app'));
+      });
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ $('#panel-pw').hidden = true; }
+    });
+  }
+
+  /* ============================================================
+     9. 시작
+     ============================================================ */
+  function init(){
+    var inv = importInviteHash();
+    mergeFromApps();
+    bind();
+    renderMenu();
+    var u = currentUser();
+    if(u){
+      openDash();
+    }else{
+      var note = '';
+      if(inv && inv.error) note = '초대 링크를 읽지 못했습니다 · 관리자에게 새 링크를 받아 주세요';
+      else if(inv && inv.added && inv.added.length){
+        note = '초대 링크로 ' + inv.added.join(', ') + ' 계정을 넣었습니다 · 비밀번호로 로그인하세요';
+        if(inv.added.length === 1) $('#login-id').value = inv.added[0];
+      }
+      showGate(note);
+    }
+    document.documentElement.setAttribute('data-portal-ready', '1');
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+
+  /* 검증용 (헤드리스 테스트에서만 읽는다) */
+  window.__portal = {
+    appUrl: appUrl,
+    appBase: appBase,
+    role: function(){ return document.documentElement.getAttribute('data-role'); },
+    user: function(){ var u = currentUser(); return u ? { id:u.id, name:u.name, role:roleOf(u.id, u.name) } : null; },
+    users: function(){ return portalDoc().users.map(function(u){ return { id:u.id, name:u.name, role:roleOf(u.id, u.name) }; }); },
+    appUsers: function(app){ return appDoc(app).users.map(function(u){ return { id:u.id, name:u.name, salt:u.salt, hash:u.hash }; }); },
+    keyOpen: function(app){ return !!keyForSync(app); },
+    inviteUrl: inviteUrl,
+    sso: function(){ return jget(P_SSO, null); }
+  };
+})();
+</script>
+</body>
+</html>
