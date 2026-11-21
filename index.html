@@ -569,7 +569,9 @@
     if(!u || !u.salt || !u.hash) return '';
     var W = jget(pathOf(app, u.id), null);
     if(!W || !W.salt || !W.ct) return '';
-    return unwrapK(W.ct, matKey(app, W.salt, u.hash));
+    var k = unwrapK(W.ct, matKey(app, W.salt, u.hash));
+    if(!k && u.prevHash) k = unwrapK(W.ct, matKey(app, W.salt, u.prevHash));   /* 시트 계정으로 맞추기 전 비밀번호 */
+    return k;
   }
   function writeMat(app, u, key){
     if(!u || !key) return false;
@@ -841,6 +843,7 @@
                 salt:salt, hash:hs[a], createdAt:cur.createdAt || Date.now(), mustChange:false };
         ad.users.push(hit);
       }else{
+        if(hit.salt && hit.hash && hit.salt !== salt){ hit.prevSalt = hit.salt; hit.prevHash = hit.hash; }
         hit.salt = salt; hit.hash = hs[a];
       }
       saveApp(a, ad);
@@ -956,7 +959,10 @@
         ad.users.push(hit); ch = true;
       }
       if(hit.name !== name){ hit.name = name; ch = true; }
-      if(mine && salt && (hit.salt !== salt || hit.hash !== mine)){ hit.salt = salt; hit.hash = mine; ch = true; }
+      if(mine && salt && (hit.salt !== salt || hit.hash !== mine)){
+        if(hit.salt && hit.hash) { hit.prevSalt = hit.salt; hit.prevHash = hit.hash; }
+        hit.salt = salt; hit.hash = mine; ch = true;
+      }
       if(rec.active === false){ hit.active = false; } else if('active' in hit){ delete hit.active; }
       if(ch) saveApp(a, ad);
     });
