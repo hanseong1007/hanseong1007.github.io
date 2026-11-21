@@ -1016,6 +1016,8 @@
       d.users.push(cur);
       changed = true;
     }
+    /* '관리자' 는 앱이 쓰는 기본 자리표시 이름 — 시트가 그 이름으로 덮여 있어도 실제 이름을 지우지 않는다 */
+    if(id === 'admin' && name === '관리자' && cur.name && cur.name !== '관리자') name = cur.name;
     if(cur.name !== name){ cur.name = name; changed = true; }
     cur.role = roleOf(cur.id, cur.name);
     if(cur.sheetApprRole !== ar){ cur.sheetApprRole = ar; changed = true; }
