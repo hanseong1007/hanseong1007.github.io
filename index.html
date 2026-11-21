@@ -132,6 +132,15 @@
   .urow .ut b{font-size:14.5px;letter-spacing:-.2px}
   .uid{font-size:12px;color:var(--muted)}
   .urow .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  /* ---------- 사용자별 메뉴 지정 ---------- */
+  .menusel{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .mopt{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 10px;border:1px solid var(--line);
+        border-radius:9px;background:#fbfcfb;font-size:12px;font-weight:800;color:var(--ink2);cursor:pointer}
+  .mopt input{width:15px;height:15px;margin:0;accent-color:var(--brand)}
+  .mopt input:checked ~ span{color:var(--brand-dark)}
+  #menu-none{background:#fff;border:1px dashed var(--line);border-radius:var(--radius);padding:18px 15px;
+             text-align:center;font-size:13.5px;color:var(--ink2);font-weight:800;line-height:1.55;margin:0 0 18px}
+  #menu-none span{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:5px}
   .ureset{display:flex;gap:6px;margin-top:8px}
   .ureset input{flex:1 1 auto;min-width:0;height:38px;border:1px solid var(--line);border-radius:10px;
                 padding:0 11px;background:#fbfcfb;font-size:14px}
@@ -194,7 +203,8 @@
       <p class="authfoot">계정은 이 기기(브라우저)에만 저장됩니다 · 인터넷으로 공유되지 않습니다</p>
     </form>
   </div>
-  <p class="gatenote">직원은 로그인하면 발주 화면으로 바로 들어갑니다.</p>
+  <p class="gatenote">직원은 로그인하면 지정된 화면으로 바로 들어갑니다.<br>
+    메뉴를 두 개 이상 받은 직원은 이 화면에서 고를 수 있습니다.</p>
 </div>
 
 <!-- ================= 대시보드 (관리자) ================= -->
@@ -233,12 +243,15 @@
         <span class="ar" aria-hidden="true">›</span>
       </a>
     </nav>
+    <p id="menu-none" hidden>접근 가능한 메뉴가 없습니다.<br>관리자에게 문의하세요.
+      <span>관리자가 사용자 관리에서 이 계정의 메뉴를 지정하면 열립니다.</span></p>
 
     <section class="card" id="sec-account">
       <h2>내 계정</h2>
       <p class="sub">세 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 세 앱에 함께 바뀝니다.</p>
       <div class="kv"><span class="k">이름</span><span class="v" id="acc-name">-</span></div>
       <div class="kv"><span class="k">아이디</span><span class="v" id="acc-id">-</span></div>
+      <div class="kv"><span class="k">메뉴</span><span class="v" id="acc-menus">-</span></div>
       <div class="divider"></div>
       <div class="row">
         <button class="btn soft" id="btn-pw-open" type="button">비밀번호 바꾸기</button>
@@ -290,6 +303,16 @@
           <option value="ceo">대표</option>
           <option value="all">전체 (본부장·대표 모두)</option>
         </select>
+      </div>
+      <div class="field2">
+        <span class="lbl">메뉴 (이 직원의 포털에 보일 화면)</span>
+        <div class="menusel" id="nu-menus" role="group" aria-label="메뉴 선택">
+          <label class="mopt"><input type="checkbox" value="order" checked> <span>발주화면</span></label>
+          <label class="mopt"><input type="checkbox" value="worklog"> <span>업무일지</span></label>
+          <label class="mopt"><input type="checkbox" value="attendance"> <span>근태·연차</span></label>
+        </div>
+        <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
+          admin·박한성 계정은 전체 메뉴 고정입니다.</p>
       </div>
       <div class="row">
         <button class="btn soft" id="btn-add-user" type="button">직원 추가</button>
@@ -499,6 +522,37 @@
     return (v === 'chief' || v === 'ceo' || v === 'all') ? v : 'staff';
   }
 
+  /* ============================================================
+     메뉴 — 사용자별로 고른 화면만 포털에 보인다
+       order 발주화면 · worklog 업무일지 · attendance 근태·연차
+     admin · 이름 '박한성' 계정은 전체 메뉴 고정,
+     예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
+     ============================================================ */
+  var MENU_KEYS = ['order', 'worklog', 'attendance'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차' };
+  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att' };
+  function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
+  function normMenus(list){
+    if(!Array.isArray(list)) return null;
+    var pick = [];
+    list.forEach(function(m){
+      var k = String(m == null ? '' : m).trim().toLowerCase();
+      if(MENU_KEYS.indexOf(k) >= 0 && pick.indexOf(k) < 0) pick.push(k);
+    });
+    return MENU_KEYS.filter(function(k){ return pick.indexOf(k) >= 0; });
+  }
+  function menusOf(u){
+    if(!u) return [];
+    if(isAdminUser(u)) return MENU_KEYS.slice();
+    var m = normMenus(u.menus);
+    return (m === null) ? ['order'] : m;
+  }
+  function menusText(u){
+    var ms = menusOf(u);
+    if(!ms.length) return '없음';
+    return ms.map(function(k){ return MENU_LABEL[k]; }).join('·');
+  }
+
   function portalDoc(){
     var d = jget(P_USERS, null);
     if(!d || typeof d !== 'object' || !Array.isArray(d.users)) d = { v:1, users:[] };
@@ -507,6 +561,11 @@
       u.id = normId(u.id);
       if(!u.name) u.name = u.id;
       u.role = roleOf(u.id, u.name);
+      /* 메뉴는 아는 키만 남기고 순서를 맞춘다 — admin·박한성은 저장하지 않는다(전체 고정) */
+      if(u.menus !== undefined){
+        var mm = normMenus(u.menus);
+        if(isAdminUser(u) || mm === null) delete u.menus; else u.menus = mm;
+      }
     });
     var hasAdmin = false;
     d.users.forEach(function(u){ if(u.id === 'admin') hasAdmin = true; });
@@ -699,7 +758,7 @@
     ORDER.forEach(function(a){ ensureAppUser(a, cur.id, cur.name, pw); });
     return cur;
   }
-  function addUser(rawId, rawName, pw, apprRole){
+  function addUser(rawId, rawName, pw, apprRole, menus){
     var id = normId(rawId);
     if(!/^[a-z0-9._-]{2,20}$/.test(id)) return { ok:false, msg:'아이디는 영문 소문자·숫자 2~20자로 넣어 주세요' };
     if(id === 'admin') return { ok:false, msg:'admin 아이디는 새로 만들 수 없습니다' };
@@ -711,9 +770,11 @@
     }
     var name = String(rawName || '').trim().slice(0, 20) || id;
     var ar = (APPR_ROLES.indexOf(apprRole) >= 0) ? apprRole : 'staff';
+    var mn = normMenus(menus);
+    if(mn === null) mn = ['order'];
     var salt = newSalt();
     var cur = { id:id, name:name, role:roleOf(id, name), salt:salt, hash:hpHash(pw, salt),
-                apprRole:ar, sheetApprRole:ar,
+                apprRole:ar, sheetApprRole:ar, menus:mn,
                 createdAt:Date.now(), mustChange:false };
     d.users.push(cur);
     /* 같은 아이디가 예전에 지워졌어도 다시 만들면 삭제 목록에서 뺀다 */
@@ -725,9 +786,36 @@
       var k = keyForSync(a);
       if(k) writeMat(a, recs[a], k);
     });
+    ORDER.forEach(function(a){                       /* 고른 메뉴를 세 앱 계정에도 적어 둔다 */
+      var ad = appDoc(a), u = findIn(ad.users, id);
+      if(u){ u.menus = mn.slice(); saveApp(a, ad); }
+    });
     syncUnifyUser(id, pw);
     pushUsersToSheet({ full:true });
     return { ok:true, user:findIn(portalDoc().users, id) || cur };
+  }
+  /* 메뉴 바꾸기 — 포털 · 세 앱 · 구글 시트에 함께 반영한다 */
+  function setUserMenus(rawId, menus){
+    var me = currentUser();
+    if(!me || !isAdminUser(me)) return { ok:false, msg:'관리자만 메뉴를 바꿀 수 있습니다' };
+    var id = normId(rawId);
+    if(!id) return { ok:false, msg:'없는 사용자입니다' };
+    var d = portalDoc(), hit = findIn(d.users, id);
+    if(!hit) return { ok:false, msg:'없는 사용자입니다' };
+    if(isAdminUser(hit)) return { ok:false, msg:(hit.name || id) + ' 계정은 전체 메뉴로 고정됩니다' };
+    var mn = normMenus(menus) || [];
+    hit.menus = mn;
+    savePortal(d);
+    ORDER.forEach(function(a){
+      var ad = appDoc(a), u = findIn(ad.users, id);
+      if(!u) return;
+      u.menus = mn.slice();
+      saveApp(a, ad);
+    });
+    var ss = jget(P_SSO, null);
+    if(ss && normId(ss.userId) === id) syncSessionLabels(hit);
+    pushUsersToSheet({ full:true });
+    return { ok:true, msg:(hit.name || id) + ' 메뉴: ' + menusText(hit) };
   }
   /* 결재 권한 바꾸기 — 포털 · 세 앱 · 구글 시트에 함께 반영한다 */
   function setUserApprRole(rawId, role){
@@ -880,6 +968,8 @@
                 salt:salt, hash:(hs.portal || ''), active:(u.active !== false),
                 mustChange:(u.mustChange === true), createdAt:(u.createdAt || 0), hashApp:'portal' };
     if(rec.apprRole !== 'all' && rec.apprRole !== 'chief' && rec.apprRole !== 'ceo') rec.apprRole = 'staff';
+    /* 메뉴 — 관리자가 고른 목록을 시트에 함께 올린다 (admin 은 전체 고정이라 빼고) */
+    if(u.id !== 'admin'){ var mn = normMenus(u.menus); if(mn) rec.menus = mn; }
     for(k in hs){ if(hs[k]) any = true; }
     if(any) rec.hashes = hs;
     return rec;
@@ -944,6 +1034,7 @@
     if(sheet.name) out.name = sheet.name;
     if(sheet.role) out.role = sheet.role;
     if(sheet.apprRole) out.apprRole = sheet.apprRole;
+    if(Array.isArray(sheet.menus)) out.menus = sheet.menus;   /* 메뉴는 포털(관리자)이 정한다 — 이 기기 값으로 덮지 않는다 */
     if(sheet.salt && out.salt === sheet.salt && sheet.hashes){
       var hs = {}, a;
       for(a in sheet.hashes) hs[a] = sheet.hashes[a];
@@ -1021,6 +1112,10 @@
     if(cur.name !== name){ cur.name = name; changed = true; }
     cur.role = roleOf(cur.id, cur.name);
     if(cur.sheetApprRole !== ar){ cur.sheetApprRole = ar; changed = true; }
+    /* 메뉴 — 시트(관리자가 지정한 값)가 기준. 시트에 없으면 이 기기 값을 지우지 않는다 */
+    var mm = (id === 'admin') ? null : normMenus(rec.menus);
+    if(mm && JSON.stringify(normMenus(cur.menus)) !== JSON.stringify(mm)){ cur.menus = mm; changed = true; }
+    if(id === 'admin' && cur.menus !== undefined){ delete cur.menus; changed = true; }
     if(hs.portal && salt && (cur.salt !== salt || cur.hash !== hs.portal)){ cur.salt = salt; cur.hash = hs.portal; changed = true; }
     if(salt) cur.sheetSalt = salt;
     if(any) cur.sheetHashes = hs;
@@ -1042,6 +1137,7 @@
         hit.salt = salt; hit.hash = mine; ch = true;
       }
       if(rec.active === false){ hit.active = false; } else if('active' in hit){ delete hit.active; }
+      if(mm && JSON.stringify(normMenus(hit.menus)) !== JSON.stringify(mm)){ hit.menus = mm.slice(); ch = true; }
       if(ch) saveApp(a, ad);
     });
     return changed;
@@ -1107,7 +1203,7 @@
     /* SSO·세션에 남은 이름·권한을 시트 값으로 맞춘다 */
     syncSessionLabels(u);
     if(document.body.getAttribute('data-view') === 'dash'){
-      try{ renderMenu(); }catch(e){}
+      try{ renderMenu(u); }catch(e){}
       try{ renderDash(u); }catch(e){}
       try{ if(document.getElementById('users-list')) renderUsers(); }catch(e){}
     }else if(roleOf(u.id, u.name) === 'admin'){
@@ -1288,7 +1384,7 @@
         apps[a] = { s:au.salt, h:au.hash, c: k ? wrapK(k, matKey(a, au.salt, au.hash)) : '' };
         any = true;
       });
-      if(any) list.push({ id:u.id, name:u.name || u.id, apps:apps });
+      if(any) list.push({ id:u.id, name:u.name || u.id, apps:apps, m:menusOf(u) });
     });
     if(!list.length) return '';
     var me = currentUser();
@@ -1339,11 +1435,16 @@
       var id = normId(x.id).slice(0, 20);
       if(!/^[a-z0-9._-]{2,20}$/.test(id)) return;
       var name = String(x.name || id).slice(0, 20);
-      if(!findIn(d.users, id)){
-        d.users.push({ id:id, name:name, role:roleOf(id, name), salt:null, hash:null,
-                       createdAt:Date.now(), mustChange:false });
+      var cur = findIn(d.users, id);
+      if(!cur){
+        cur = { id:id, name:name, role:roleOf(id, name), salt:null, hash:null,
+                createdAt:Date.now(), mustChange:false };
+        d.users.push(cur);
         added.push(id);
       }
+      /* 초대 링크에 담긴 메뉴 — 아직 메뉴가 정해지지 않은 기기에만 넣는다 (시트·기존 설정을 덮지 않는다) */
+      var mn = normMenus(x.m);
+      if(mn && roleOf(id, name) !== 'admin' && cur.menus === undefined) cur.menus = mn;
       var apps = x.apps || {};
       ORDER.forEach(function(a){
         var rec = apps[a];
@@ -1404,14 +1505,27 @@
       return new Intl.DateTimeFormat('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' }).format(d);
     }catch(e){ return ''; }
   }
-  function renderMenu(){
+  function renderMenu(u){
     $('#menu-order').href = appUrl('kd');
     $('#menu-worklog').href = appUrl('kdw');
     $('#menu-attendance').href = appUrl('att');
+    /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
+    var ms = u ? menusOf(u) : MENU_KEYS.slice();
+    MENU_KEYS.forEach(function(k){
+      var el = $('#menu-' + k);
+      if(!el) return;
+      var on = ms.indexOf(k) >= 0;
+      el.hidden = !on;
+      el.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    var nav = document.querySelector('nav.menu');
+    if(nav) nav.hidden = (ms.length === 0);
+    var none = $('#menu-none');
+    if(none) none.hidden = (ms.length !== 0);
   }
   function renderDash(u){
     var nm = u.name || u.id;
-    var admin = roleOf(u.id, u.name) === 'admin';
+    var admin = isAdminUser(u);
     $('#who-av').textContent = nm.slice(0, 1);
     $('#who-name').textContent = nm;
     $('#hey-name').textContent = nm;
@@ -1419,22 +1533,37 @@
     $('#who-role').className = 'tag' + (admin ? '' : ' gray');
     $('#acc-name').textContent = nm;
     $('#acc-id').textContent = u.id;
+    if($('#acc-menus')) $('#acc-menus').textContent = admin ? '전체 메뉴' : menusText(u);
     $('#today-line').textContent = todayText();
     $('#sec-users').hidden = !admin;
+    renderMenu(u);
     if(admin) renderUsers();
+  }
+  function stayRequested(){
+    try{ return new URLSearchParams(location.search).get('stay') === '1'; }catch(e){ return false; }
   }
   function openDash(){
     var u = currentUser();
     if(!u){ showGate(''); return; }
-    if(roleOf(u.id, u.name) !== 'admin'){
-      document.documentElement.setAttribute('data-role', 'user');
-      location.replace(appUrl('kd'));
+    var admin = isAdminUser(u);
+    var ms = menusOf(u);
+    document.documentElement.setAttribute('data-role', admin ? 'admin' : 'user');
+    /* 메뉴가 하나뿐인 직원은 그 화면으로 바로 — ?stay=1 이면 포털에 남는다 */
+    if(!admin && ms.length === 1 && !stayRequested()){
+      location.replace(appUrl(MENU_APP[ms[0]]));
       return;
     }
-    document.documentElement.setAttribute('data-role', 'admin');
     document.body.setAttribute('data-view', 'dash');
     renderDash(u);
     syncSessionAccount();        /* 열린 화면에서도 시트 계정 이름·권한을 조용히 확인 (60초 스로틀) */
+  }
+  function menuPickHtml(u){
+    if(isAdminUser(u)) return '<span class="tag gray">전체 메뉴(고정)</span>';
+    var ms = menusOf(u);
+    return MENU_KEYS.map(function(k){
+      return '<label class="mopt"><input type="checkbox" data-menu="' + esc(u.id) + '" data-mkey="' + k + '"' +
+        (ms.indexOf(k) >= 0 ? ' checked' : '') + '> <span>' + MENU_LABEL[k] + '</span></label>';
+    }).join('');
   }
   function renderUsers(){
     var d = portalDoc();
@@ -1462,6 +1591,7 @@
             return '<option value="' + r + '"' + (r === ar ? ' selected' : '') + '>' + APPR_LABEL[r] + '</option>';
           }).join('') + '</select>') +
         '</div>' +
+        '<div class="menusel">' + menuPickHtml(u) + '</div>' +
         (admin ? '' :
           '<div class="acts">' +
           '<button class="btn xs" type="button" data-reset="' + esc(u.id) + '">비밀번호 재설정</button>' +
@@ -1531,7 +1661,7 @@
         else toast('로그인했습니다');
       }else{
         document.documentElement.setAttribute('data-role', 'user');
-        location.replace(appUrl('kd'));
+        openDash();        /* 메뉴 하나면 그 앱으로, 둘 이상이면 포털 메뉴 화면 */
       }
     });
   }
@@ -1603,19 +1733,32 @@
       toast(r.msg);
     });
     $('#btn-add-user').addEventListener('click', function(){
+      var picked = $$('#nu-menus input:checked').map(function(x){ return x.value; });
       var r = addUser($('#nu-id').value, $('#nu-name').value, $('#nu-pw').value,
-                      $('#nu-appr') ? $('#nu-appr').value : 'staff');
+                      $('#nu-appr') ? $('#nu-appr').value : 'staff', picked);
       if(!r.ok){ toast(r.msg, true); return; }
       $('#nu-id').value = ''; $('#nu-name').value = ''; $('#nu-pw').value = '';
       if($('#nu-appr')) $('#nu-appr').value = 'staff';
+      $$('#nu-menus input').forEach(function(x){ x.checked = (x.value === 'order'); });
       renderUsers();
-      toast((r.user.name || r.user.id) + ' 계정을 추가했습니다 · 초대 링크를 보내세요');
+      toast((r.user.name || r.user.id) + ' 계정을 추가했습니다 · 메뉴 ' + menusText(r.user) + ' · 초대 링크를 보내세요');
     });
     $('#users-list').addEventListener('change', function(e){
       var sel = e.target.closest('select[data-appr]');
-      if(!sel) return;
-      var r = setUserApprRole(sel.getAttribute('data-appr'), sel.value);
-      toast(r.msg, !r.ok);
+      if(sel){
+        var r = setUserApprRole(sel.getAttribute('data-appr'), sel.value);
+        toast(r.msg, !r.ok);
+        renderUsers();
+        return;
+      }
+      var box = e.target.closest('input[data-menu]');
+      if(!box) return;
+      var mid = box.getAttribute('data-menu');
+      var picked = $$('#users-list input[data-menu]')
+        .filter(function(x){ return x.getAttribute('data-menu') === mid && x.checked; })
+        .map(function(x){ return x.getAttribute('data-mkey'); });
+      var rm = setUserMenus(mid, picked);
+      toast(rm.msg, !rm.ok);
       renderUsers();
     });
     /* 이 기기 계정으로 전체 업데이트 — 시트를 이 기기 기준으로 덮어쓴다 (admin 전용, 한 번 더 확인) */
@@ -1669,8 +1812,8 @@
     var inv = importInviteHash();
     mergeFromApps();
     bind();
-    renderMenu();
     var u = currentUser();
+    renderMenu(u);
     if(u) syncSessionAccount();                          /* 로그인된 세션 — 시트 계정을 조용히 한 번 확인 */
     else syncUsersFromSheet({ seed:false }).then(syncAfterApply);
     if(u){
@@ -1708,6 +1851,10 @@
     creds: function(id){ var u = findPortal(id); return u ? { salt:u.salt, hash:u.hash, sheetSalt:u.sheetSalt || '', hashes:u.sheetHashes || null } : null; },
     appr: function(id){ var u = findPortal(id); return u ? apprRoleOf(u) : ''; },
     setAppr: setUserApprRole,
+    menus: function(id){ var u = findPortal(id); return u ? menusOf(u) : null; },
+    myMenus: function(){ var u = currentUser(); return u ? menusOf(u) : []; },
+    setMenus: setUserMenus,
+    menusOfAll: function(){ return portalDoc().users.map(function(u){ return { id:u.id, menus:menusOf(u) }; }); },
     acctNow: syncSessionAccount
   };
 })();
