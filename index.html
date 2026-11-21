@@ -92,6 +92,10 @@
   .tag{display:inline-flex;align-items:center;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;
        background:var(--brand-soft);color:var(--brand-dark);border:1px solid var(--brand-line);white-space:nowrap}
   .tag.gray{background:#f1f3f2;color:var(--muted);border-color:var(--line)}
+  .tag.appr{background:#fff7e8;color:#8a5b00;border-color:#f2dfb8}
+  .tag.appr.staff{background:#f1f3f2;color:var(--muted);border-color:var(--line)}
+  select.sel{height:33px;border:1px solid var(--line);border-radius:9px;padding:0 7px;background:#fff;
+             font-size:12.5px;font-weight:800;color:var(--ink2);font-family:inherit}
   .menu{display:grid;grid-template-columns:1fr;gap:10px;margin:0 0 18px}
   .mcard{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);
          border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow);min-height:72px}
@@ -278,10 +282,23 @@
         <label class="lbl" for="nu-pw">처음 비밀번호 (4자 이상)</label>
         <input class="inp" id="nu-pw" type="password" autocomplete="new-password" placeholder="직원에게 알려 줄 비밀번호">
       </div>
+      <div class="field2">
+        <label class="lbl" for="nu-appr">결재 권한</label>
+        <select class="inp" id="nu-appr">
+          <option value="staff" selected>담당 (상신만)</option>
+          <option value="chief">본부장</option>
+          <option value="ceo">대표</option>
+          <option value="all">전체 (본부장·대표 모두)</option>
+        </select>
+      </div>
       <div class="row">
         <button class="btn soft" id="btn-add-user" type="button">직원 추가</button>
         <button class="btn" id="btn-invite-all" type="button">전체 초대 링크</button>
       </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="btn-push-all" type="button">☁️ 이 기기 계정으로 전체 업데이트</button>
+      </div>
+      <p class="note" style="margin-top:6px">시트에 실린 계정과 상관없이, 이 기기에 있는 계정 목록(결재 권한 포함)을 그대로 구글 시트에 올려 모든 기기·앱을 이 기기 기준으로 맞춥니다.</p>
       <div class="invout" id="invite-out-wrap" hidden>
         <textarea id="invite-out" readonly aria-label="초대 링크"></textarea>
         <p class="note">위 링크를 복사해 카톡으로 보내세요. 링크를 연 직원 휴대폰에 계정이 들어가고, 관리자 계정은 만들어지지 않습니다.</p>
@@ -472,6 +489,15 @@
     var nm = String(isObj ? (idOrUser.name || '') : (name || '')).trim();
     return (id === 'admin' || id === '박한성' || nm === '박한성') ? 'admin' : 'user';
   }
+  /* 결재 권한 — 담당(staff) · 본부장(chief) · 대표(ceo) · 전체(all) */
+  var APPR_ROLES = ['staff', 'chief', 'ceo', 'all'];
+  var APPR_LABEL = { staff:'담당', chief:'본부장', ceo:'대표', all:'전체' };
+  function apprRoleOf(u){
+    if(!u) return 'staff';
+    if(normId(u.id) === 'admin' || roleOf(u.id, u.name) === 'admin') return 'all';
+    var v = String(u.sheetApprRole || u.apprRole || '').toLowerCase();
+    return (v === 'chief' || v === 'ceo' || v === 'all') ? v : 'staff';
+  }
 
   function portalDoc(){
     var d = jget(P_USERS, null);
@@ -519,10 +545,13 @@
     for(var i = 0; i < ORDER.length; i++){ if(findAppUser(ORDER[i], 'admin')) return true; }
     return false;
   }
-  function ensureAppUser(app, id, name, pw){
+  function ensureAppUser(app, id, name, pw, apprRole){
     var d = appDoc(app), hit = findIn(d.users, id);
     if(hit){
       if(name && !hit.name) hit.name = name;
+      if(apprRole && (hit.apprRole !== apprRole || hit.sheetApprRole !== apprRole)){
+        hit.apprRole = apprRole; hit.sheetApprRole = apprRole;
+      }
       saveApp(app, d);
       return hit;
     }
@@ -532,6 +561,7 @@
     if(normId(id) === 'admin' && APPS[app].adminName) nm = APPS[app].adminName;
     var u = { id:normId(id), name:nm, role:(normId(id) === 'admin' ? 'admin' : 'user'),
               salt:salt, hash:hashFor(app, pw, salt), createdAt:Date.now(), mustChange:false };
+    if(apprRole){ u.apprRole = apprRole; u.sheetApprRole = apprRole; }
     d.users.push(u);
     saveApp(app, d);
     return u;
@@ -669,7 +699,7 @@
     ORDER.forEach(function(a){ ensureAppUser(a, cur.id, cur.name, pw); });
     return cur;
   }
-  function addUser(rawId, rawName, pw){
+  function addUser(rawId, rawName, pw, apprRole){
     var id = normId(rawId);
     if(!/^[a-z0-9._-]{2,20}$/.test(id)) return { ok:false, msg:'아이디는 영문 소문자·숫자 2~20자로 넣어 주세요' };
     if(id === 'admin') return { ok:false, msg:'admin 아이디는 새로 만들 수 없습니다' };
@@ -680,13 +710,17 @@
       if(findAppUser(ORDER[i], id)) return { ok:false, msg:'이미 있는 아이디입니다' };
     }
     var name = String(rawName || '').trim().slice(0, 20) || id;
+    var ar = (APPR_ROLES.indexOf(apprRole) >= 0) ? apprRole : 'staff';
     var salt = newSalt();
     var cur = { id:id, name:name, role:roleOf(id, name), salt:salt, hash:hpHash(pw, salt),
+                apprRole:ar, sheetApprRole:ar,
                 createdAt:Date.now(), mustChange:false };
     d.users.push(cur);
+    /* 같은 아이디가 예전에 지워졌어도 다시 만들면 삭제 목록에서 뺀다 */
+    d.deletedIds = deletedIdsOf(d).filter(function(x){ return normId(x) !== id; });
     savePortal(d);
     var recs = {};
-    ORDER.forEach(function(a){ recs[a] = ensureAppUser(a, id, name, pw); });
+    ORDER.forEach(function(a){ recs[a] = ensureAppUser(a, id, name, pw, ar); });
     ORDER.forEach(function(a){
       var k = keyForSync(a);
       if(k) writeMat(a, recs[a], k);
@@ -694,6 +728,29 @@
     syncUnifyUser(id, pw);
     pushUsersToSheet({ full:true });
     return { ok:true, user:findIn(portalDoc().users, id) || cur };
+  }
+  /* 결재 권한 바꾸기 — 포털 · 세 앱 · 구글 시트에 함께 반영한다 */
+  function setUserApprRole(rawId, role){
+    var me = currentUser();
+    if(!me || roleOf(me.id, me.name) !== 'admin') return { ok:false, msg:'관리자만 결재 권한을 바꿀 수 있습니다' };
+    var id = normId(rawId);
+    if(!id) return { ok:false, msg:'없는 사용자입니다' };
+    if(id === 'admin') return { ok:false, msg:'관리자 계정은 전체 권한으로 고정됩니다' };
+    if(APPR_ROLES.indexOf(role) < 0) return { ok:false, msg:'결재 권한이 올바르지 않습니다' };
+    var d = portalDoc(), hit = findIn(d.users, id);
+    if(!hit) return { ok:false, msg:'없는 사용자입니다' };
+    hit.apprRole = role; hit.sheetApprRole = role;
+    savePortal(d);
+    ORDER.forEach(function(a){
+      var ad = appDoc(a), u = findIn(ad.users, id);
+      if(!u) return;
+      u.apprRole = role; u.sheetApprRole = role;
+      saveApp(a, ad);
+    });
+    var ss = jget(P_SSO, null);
+    if(ss && normId(ss.userId) === id) syncSessionLabels(findPortal(id));
+    pushUsersToSheet({ full:true });
+    return { ok:true, msg:(hit.name || id) + ' 결재 권한을 ' + APPR_LABEL[role] + '로 바꿨습니다' };
   }
   function resetUser(rawId, pw){
     var id = normId(rawId);
@@ -717,6 +774,11 @@
     var d = portalDoc(), hit = findIn(d.users, id);
     if(!hit) return { ok:false, msg:'없는 사용자입니다' };
     d.users = d.users.filter(function(u){ return u.id !== id; });
+    /* admin 이 실제로 지운 계정은 deletedIds 에 남겨 다른 기기에서도 그 계정만 지우게 한다 */
+    var del = {};
+    deletedIdsOf(d).forEach(function(x){ var n2 = normId(x); if(n2) del[n2] = 1; });
+    del[id] = 1;
+    d.deletedIds = Object.keys(del).filter(function(x){ return x && x !== 'admin'; });
     savePortal(d);
     ORDER.forEach(function(a){
       var ad = appDoc(a);
@@ -768,7 +830,8 @@
   var SYNC_AT_KEY = 'kd.portal.sheet.syncat.v1';   /* 포털은 자기 차례를 따로 적는다 (같은 출처의 발주 앱과 섞이지 않게) */
   var SYNC_KCAT_KEY = 'kd.sheet.kcat.v1';
   var SYNC_DIRTY_KEY = 'kd.portal.sheet.dirty.v1';
-  var SHEET_SYNC = { state:'idle', at:'', error:'', promise:null, seed:false, last:0, hasDoc:false };
+  var SHEET_SYNC = { state:'idle', at:'', error:'', promise:null, seed:false, last:0, hasDoc:false,
+                     acctAt:0, quiet:false };   /* acctAt = 로그인된 세션에서 조용히 확인한 시각(60초 스로틀) */
   var SYNC_APP_OF = { kd:'kd', kdw:'kdw', att:'att', portal:'portal' };
 
   function syncHash(app, pw, salt){ return sha256hex(SYNC_PFX[app] + salt + '|' + String(pw)); }
@@ -779,6 +842,7 @@
     el.hidden = !txt;
   }
   function syncStateNote(){
+    if(SHEET_SYNC.quiet){ syncNote(''); return; }        /* 로그인된 세션의 조용한 확인 — 실패해도 무소음 */
     if(SHEET_SYNC.state === 'loading') syncNote('계정 정보 불러오는 중…');
     else if(SHEET_SYNC.state === 'error') syncNote('계정 정보를 못 불러왔어요 · 이 기기에 저장된 계정으로 로그인할 수 있습니다');
     else syncNote('');
@@ -812,7 +876,7 @@
       if(au && au.salt === salt && au.hash && !hs[a]) hs[a] = au.hash;
     });
     var rec = { id:u.id, name:u.name || u.id, role:roleOf(u.id, u.name),
-                apprRole:(u.id === 'admin' ? 'all' : (u.sheetApprRole || 'staff')),
+                apprRole:(u.id === 'admin' ? 'all' : apprRoleOf(u)),
                 salt:salt, hash:(hs.portal || ''), active:(u.active !== false),
                 mustChange:(u.mustChange === true), createdAt:(u.createdAt || 0), hashApp:'portal' };
     if(rec.apprRole !== 'all' && rec.apprRole !== 'chief' && rec.apprRole !== 'ceo') rec.apprRole = 'staff';
@@ -823,8 +887,11 @@
   function syncLocalDoc(){
     var d = portalDoc(), users = [];
     d.users.forEach(function(u){ if(u && u.id) users.push(syncRecordOf(u)); });
-    return { v:1, updatedAt:'', kcat:(jget(SYNC_KCAT_KEY, '') || ''), users:users };
+    return { v:1, updatedAt:'', kcat:(jget(SYNC_KCAT_KEY, '') || ''), users:users,
+             deletedIds:deletedIdsOf(d) };
   }
+  /* admin 이 실제로 지운 계정 목록 — 시트에 함께 올려 다른 기기도 그 계정만 지우게 한다 */
+  function deletedIdsOf(d){ return (d && Array.isArray(d.deletedIds)) ? d.deletedIds : []; }
   /* 한 사람의 네 앱 계정을 같은 salt·같은 비밀번호로 맞춘다 (비밀번호를 아는 순간에만) */
   function syncUnifyUser(id, pw){
     if(!id || !pw) return null;
@@ -873,6 +940,10 @@
     var out = {}, k;
     for(k in sheet) out[k] = sheet[k];
     for(k in loc){ if(loc[k] !== undefined && loc[k] !== '') out[k] = loc[k]; }
+    /* 이름·권한은 시트가 기준 — 이 기기의 옛 이름('관리자')이 시트의 최신 이름('박한성')을 덮지 않는다 */
+    if(sheet.name) out.name = sheet.name;
+    if(sheet.role) out.role = sheet.role;
+    if(sheet.apprRole) out.apprRole = sheet.apprRole;
     if(sheet.salt && out.salt === sheet.salt && sheet.hashes){
       var hs = {}, a;
       for(a in sheet.hashes) hs[a] = sheet.hashes[a];
@@ -897,6 +968,11 @@
       doc.users = out;
       doc.v = 1;
       if(local.kcat) doc.kcat = local.kcat;
+      /* 지운 계정 목록은 시트 것과 이 기기 것을 합쳐 둔다 */
+      var del = {};
+      (Array.isArray(doc.deletedIds) ? doc.deletedIds : []).forEach(function(x){ var id = normId(x); if(id) del[id] = 1; });
+      (Array.isArray(local.deletedIds) ? local.deletedIds : []).forEach(function(x){ var id = normId(x); if(id) del[id] = 1; });
+      doc.deletedIds = Object.keys(del);
       return doc;
     }).catch(function(){ return local; });
   }
@@ -930,7 +1006,7 @@
     }
     if(rec.hash && SYNC_PFX[rec.hashApp] && !hs[rec.hashApp]){ hs[rec.hashApp] = String(rec.hash); any = true; }
     var salt = String(rec.salt || '');
-    var ar = (id === 'admin') ? 'all' : (rec.apprRole === 'chief' || rec.apprRole === 'ceo') ? rec.apprRole : 'staff';
+    var ar = (id === 'admin') ? 'all' : (rec.apprRole === 'chief' || rec.apprRole === 'ceo' || rec.apprRole === 'all') ? rec.apprRole : 'staff';
     var changed = false;
 
     var d = portalDoc(), cur = findIn(d.users, id);
@@ -980,14 +1056,29 @@
       known[id] = 1;
       if(syncApplyRec(rec, id)) applied++;
     });
+    /* 지운 계정 목록(deletedIds)에 명시된 아이디만 지운다.
+       시트에 없는 로컬 계정은 지우지 않고 그대로 보존(병합)한다 — 다른 기기의 계정이 사라지지 않게. */
+    var delIds = {};
+    deletedIdsOf(doc).forEach(function(x){ var id = normId(x); if(id && id !== 'admin') delIds[id] = 1; });
     if(!fresh){
       var d = portalDoc(), out = [], gone = 0;
-      d.users.forEach(function(u){ if(u.id === 'admin' || known[u.id]) out.push(u); else gone++; });
+      d.users.forEach(function(u){
+        if(u.id === 'admin'){ out.push(u); return; }
+        if(delIds[u.id]){ gone++; return; }
+        out.push(u);
+      });
       if(gone){ d.users = out; savePortal(d); applied++; }
       ORDER.forEach(function(a){
-        var ad = appDoc(a), rest = ad.users.filter(function(u){ return u.id === 'admin' || known[u.id]; });
+        var ad = appDoc(a), rest = ad.users.filter(function(u){ return u.id === 'admin' || !delIds[u.id]; });
         if(rest.length !== ad.users.length){ ad.users = rest; saveApp(a, ad); applied++; }
       });
+    }
+    if(deletedIdsOf(doc).length){
+      var d2 = portalDoc(), del = {};
+      deletedIdsOf(d2).forEach(function(x){ var id = normId(x); if(id) del[id] = 1; });
+      deletedIdsOf(doc).forEach(function(x){ var id = normId(x); if(id) del[id] = 1; });
+      var ids = Object.keys(del);
+      if(ids.length !== deletedIdsOf(d2).length){ d2.deletedIds = ids; savePortal(d2); }
     }
     var kcat = String(doc.kcat || '');
     if(kcat && /^[0-9a-f]{32}$/.test(kcat)) jset(SYNC_KCAT_KEY, kcat);
@@ -1009,16 +1100,53 @@
   }
   function syncAfterApply(res){
     if(!res || !res.ok) return;
-    if(res.applied){
-      try{ renderMenu(); }catch(e){}
-      try{ if(document.getElementById('users-list')) renderUsers(); }catch(e){}
-    }
     var u = currentUser();
-    if(u && document.body.getAttribute('data-view') !== 'dash'){ openDash(); }
+    if(!u) return;
+    /* SSO·세션에 남은 이름·권한을 시트 값으로 맞춘다 */
+    syncSessionLabels(u);
+    if(document.body.getAttribute('data-view') === 'dash'){
+      try{ renderMenu(); }catch(e){}
+      try{ renderDash(u); }catch(e){}
+      try{ if(document.getElementById('users-list')) renderUsers(); }catch(e){}
+    }else if(roleOf(u.id, u.name) === 'admin'){
+      openDash();
+    }
+  }
+  /* 세션 기록(portal session · kd.portal.sso.v1)에 남은 이름·권한을 시트 값으로 맞춘다 */
+  function syncSessionLabels(u){
+    if(!u) return;
+    var nm = u.name || u.id, ro = roleOf(u.id, u.name), ar = apprRoleOf(u), s, ss;
+    s = jget(P_SESS, null);
+    if(s && s.userId === u.id && (s.name !== nm || s.role !== ro)){
+      s.name = nm; s.role = ro; jset(P_SESS, s);
+    }
+    try{ s = JSON.parse(sraw(P_TMP) || 'null'); }catch(e){ s = null; }
+    if(s && s.userId === u.id && (s.name !== nm || s.role !== ro)){
+      s.name = nm; s.role = ro;
+      try{ sset(P_TMP, JSON.stringify(s)); }catch(e){}
+    }
+    ss = jget(P_SSO, null);
+    if(ss && ss.userId === u.id && (ss.name !== nm || ss.role !== ro || ss.apprRole !== ar)){
+      ss.name = nm; ss.role = ro; ss.apprRole = ar; jset(P_SSO, ss);
+    }
+  }
+  /* 이미 로그인된 세션에서도 시트 계정을 조용히 한 번 확인한다 (60초 스로틀 · 실패 무소음)
+     로그인 화면을 거치지 않아 users_get 이 아예 불리지 않던 문제를 막는다. */
+  function syncSessionAccount(){
+    var u = currentUser();
+    if(!u) return Promise.resolve({ ok:false, skipped:true });
+    var now = Date.now();
+    if(SHEET_SYNC.acctAt && now - SHEET_SYNC.acctAt < 60000) return Promise.resolve({ ok:false, skipped:true });
+    SHEET_SYNC.acctAt = now;
+    return syncUsersFromSheet({ seed:(u.id === 'admin'), quiet:true }).then(function(r){
+      syncAfterApply(r);
+      return r;
+    });
   }
   function syncUsersFromSheet(opts){
     opts = opts || {};
     if(opts.seed) SHEET_SYNC.seed = true;
+    if(opts.quiet) SHEET_SYNC.quiet = true;
     if(SHEET_SYNC.promise) return SHEET_SYNC.promise;
     SHEET_SYNC.state = 'loading';
     SHEET_SYNC.last = Date.now();
@@ -1053,6 +1181,7 @@
     }).then(function(r){
       SHEET_SYNC.promise = null; SHEET_SYNC.seed = false;
       syncStateNote();
+      SHEET_SYNC.quiet = false;
       return r;
     });
     SHEET_SYNC.promise = p;
@@ -1086,18 +1215,20 @@
      6. 세션 · 통합 로그인 상태
      ============================================================ */
   function setSessions(u, keep){
-    var rec = JSON.stringify({ userId:u.id, ts:Date.now() });
+    var rec = JSON.stringify({ userId:u.id, ts:Date.now(), name:(u.name || u.id), role:roleOf(u.id, u.name) });
     ORDER.forEach(function(a){
       jrm(APPS[a].sess); srm(APPS[a].tmp);
       if(keep) jsetRaw(APPS[a].sess, rec); else sset(APPS[a].tmp, rec);
     });
     var portalPath = (location.pathname || '/').replace(/index\.html$/, '');
     jset(P_SSO, {
-      v:1, userId:u.id, name:u.name || u.id, role:roleOf(u.id, u.name), keep:!!keep,
+      v:1, userId:u.id, name:u.name || u.id, role:roleOf(u.id, u.name),
+      apprRole:apprRoleOf(u),
+      keep:!!keep,
       at:Date.now(), exp: Date.now() + (keep ? 30 * 86400000 : 12 * 3600000),
       portal: portalPath || '/'
     });
-    var s = { userId:u.id, ts:Date.now(), keep:!!keep };
+    var s = { userId:u.id, ts:Date.now(), keep:!!keep, name:(u.name || u.id), role:roleOf(u.id, u.name) };
     jrm(P_SESS); srm(P_TMP);
     if(keep) jset(P_SESS, s); else sset(P_TMP, JSON.stringify(s));
   }
@@ -1301,6 +1432,7 @@
     document.documentElement.setAttribute('data-role', 'admin');
     document.body.setAttribute('data-view', 'dash');
     renderDash(u);
+    syncSessionAccount();        /* 열린 화면에서도 시트 계정 이름·권한을 조용히 확인 (60초 스로틀) */
   }
   function renderUsers(){
     var d = portalDoc();
@@ -1315,11 +1447,19 @@
     var html = list.map(function(u){
       var admin = roleOf(u.id, u.name) === 'admin';
       var mine = me && me.id === u.id;
+      var ar = apprRoleOf(u);
       return '<div class="urow' + (mine ? ' me' : '') + '" data-uid="' + esc(u.id) + '">' +
         '<div class="ut"><b>' + esc(u.name || u.id) + '</b>' +
         '<span class="uid">' + esc(u.id) + '</span>' +
         '<span class="tag' + (admin ? '' : ' gray') + '">' + (admin ? '관리자' : '직원') + '</span>' +
-        (mine ? '<span class="tag gray">나</span>' : '') + '</div>' +
+        '<span class="tag appr' + (ar === 'staff' ? ' staff' : '') + '" data-apprbadge="' + esc(u.id) + '">' + esc(APPR_LABEL[ar] || '담당') + '</span>' +
+        (mine ? '<span class="tag gray">나</span>' : '') +
+        (admin ? '' :
+          '<select class="sel" data-appr="' + esc(u.id) + '" aria-label="결재 권한">' +
+          APPR_ROLES.map(function(r){
+            return '<option value="' + r + '"' + (r === ar ? ' selected' : '') + '>' + APPR_LABEL[r] + '</option>';
+          }).join('') + '</select>') +
+        '</div>' +
         (admin ? '' :
           '<div class="acts">' +
           '<button class="btn xs" type="button" data-reset="' + esc(u.id) + '">비밀번호 재설정</button>' +
@@ -1461,11 +1601,44 @@
       toast(r.msg);
     });
     $('#btn-add-user').addEventListener('click', function(){
-      var r = addUser($('#nu-id').value, $('#nu-name').value, $('#nu-pw').value);
+      var r = addUser($('#nu-id').value, $('#nu-name').value, $('#nu-pw').value,
+                      $('#nu-appr') ? $('#nu-appr').value : 'staff');
       if(!r.ok){ toast(r.msg, true); return; }
       $('#nu-id').value = ''; $('#nu-name').value = ''; $('#nu-pw').value = '';
+      if($('#nu-appr')) $('#nu-appr').value = 'staff';
       renderUsers();
       toast((r.user.name || r.user.id) + ' 계정을 추가했습니다 · 초대 링크를 보내세요');
+    });
+    $('#users-list').addEventListener('change', function(e){
+      var sel = e.target.closest('select[data-appr]');
+      if(!sel) return;
+      var r = setUserApprRole(sel.getAttribute('data-appr'), sel.value);
+      toast(r.msg, !r.ok);
+      renderUsers();
+    });
+    /* 이 기기 계정으로 전체 업데이트 — 시트를 이 기기 기준으로 덮어쓴다 (admin 전용, 한 번 더 확인) */
+    $('#btn-push-all').addEventListener('click', function(){
+      var me = currentUser();
+      if(!me || roleOf(me.id, me.name) !== 'admin') return;
+      var b = this;
+      if(b.getAttribute('data-arm') !== '1'){
+        b.setAttribute('data-arm', '1');
+        b.textContent = '정말 이 기기 계정으로 올릴까요? (한 번 더)';
+        setTimeout(function(){ if(b.isConnected){ b.removeAttribute('data-arm'); b.textContent = '☁️ 이 기기 계정으로 전체 업데이트'; } }, 4000);
+        return;
+      }
+      b.removeAttribute('data-arm');
+      b.textContent = '☁️ 이 기기 계정으로 전체 업데이트';
+      var d = portalDoc();
+      d.deletedIds = [];                 /* 이 기기 목록이 기준 — 예전 삭제 표시는 지운다 */
+      savePortal(d);
+      b.disabled = true;
+      pushUsersToSheet({ full:true }).then(function(r){
+        b.disabled = false;
+        renderUsers();
+        toast(r && r.ok ? ('이 기기 계정 ' + portalDoc().users.length + '개로 시트를 맞췄습니다')
+                        : ('시트에 올리지 못했어요 · ' + ((r && r.error) || '연결을 확인해 주세요')), !(r && r.ok));
+      });
     });
     $('#btn-invite-all').addEventListener('click', function(){
       inviteCopy(null, '전체 직원 초대 링크를 복사했습니다');
@@ -1480,6 +1653,11 @@
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape'){ $('#panel-pw').hidden = true; }
     });
+    /* 화면으로 다시 돌아오면 시트 계정 이름·권한을 다시 확인한다 */
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState !== 'visible') return;
+      syncSessionAccount();
+    });
   }
 
   /* ============================================================
@@ -1491,7 +1669,8 @@
     bind();
     renderMenu();
     var u = currentUser();
-    syncUsersFromSheet({ seed: !!(u && u.id === 'admin') }).then(syncAfterApply);
+    if(u) syncSessionAccount();                          /* 로그인된 세션 — 시트 계정을 조용히 한 번 확인 */
+    else syncUsersFromSheet({ seed:false }).then(syncAfterApply);
     if(u){
       openDash();
     }else{
@@ -1524,7 +1703,10 @@
     syncNow: syncUsersFromSheet,
     pushSheet: pushUsersToSheet,
     kcat: function(){ return jget(SYNC_KCAT_KEY, ''); },
-    creds: function(id){ var u = findPortal(id); return u ? { salt:u.salt, hash:u.hash, sheetSalt:u.sheetSalt || '', hashes:u.sheetHashes || null } : null; }
+    creds: function(id){ var u = findPortal(id); return u ? { salt:u.salt, hash:u.hash, sheetSalt:u.sheetSalt || '', hashes:u.sheetHashes || null } : null; },
+    appr: function(id){ var u = findPortal(id); return u ? apprRoleOf(u) : ''; },
+    setAppr: setUserApprRole,
+    acctNow: syncSessionAccount
   };
 })();
 </script>
