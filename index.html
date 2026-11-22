@@ -8,6 +8,16 @@
 <meta name="format-detection" content="telephone=no">
 <title>경덕농수산 · 통합 로그인</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f7b63'/%3E%3Ctext x='32' y='44' font-family='sans-serif' font-size='34' font-weight='700' text-anchor='middle' fill='white'%3E%EA%B2%BD%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="경덕농수산 발주 · 업무일지 · 근태·연차 통합 포털">
+<meta name="application-name" content="경덕농수산">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="경덕농수산">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
   :root{
     --bg:#f1f4f2;
@@ -156,6 +166,11 @@
          opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:80;text-align:center;line-height:1.4}
   .toast.on{opacity:1;transform:translate(-50%,0)}
   .toast.err{background:#8f2f29}
+  /* 앱 설치(PWA) — Edge·Chrome 이 설치를 제안할 때만 보인다 */
+  .installbar{position:fixed;right:14px;bottom:calc(74px + var(--safe-b));z-index:70;height:44px;padding:0 17px;
+             border:0;border-radius:22px;background:var(--brand);color:#fff;font-size:13px;font-weight:800;
+             box-shadow:0 10px 22px rgba(10,90,72,.30);display:inline-flex;align-items:center;gap:7px}
+  .installbar:active{background:var(--brand-dark)}
 
   @media(min-width:600px){
     .menu{grid-template-columns:repeat(3,1fr)}
@@ -339,6 +354,7 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<button class="installbar" id="btn-install" type="button" hidden>⤓ 앱으로 설치</button>
 
 <noscript><p style="padding:20px;text-align:center;font-size:13px">로그인하려면 브라우저에서 자바스크립트를 켜 주세요.</p></noscript>
 
@@ -1857,6 +1873,43 @@
     menusOfAll: function(){ return portalDoc().users.map(function(u){ return { id:u.id, menus:menusOf(u) }; }); },
     acctNow: syncSessionAccount
   };
+})();
+</script>
+
+<!-- ================= PC·휴대폰 앱 설치(PWA) ================= -->
+<script>
+(function(){
+  var PWA = window.__pwa = window.__pwa || {};
+  PWA.standalone = !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+                  || window.navigator.standalone === true;
+
+  /* 1) 서비스워커 — 인터넷이 끊겨도 포털 화면이 뜬다 */
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js', { scope: './' }).then(function(reg){
+        PWA.sw = true;
+        if(reg.update) reg.update().catch(function(){});
+      }).catch(function(){ PWA.sw = false; });
+    });
+    navigator.serviceWorker.ready && navigator.serviceWorker.ready.then(function(){ PWA.swReady = true; }).catch(function(){});
+  }
+
+  /* 2) 설치 버튼 — 브라우저가 설치를 제안할 때만 나타난다 */
+  var deferred = null, btn = document.getElementById('btn-install');
+  function show(on){ if(btn) btn.hidden = !on; }
+  window.addEventListener('beforeinstallprompt', function(e){
+    if(PWA.standalone) return;            /* 이미 앱으로 열려 있으면 권하지 않는다 */
+    e.preventDefault(); deferred = e; show(true);
+  });
+  if(btn) btn.addEventListener('click', function(){
+    if(!deferred){ show(false); return; }
+    var d = deferred;
+    deferred = null; show(false);
+    d.prompt();
+    if(d.userChoice) d.userChoice.then(function(){ PWA.installed = true; }).catch(function(){});
+  });
+  window.addEventListener('appinstalled', function(){ deferred = null; show(false); PWA.installed = true; });
+  PWA.canInstall = function(){ return !!deferred; };
 })();
 </script>
 </body>

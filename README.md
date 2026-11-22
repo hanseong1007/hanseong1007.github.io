@@ -8,8 +8,24 @@
 - 앱 파일: `documents/portal/index.html` (단일 HTML · 외부 라이브러리·서버 없음)
 - 배포 주소: `https://hanseong1007.github.io/` (저장소 `hanseong1007/hanseong1007.github.io`)
 - 세 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` (같은 출처)
-- 검증: `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화)
+- 검증: `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화)
 - 배포: `bash scripts/deploy_portal.sh`
+
+## PC 앱으로 설치 (PWA)
+
+포털은 **PWA**라서 Edge·Chrome에서 한 번만 설치하면 바탕화면·작업표시줄에서 주소창 없는 앱 창으로 열립니다.
+
+| 파일 | 역할 |
+|---|---|
+| `manifest.webmanifest` | 이름 `경덕농수산 통합포털` · `short_name` `경덕농수산` · `start_url`/`scope` `/` · `display` `standalone` · 테마 `#0f7b63` · 아이콘 192·512·maskable |
+| `sw.js` | 서비스워커. **네트워크 우선**이라 항상 최신 포털을 받고, 끊겼을 때만 저장해 둔 화면 → 없으면 `offline.html` |
+| `offline.html` | 오프라인 안내(다시 시도 버튼) |
+| `icons/` | `icon-192` · `icon-512` · `icon-maskable-512` · `apple-touch-icon-180` · `favicon-32` · `kdw-portal.ico`(`python3 scripts/make_portal_icons.py` 로 재생성) |
+
+- 설치: 포털을 연 뒤 주소창 오른쪽 **설치 아이콘**(Edge) 또는 ⋮ 메뉴 → **앱 → 설치**. 포털 화면 오른쪽 아래의 초록 **`⤓ 앱으로 설치`** 버튼도 같은 일을 합니다(브라우저가 설치를 제안할 때만 보입니다).
+- 설치하면 시작 메뉴·바탕화면에 `경덕농수산` 아이콘이 생기고, 더블클릭하면 주소창 없는 창으로 열립니다. 삭제는 아이콘 우클릭 → 제거.
+- 서비스워커는 **포털 화면만** 다룹니다. `/order-app/`·`/worklog-app/`·`/attendance-app/` 요청과 구글 시트 동기화(`script.google.com`)는 손대지 않아 세 앱의 저장·동기화 방식이 그대로입니다. `localStorage`(로그인·암호화 열쇠)도 건드리지 않습니다.
+- 포털을 새로 올리면 다음 접속에 바로 반영됩니다(네트워크 우선). 오프라인일 때만 저장본이 뜨고, 로그인 상태도 유지됩니다.
 
 ## 화면
 
