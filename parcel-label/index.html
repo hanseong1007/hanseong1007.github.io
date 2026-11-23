@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0f766e">
+<title>택배주소출력 · 경덕농수산</title>
+<style>
+:root{
+  --bg:#f1f5f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+  --brand:#0f766e; --brand2:#0d9488; --accent:#f59e0b; --danger:#dc2626;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+[hidden]{display:none !important}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(160deg,#0f766e 0%,#0b3d3a 100%)}
+.gate .card{width:100%;max-width:380px;background:#fff;border-radius:20px;padding:26px 22px 20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.28)}
+.gate h1{margin:0 0 4px;font-size:21px}
+.gate .sub{margin:0 0 18px;color:var(--muted);font-size:13px;line-height:1.5}
+.gate label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px}
+.gate input[type=text],.gate input[type=password]{width:100%;padding:12px 13px;border:1.5px solid var(--line);
+  border-radius:11px;background:#f8fafc;outline:none}
+.gate input:focus{border-color:var(--brand);background:#fff}
+.gate .keep{display:flex;align-items:center;gap:7px;margin:12px 0 4px;font-size:13px;color:#334155}
+.gate .btn{width:100%;margin-top:14px;padding:13px;border:0;border-radius:11px;background:var(--brand);
+  color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+.gate .btn:disabled{opacity:.6}
+.gate .msg{min-height:18px;margin-top:10px;font-size:12.5px;color:var(--danger)}
+.gate .msg.info{color:var(--muted)}
+.gate .foot{margin-top:14px;font-size:11.5px;color:#94a3b8;line-height:1.5}
+
+header{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;
+  padding:9px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  box-shadow:0 2px 10px rgba(15,23,42,.14)}
+header .brand{font-weight:900;font-size:16px;letter-spacing:-.2px;white-space:nowrap}
+header .who{font-size:12px;opacity:.9;white-space:nowrap}
+header .sp{flex:1}
+header .hbtn{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;
+  padding:6px 10px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+header .hbtn:active{background:rgba(255,255,255,.25)}
+header .hbtn.primary{background:#fff;color:var(--brand);border-color:#fff}
+
+.syncbar{padding:5px 14px;font-size:12px;color:#475569;background:#e2e8f0;display:flex;gap:8px;align-items:center}
+.syncbar .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex:none}
+.syncbar.warn{background:#fef3c7;color:#92400e}
+.syncbar.warn .dot{background:var(--accent)}
+.syncbar.err{background:#fee2e2;color:#991b1b}
+.syncbar.err .dot{background:var(--danger)}
+
+main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14px;padding:14px;align-items:start}
+@media (max-width:960px){
+  main{grid-template-columns:1fr;gap:12px;padding:10px}
+  #labelPane{order:-1}
+}
+
+.panel{background:var(--card);border-radius:var(--radius);box-shadow:0 1px 3px rgba(15,23,42,.08);
+  border:1px solid var(--line);overflow:hidden}
+.panel .ph{padding:11px 13px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;
+  background:#f8fafc}
+.panel .ph h2{margin:0;font-size:14px}
+.panel .ph .cnt{font-size:12px;color:var(--muted);font-weight:700}
+.panel .ph .sp{flex:1}
+
+.searchbox{padding:10px 11px;border-bottom:1px solid var(--line);background:#fff}
+.searchbox input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;
+  background:#f8fafc;outline:none;font-size:14px}
+.searchbox input:focus{border-color:var(--brand);background:#fff}
+.searchbox .hint{margin:6px 2px 0;font-size:11.5px;color:#94a3b8}
+
+#list{max-height:calc(100vh - 250px);overflow:auto;overscroll-behavior:contain}
+@media (max-width:960px){#list{max-height:52vh}}
+.row{padding:9px 12px;border-bottom:1px solid #f1f5f9;cursor:pointer;display:block;width:100%;
+  text-align:left;background:none;border-left:0;border-right:0;border-top:0}
+.row:hover{background:#f0fdfa}
+.row.on{background:#ccfbf1;box-shadow:inset 3px 0 0 var(--brand)}
+.row .r1{display:flex;align-items:baseline;gap:7px}
+.row .nm{font-weight:800;font-size:14.5px;letter-spacing:-.2px}
+.row .cd{font-size:11px;color:#94a3b8;font-weight:700;margin-left:auto;flex:none}
+.row .r2{font-size:12px;color:#475569;margin-top:2px}
+.row .r3{font-size:12px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .none{font-size:11.5px;color:#cbd5e1}
+.empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+.more{margin:10px;padding:10px;width:calc(100% - 20px);border:1px dashed var(--line);border-radius:10px;
+  background:#fff;color:var(--brand);font-weight:800;cursor:pointer}
+
+/* ---- 오른쪽: 미리보기 + 입력 ---- */
+.ctrl{padding:11px 13px;border-bottom:1px solid var(--line);display:grid;gap:9px;background:#fff}
+.ctrl .line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl .lb{font-size:12px;font-weight:800;color:#334155;min-width:56px;flex:none;white-space:nowrap}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:9px;overflow:hidden;background:#f8fafc}
+.seg label{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;font-size:12.5px;font-weight:700;
+  color:#475569;cursor:pointer;border-right:1px solid var(--line)}
+.seg label:last-child{border-right:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked + span{color:#fff}
+.seg label:has(input:checked){background:var(--brand)}
+.seg label:has(input:checked) span{color:#fff}
+.seg label.dis{opacity:.4;cursor:not-allowed}
+.ctrl input[type=text]{padding:8px 11px;border:1.5px solid var(--line);border-radius:9px;background:#f8fafc;
+  outline:none;font-size:13.5px;min-width:120px}
+.ctrl input[type=text]:focus{border-color:var(--brand);background:#fff}
+.ctrl input.grow{flex:1}
+.ctrl select{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;background:#f8fafc;font-size:13px}
+.ctrl .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:800;font-size:13.5px;cursor:pointer;
+  background:#e2e8f0;color:#334155}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.primary:active{background:#0b5f59}
+.btn.ghost{background:#fff;border:1.5px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.ctrl .who{font-size:12px;color:var(--muted)}
+.ctrl .who b{color:var(--ink)}
+
+.previewWrap{padding:14px;background:#e2e8f0;display:flex;justify-content:center}
+.scaler{position:relative;overflow:hidden}
+#page{
+  width:297mm;height:210mm;background:#fff;position:relative;
+  padding:12mm 12mm;display:flex;flex-direction:column;justify-content:space-around;
+  transform-origin:top left;box-shadow:0 6px 22px rgba(15,23,42,.18);
+  font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+}
+#page .ln{white-space:nowrap;overflow:hidden;text-align:center;font-weight:800;letter-spacing:-.02em;
+  line-height:1.15;color:#000}
+#page .ln-item{display:flex;align-items:baseline;justify-content:space-between;gap:6mm;text-align:left}
+#page .ln-item .it{white-space:nowrap;overflow:hidden;font-weight:800}
+#page .ln-item .fr{white-space:nowrap;font-weight:800;flex:none}
+#page .ln-name{font-weight:900}
+#page .ln-tel{font-variant-numeric:tabular-nums}
+#page .ph-empty{color:#cbd5e1;font-weight:700}
+.pv-foot{padding:0 14px 12px;font-size:11.5px;color:var(--muted);text-align:center}
+
+/* ---- 모달 ---- */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;
+  justify-content:center;padding:16px;z-index:50}
+.modal .box{background:#fff;border-radius:16px;width:100%;max-width:440px;max-height:92vh;overflow:auto;
+  padding:18px}
+.modal h3{margin:0 0 12px;font-size:16px}
+.modal label{display:block;font-size:11.5px;font-weight:800;color:var(--muted);margin:9px 0 4px}
+.modal input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:#f8fafc;outline:none}
+.modal input:focus{border-color:var(--brand);background:#fff}
+.modal .acts{display:flex;gap:8px;margin-top:16px}
+.modal .acts .sp{flex:1}
+.modal .msg{margin-top:8px;font-size:12px;color:var(--danger);min-height:16px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#0f172a;color:#fff;
+  padding:11px 16px;border-radius:11px;font-size:13px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.3);
+  max-width:92vw;text-align:center}
+
+/* ---- 인쇄: A4 가로 1장, 4줄만 ---- */
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{background:#fff;margin:0;padding:0;width:297mm;height:210mm;overflow:hidden}
+  #gate,header,.syncbar,#listPane,.modal,.toast,#labelPane > .ph,#labelPane > .ctrl,.pv-foot{display:none !important}
+  main{display:block !important;padding:0 !important;margin:0 !important}
+  .panel{border:0 !important;box-shadow:none !important;border-radius:0 !important;overflow:visible !important;background:#fff !important}
+  .previewWrap{padding:0 !important;background:#fff !important;display:block !important}
+  .scaler{width:auto !important;height:auto !important;overflow:visible !important}
+  #page{position:static !important;margin:0 !important;box-shadow:none !important;transform:none !important;
+    page-break-after:avoid;break-after:avoid;page-break-inside:avoid;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 로그인 ================= -->
+<section class="gate" id="gate">
+  <div class="card">
+    <h1>📦 택배주소출력</h1>
+    <p class="sub">경덕농수산 통합포털 계정으로 로그인하면 거래처 목록을 불러옵니다.</p>
+    <label for="lg-id">아이디</label>
+    <input id="lg-id" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="예: 0001">
+    <label for="lg-pw">비밀번호</label>
+    <input id="lg-pw" type="password" autocomplete="current-password" placeholder="포털 비밀번호">
+    <div class="keep"><input type="checkbox" id="lg-keep" checked> <label for="lg-keep" style="margin:0;font-size:13px;color:#334155;font-weight:600">로그인 유지</label></div>
+    <button class="btn" id="lg-btn" type="button">로그인</button>
+    <div class="msg" id="lg-msg"></div>
+    <p class="foot">포털과 같은 아이디·비밀번호입니다. 거래처 이름·전화번호·주소는 이 기기에 암호문으로만 저장됩니다.</p>
+  </div>
+</section>
+
+<!-- ================= 앱 ================= -->
+<div id="app" hidden>
+  <header>
+    <span class="brand">📦 택배주소출력</span>
+    <span class="who" id="hd-who"></span>
+    <span class="sp"></span>
+    <button class="hbtn" id="hd-refresh" type="button">🔄 시트 새로고침</button>
+    <button class="hbtn primary" id="hd-add" type="button">➕ 거래처</button>
+    <button class="hbtn" id="hd-portal" type="button">🏠 포털</button>
+    <button class="hbtn" id="hd-logout" type="button">나가기</button>
+  </header>
+  <div class="syncbar" id="syncbar"><span class="dot"></span><span id="sync-text">준비 중…</span></div>
+
+  <main>
+    <!-- 목록 -->
+    <section class="panel" id="listPane">
+      <div class="ph"><h2>거래처</h2><span class="cnt" id="list-count"></span><span class="sp"></span></div>
+      <div class="searchbox">
+        <input id="q" type="text" placeholder="고객명 · 전화 · 휴대폰 · 주소 · 코드 검색" autocomplete="off" spellcheck="false">
+        <div class="hint">찾은 거래처를 누르면 오른쪽에 택배주소가 만들어집니다</div>
+      </div>
+      <div id="list"></div>
+    </section>
+
+    <!-- 미리보기 -->
+    <section class="panel" id="labelPane">
+      <div class="ph"><h2>택배주소 미리보기</h2><span class="cnt">A4 가로 1장</span><span class="sp"></span>
+        <span class="cnt" id="sel-name"></span></div>
+
+      <div class="ctrl">
+        <div class="line">
+          <span class="lb">연락처</span>
+          <div class="seg" id="seg-contact">
+            <label for="rc-mobile"><input type="radio" name="contact" id="rc-mobile" value="mobile"><span>휴대폰</span></label>
+            <label for="rc-tel"><input type="radio" name="contact" id="rc-tel" value="tel"><span>전화번호</span></label>
+            <label for="rc-custom"><input type="radio" name="contact" id="rc-custom" value="custom"><span>직접</span></label>
+          </div>
+          <input type="text" id="in-contact" class="grow" placeholder="연락처 직접 입력" hidden>
+        </div>
+        <div class="line">
+          <span class="lb">주소</span>
+          <div class="seg" id="seg-addr">
+            <label for="ra-addr"><input type="radio" name="addrkind" id="ra-addr" value="addr"><span>주소</span></label>
+            <label for="ra-biz"><input type="radio" name="addrkind" id="ra-biz" value="biz"><span>사업장주소</span></label>
+            <label for="ra-custom"><input type="radio" name="addrkind" id="ra-custom" value="custom"><span>직접</span></label>
+          </div>
+          <input type="text" id="in-addr" class="grow" placeholder="주소 직접 입력" hidden>
+        </div>
+        <div class="line">
+          <span class="lb">보내는 품목</span>
+          <input type="text" id="in-item" class="grow" placeholder="예: 다시마" autocomplete="off">
+          <select id="sel-freight">
+            <option value="<<착불>>">&lt;&lt;착불&gt;&gt;</option>
+            <option value="<<선불>>">&lt;&lt;선불&gt;&gt;</option>
+            <option value="">표기 없음</option>
+            <option value="__custom">직접 입력</option>
+          </select>
+          <input type="text" id="in-freight" placeholder="운임 직접 입력" hidden style="width:130px">
+        </div>
+        <div class="btnrow">
+          <button class="btn primary" id="btn-print" type="button">🖨 인쇄 / PDF 저장</button>
+          <button class="btn ghost" id="btn-clear" type="button">초기화</button>
+          <button class="btn ghost" id="btn-edit" type="button">✏️ 거래처 수정</button>
+          <span class="who" id="sel-who"></span>
+        </div>
+      </div>
+
+      <div class="previewWrap" id="previewWrap">
+        <div class="scaler" id="scaler">
+          <div id="page">
+            <div class="ln ln-addr" id="ln-addr"><span class="ph-empty">거래처를 선택하세요</span></div>
+            <div class="ln ln-name" id="ln-name"></div>
+            <div class="ln ln-tel" id="ln-tel"></div>
+            <div class="ln ln-item"><span class="it" id="ln-item"></span><span class="fr" id="ln-freight"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pv-foot">긴 주소·상호도 한 장을 넘지 않게 글자 크기를 자동으로 맞춥니다</div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   경덕농수산 · 택배주소출력
+   - 거래처 자료는 구글 시트(Apps Script)에만 있고, 이 화면에는 암호문만 남는다.
+   - 로그인은 통합포털 공용 계정(구글 시트 users_get)과 같은 비밀번호를 쓴다.
+   ============================================================ */
+var PL_URL = 'https://script.google.com/macros/s/AKfycbwzGwzYhYvuH2EJJHUwv8EbuQKlPVsYI8sPkZOdt4Xzvb9gTrkkYjqjqjeorFUSmEYS/exec';
+var SHARED_USERS = 'https://script.google.com/macros/s/AKfycbx8vtZ9wxfqwEUhuIC5hhV5dncN7IbVmrbjbPS93hfibfXAxMpwx-YtCGiqHeZXfEY81Q/exec';
+
+var K_USERS='pl.users.v1', K_SESS='pl.session.v1', K_TMP='pl.session.tmp.v1',
+    K_SSO='kd.portal.sso.v1', K_PORTAL_APPBASE='kd.portal.appbase';
+function kWrap(id){ return 'pl.u.'+id+'.wrap.v1'; }
+function kCache(id){ return 'pl.u.'+id+'.cache.v1'; }
+function kTok(id){ return 'pl.u.'+id+'.tok.v1'; }
+
+/* ---------- SHA-256 (crypto.subtle 없이) ---------- */
+function sha256hex(msg){
+  function rr(x,n){ return (x>>>n)|(x<<(32-n)); }
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var bytes=[],i,c,c2,cp;
+  for(i=0;i<msg.length;i++){
+    c=msg.charCodeAt(i);
+    if(c<0x80) bytes.push(c);
+    else if(c<0x800) bytes.push(0xc0|(c>>6),0x80|(c&63));
+    else if(c<0xd800||c>=0xe000) bytes.push(0xe0|(c>>12),0x80|((c>>6)&63),0x80|(c&63));
+    else { c2=msg.charCodeAt(++i); cp=0x10000+(((c&0x3ff)<<10)|(c2&0x3ff));
+      bytes.push(0xf0|(cp>>18),0x80|((cp>>12)&63),0x80|((cp>>6)&63),0x80|(cp&63)); }
+  }
+  var bl=bytes.length*8, hi=Math.floor(bl/4294967296);
+  bytes.push(0x80);
+  while(bytes.length%64!==56) bytes.push(0);
+  bytes.push((hi>>>24)&255,(hi>>>16)&255,(hi>>>8)&255,hi&255);
+  bytes.push((bl>>>24)&255,(bl>>>16)&255,(bl>>>8)&255,bl&255);
+  var w=new Array(64),t,off;
+  for(off=0;off<bytes.length;off+=64){
+    for(t=0;t<16;t++) w[t]=(bytes[off+t*4]<<24)|(bytes[off+t*4+1]<<16)|(bytes[off+t*4+2]<<8)|bytes[off+t*4+3];
+    for(t=16;t<64;t++){
+      var s0=rr(w[t-15],7)^rr(w[t-15],18)^(w[t-15]>>>3);
+      var s1=rr(w[t-2],17)^rr(w[t-2],19)^(w[t-2]>>>10);
+      w[t]=(w[t-16]+s0+w[t-7]+s1)|0;
+    }
+    var a=H[0],b=H[1],c3=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(t=0;t<64;t++){
+      var S1=rr(e,6)^rr(e,11)^rr(e,25);
+      var ch=(e&f)^((~e)&g);
+      var t1=(h+S1+ch+K[t]+w[t])|0;
+      var S0=rr(a,2)^rr(a,13)^rr(a,22);
+      var mj=(a&b)^(a&c3)^(b&c3);
+      var t2=(S0+mj)|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c3; c3=b; b=a; a=(t1+t2)|0;
+    }
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c3)|0;H[3]=(H[3]+d)|0;
+    H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  return H.map(function(x){ return ('00000000'+(x>>>0).toString(16)).slice(-8); }).join('');
+}
+
+/* ---------- 암호문 (SHA-256 카운터 스트림) ---------- */
+function utf8bin(s){ return unescape(encodeURIComponent(String(s))); }
+function binutf8(b){ return decodeURIComponent(escape(b)); }
+function ksBlock(keyHex,i){ return sha256hex(keyHex+'|'+i); }
+function xorBin(bin,keyHex){
+  var out=[],blk='',i,j,p;
+  for(i=0;i<bin.length;i++){
+    j=i&31;
+    if(j===0) blk=ksBlock(keyHex,i>>5);
+    p=j*2;
+    out.push(String.fromCharCode((bin.charCodeAt(i)&255)^parseInt(blk.substr(p,2),16)));
+  }
+  return out.join('');
+}
+function encObj(obj,keyHex){ return btoa(xorBin(utf8bin(JSON.stringify(obj)),keyHex)); }
+function decObj(ct,keyHex){
+  try{ return JSON.parse(binutf8(xorBin(atob(ct),keyHex))); }catch(e){ return null; }
+}
+function newKey(){
+  var s='';
+  while(s.length<32) s+=Math.floor(Math.random()*16).toString(16);
+  return s.slice(0,32);
+}
+function newSalt(){
+  var s='';
+  while(s.length<16) s+=Math.floor(Math.random()*36).toString(36);
+  return s.slice(0,16)+(Date.now()%100000).toString(36);
+}
+function hpHash(pw,salt){ return sha256hex('p1|'+salt+'|'+String(pw)); }
+function matKey(salt,hash){ return sha256hex('pli1|'+salt+'|'+hash); }
+function normId(v){ return String(v||'').trim().toLowerCase(); }
+
+/* ---------- 저장소 ---------- */
+var LS={
+  get:function(k,d){ try{ var v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set:function(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del:function(k){ try{ localStorage.removeItem(k); }catch(e){} },
+  sget:function(k,d){ try{ var v=sessionStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  sset:function(k,v){ try{ sessionStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  sdel:function(k){ try{ sessionStorage.removeItem(k); }catch(e){} },
+  raw:function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+};
+
+/* ---------- 상태 ---------- */
+var S={ user:null, key:'', token:'', rows:[], view:[], sel:null, shown:0,
+        contact:'mobile', addrkind:'addr', freight:'<<착불>>',
+        cacheAt:'', src:'', busy:false, offline:false, canEdit:false };
+
+function $(q){ return document.querySelector(q); }
+function $$(q){ return Array.prototype.slice.call(document.querySelectorAll(q)); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+var toastTimer=null;
+function toast(msg){
+  var t=$('#toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.hidden=false;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.hidden=true; },2600);
+}
+
+/* ---------- 시트 통신 ---------- */
+function api(payload,timeoutMs){
+  var ms=timeoutMs||25000;
+  if(!PL_URL) return Promise.reject(new Error('시트 주소가 아직 설정되지 않았습니다'));
+  var ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+  var t=setTimeout(function(){ if(ctl) ctl.abort(); }, ms);
+  return fetch(PL_URL,{
+    method:'POST', cache:'no-store', redirect:'follow',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload),
+    signal:ctl?ctl.signal:undefined
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(function(txt){
+    clearTimeout(t);
+    var j=null;
+    try{ j=JSON.parse(txt); }catch(e){ throw new Error('시트 응답을 읽지 못했습니다'); }
+    if(!j || j.ok!==true){
+      var err=new Error((j&&(j.error||j.message))||'시트가 요청을 처리하지 못했습니다');
+      err.needLogin=!!(j&&j.needLogin);
+      throw err;
+    }
+    return j;
+  });
+}
+function sharedUsers(){
+  return fetch(SHARED_USERS+'?action=users_get&_='+Date.now(),{cache:'no-store',redirect:'follow'})
+    .then(function(r){ return r.text(); })
+    .then(function(txt){
+      var j=JSON.parse(txt);
+      var doc=JSON.parse(j.usersJson||'{}');
+      if(!doc||!Array.isArray(doc.users)) throw new Error('계정 목록을 읽지 못했습니다');
+      return doc.users;
+    });
+}
+function saveUsersCache(users){
+  LS.set(K_USERS,{v:1,at:Date.now(),users:users.map(function(u){
+    var hs=u.hashes||{};
+    return { id:u.id, name:u.name||u.id, role:u.role||'user', salt:u.salt||'',
+             hash:hs.portal||u.hash||'', active:u.active!==false };
+  })});
+}
+function localUsers(){ var d=LS.get(K_USERS,null); return (d&&Array.isArray(d.users))?d.users:[]; }
+function findLocal(id){
+  id=normId(id); var u=localUsers();
+  for(var i=0;i<u.length;i++) if(normId(u[i].id)===id) return u[i];
+  return null;
+}
+function isAdmin(u){ return !!u && (u.role==='admin' || normId(u.id)==='admin' || normId(u.id)==='0001' || String(u.name||'').trim()==='박한성'); }
+
+/* ---------- 포털 연동 ---------- */
+function portalSSO(){
+  var s=LS.get(K_SSO,null);
+  if(!s||!s.userId) return null;
+  if(s.exp && Date.now()>s.exp){ LS.del(K_SSO); return null; }
+  return s;
+}
+function portalBase(){
+  var s=portalSSO();
+  if(s&&s.portal) return s.portal;
+  var saved=LS.raw(K_PORTAL_APPBASE);
+  if(saved){ try{ saved=JSON.parse(saved); }catch(e){ saved=String(saved); }
+    if(saved) return saved.slice(-1)==='/'?saved:saved+'/'; }
+  return '../portal/';
+}
+function portalHome(){ var b=portalBase(); return b+(b.indexOf('?')>=0?'&':'?')+'stay=1'; }
+
+/* ---------- 세션 ---------- */
+function setSession(u,keep){
+  var rec={userId:u.id,ts:Date.now(),name:u.name||u.id,role:u.role||'user',keep:!!keep};
+  LS.del(K_SESS); LS.sdel(K_TMP);
+  if(keep) LS.set(K_SESS,rec); else LS.sset(K_TMP,JSON.stringify(rec));
+}
+function getSession(){
+  var s=LS.get(K_SESS,null);
+  if(!s||!s.userId){ var t=LS.sget(K_TMP,null); if(t){ try{ s=typeof t==='string'?JSON.parse(t):t; }catch(e){ s=null; } } }
+  return (s&&s.userId)?s:null;
+}
+function clearSession(){ LS.del(K_SESS); LS.sdel(K_TMP); }
+
+/* ---------- 열쇠 ---------- */
+function ensureKey(u){
+  var W=LS.get(kWrap(u.id),null);
+  if(W&&W.salt&&W.ct){
+    var k='';
+    try{ k=xorBin(atob(W.ct),matKey(W.salt,u.hash)); }catch(e){ k=''; }
+    if(/^[0-9a-f]{32}$/.test(k)) return k;
+  }
+  var nk=newKey();
+  LS.set(kWrap(u.id),{v:1,salt:u.salt,ct:btoa(xorBin(nk,matKey(u.salt,u.hash)))});
+  return nk;
+}
+
+/* ---------- 거래처 ---------- */
+function rowsFromSheet(rows){
+  var out=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    out.push({code:String(r[0]||''),name:String(r[1]||''),tel:String(r[2]||''),
+              mobile:String(r[3]||''),addr:String(r[4]||''),biz:String(r[5]||'')});
+  }
+  return out;
+}
+function saveCache(){
+  if(!S.user||!S.key) return;
+  try{ LS.set(kCache(S.user.id),{v:1,at:Date.now(),n:S.rows.length,ct:encObj(S.rows,S.key)}); }catch(e){}
+}
+function loadCache(){
+  if(!S.user||!S.key) return [];
+  var c=LS.get(kCache(S.user.id),null);
+  if(!c||!c.ct) return [];
+  var arr=decObj(c.ct,S.key);
+  if(!Array.isArray(arr)) return [];
+  S.cacheAt=c.at||'';
+  return rowsFromSheet(arr.map(function(r){ return [r.code,r.name,r.tel,r.mobile,r.addr,r.biz]; }));
+}
+
+function fetchAll(token){
+  var all=[],page=1,pages=1,size=900,guard=0;
+  function step(){
+    if(page>pages||guard++>12) return Promise.resolve(all);
+    return api({action:'list',id:S.user.id,token:token,page:page,size:size}).then(function(j){
+      pages=j.pages||1;
+      var part=rowsFromSheet(j.rows||[]);
+      for(var i=0;i<part.length;i++) all.push(part[i]);
+      page++;
+      setSync('불러오는 중… '+all.length+' / '+(j.total||all.length));
+      return step();
+    });
+  }
+  return step();
+}
+
+function setSync(text,kind){
+  var bar=$('#syncbar'); if(!bar) return;
+  $('#sync-text').textContent=text;
+  bar.className='syncbar'+(kind?(' '+kind):'');
+}
+
+/* ---------- 검색 ---------- */
+function norm(s){ return String(s==null?'':s).toLowerCase().replace(/[\s\-\.\(\)\[\]]/g,''); }
+function applyFilter(){
+  var q=$('#q').value.trim();
+  var toks=q.split(/\s+/).filter(Boolean).map(norm);
+  var out=[];
+  for(var i=0;i<S.rows.length;i++){
+    var r=S.rows[i];
+    if(!toks.length){ out.push(r); if(out.length>=3000) break; continue; }
+    var hay=norm(r.name)+'|'+norm(r.code)+'|'+norm(r.tel)+'|'+norm(r.mobile)+'|'+norm(r.addr)+'|'+norm(r.biz);
+    var ok=true;
+    for(var t=0;t<toks.length;t++){ if(hay.indexOf(toks[t])<0){ ok=false; break; } }
+    if(ok){ out.push(r); if(out.length>=3000) break; }
+  }
+  S.view=out;
+  S.shown=Math.min(out.length,300);
+  renderList();
+  $('#list-count').textContent=S.rows.length? (out.length===S.rows.length? S.rows.length.toLocaleString()+'곳' : out.length.toLocaleString()+'곳 / '+S.rows.length.toLocaleString()) : '';
+}
+function rowHtml(r,on){
+  var tel=[];
+  if(r.tel) tel.push('☎ '+esc(r.tel));
+  if(r.mobile) tel.push('📱 '+esc(r.mobile));
+  var addr=r.addr||r.biz;
+  return '<button type="button" class="row'+(on?' on':'')+'" data-code="'+esc(r.code)+'">'
+    + '<div class="r1"><span class="nm">'+esc(r.name||'(이름 없음)')+'</span><span class="cd">'+esc(r.code)+'</span></div>'
+    + (tel.length? '<div class="r2">'+tel.join(' <span style="color:#cbd5e1">·</span> ')+'</div>' : '<div class="r2 none">연락처 없음</div>')
+    + (addr? '<div class="r3">'+esc(addr)+'</div>' : '<div class="r3 none">주소 없음</div>')
+    + '</button>';
+}
+function renderList(){
+  var box=$('#list');
+  if(!S.rows.length){
+    box.innerHTML='<div class="empty">거래처 목록이 비어 있습니다.<br>위의 <b>🔄 시트 새로고침</b>을 눌러 보세요.</div>';
+    return;
+  }
+  if(!S.view.length){
+    box.innerHTML='<div class="empty">찾는 거래처가 없습니다.<br>이름의 일부나 전화번호 뒤 4자리로도 찾아집니다.</div>';
+    return;
+  }
+  var html=[],i;
+  for(i=0;i<S.shown;i++) html.push(rowHtml(S.view[i], S.sel&&S.sel.code===S.view[i].code));
+  if(S.view.length>S.shown){
+    html.push('<button type="button" class="more" id="btn-more">'+(S.view.length-S.shown)+'곳 더 보기</button>');
+  }
+  box.innerHTML=html.join('');
+}
+
+/* ---------- 선택 · 미리보기 ---------- */
+function pickValue(kind){
+  if(!S.sel) return '';
+  if(kind==='mobile') return S.sel.mobile||'';
+  if(kind==='tel') return S.sel.tel||'';
+  if(kind==='addr') return S.sel.addr||'';
+  if(kind==='biz') return S.sel.biz||'';
+  return '';
+}
+function selectRow(code){
+  var r=null;
+  for(var i=0;i<S.rows.length;i++){ if(S.rows[i].code===code){ r=S.rows[i]; break; } }
+  if(!r) return;
+  S.sel=r;
+  /* 연락처: 값이 있는 쪽을 자동으로 (휴대폰 우선) */
+  if(r.mobile) S.contact='mobile';
+  else if(r.tel) S.contact='tel';
+  else S.contact='custom';
+  /* 주소: 값이 있는 쪽을 자동으로 */
+  if(r.addr) S.addrkind='addr';
+  else if(r.biz) S.addrkind='biz';
+  else S.addrkind='custom';
+  $('#rc-mobile').checked=S.contact==='mobile';
+  $('#rc-tel').checked=S.contact==='tel';
+  $('#rc-custom').checked=S.contact==='custom';
+  $('#ra-addr').checked=S.addrkind==='addr';
+  $('#ra-biz').checked=S.addrkind==='biz';
+  $('#ra-custom').checked=S.addrkind==='custom';
+  $('#in-contact').value=(S.contact==='custom')?'':pickValue(S.contact);
+  $('#in-addr').value=(S.addrkind==='custom')?'':pickValue(S.addrkind);
+  $('#in-contact').hidden=(S.contact!=='custom');
+  $('#in-addr').hidden=(S.addrkind!=='custom');
+  $('#sel-name').textContent=r.name||'';
+  $('#sel-who').textContent='';
+  renderList();
+  renderPreview();
+}
+function contactText(){
+  if(S.contact==='custom') return $('#in-contact').value.trim();
+  return pickValue(S.contact);
+}
+function addrText(){
+  if(S.addrkind==='custom') return $('#in-addr').value.trim();
+  return pickValue(S.addrkind);
+}
+function freightText(){
+  if(S.freight==='__custom') return $('#in-freight').value.trim();
+  return S.freight||'';
+}
+function fitLine(el,maxMm,minMm){
+  var lo=minMm||5, hi=maxMm||26, mid, i;
+  for(i=0;i<18;i++){
+    mid=(lo+hi)/2;
+    el.style.fontSize=mid+'mm';
+    if(el.scrollWidth>el.clientWidth+1) hi=mid; else lo=mid;
+  }
+  el.style.fontSize=lo.toFixed(2)+'mm';
+}
+function renderPreview(){
+  var a=$('#ln-addr'), n=$('#ln-name'), t=$('#ln-tel'), it=$('#ln-item'), fr=$('#ln-freight');
+  var addr=S.sel?addrText():'';
+  var name=S.sel?S.sel.name:'';
+  var tel=S.sel?contactText():'';
+  var item=$('#in-item').value.trim();
+  var frt=freightText();
+
+  a.innerHTML = addr?esc(addr):'<span class="ph-empty">'+(S.sel?'주소를 직접 입력하세요':'거래처를 선택하세요')+'</span>';
+  n.textContent = name;
+  t.textContent = tel;
+  it.textContent = item||'';
+  fr.textContent = frt;
+  fr.hidden = !frt;
+
+  /* 크기: 주소·상호·연락처는 한 줄에 꽉 차게, 품목 줄은 품목+운임이 같이 들어가게 */
+  if(!addr) a.style.fontSize='10mm'; else fitLine(a,24,6);
+  if(!name) n.style.fontSize='10mm'; else fitLine(n,30,8);
+  if(!tel) t.style.fontSize='10mm'; else fitLine(t,26,8);
+  /* 품목 줄: 운임 폭을 뺀 나머지 안에서 맞춘다 (아주 긴 품목명도 잘리지 않게 끝까지 줄인다) */
+  var lineW=it.parentNode.clientWidth;
+  fr.style.fontSize='13mm';
+  var frW=fr.hidden?0:fr.scrollWidth;
+  var avail=Math.max(40,lineW-frW-6);
+  var lo=2.5,hi=24,mid,i;
+  for(i=0;i<20;i++){
+    mid=(lo+hi)/2;
+    it.style.fontSize=mid+'mm';
+    if(it.scrollWidth>avail) hi=mid; else lo=mid;
+  }
+  it.style.fontSize=lo.toFixed(2)+'mm';
+  if(fr.hidden){ fr.style.fontSize='13mm'; }
+  else {
+    var fl=2.5,fh=20,fm,k,favail=Math.max(30,lineW-it.scrollWidth-6);
+    for(k=0;k<20;k++){ fm=(fl+fh)/2; fr.style.fontSize=fm+'mm';
+      if(fr.scrollWidth>favail) fh=fm; else fl=fm; }
+    fr.style.fontSize=fl.toFixed(2)+'mm';
+  }
+}
+
+/* ---------- 화면 맞춤 ---------- */
+function fitPreview(){
+  var wrap=$('#previewWrap'), sc=$('#scaler'), page=$('#page');
+  var availW=wrap.clientWidth-28;
+  var top=wrap.getBoundingClientRect().top;
+  var availH=window.innerHeight-top-70;
+  var w=page.offsetWidth||1122, h=page.offsetHeight||794;   /* 297×210mm @ 96dpi */
+  var k=Math.min(1, availW/w, Math.max(0.25, availH/h));
+  sc.style.width=(w*k)+'px';
+  sc.style.height=(h*k)+'px';
+  page.style.transform='scale('+k+')';
+  renderPreview();
+}
+
+/* ---------- 목록 불러오기 ---------- */
+function sheetLogin(id,pw){
+  return api({action:'login',id:id,pw:pw}).then(function(j){
+    S.token=j.token; S.exp=j.exp;
+    LS.set(kTok(S.user.id),{v:1,token:j.token,exp:j.exp});
+    return j;
+  });
+}
+function loadRows(){
+  var cached=loadCache();
+  if(cached.length){ S.rows=cached; S.src='cache'; applyFilter(); }
+  var tok=S.token;
+  if(!tok){
+    var t=LS.get(kTok(S.user.id),null);
+    if(t&&t.token&&t.exp>Date.now()) tok=t.token;
+  }
+  if(!tok){ setSync('시트 로그인이 필요합니다 · 아래 🔄 새로고침을 눌러 다시 로그인하세요','warn'); return Promise.resolve(); }
+  S.token=tok;
+  setSync('시트에서 거래처 목록을 불러오는 중…');
+  return fetchAll(tok).then(function(rows){
+    if(!rows.length){ setSync('시트에서 받은 자료가 없습니다','warn'); return; }
+    S.rows=rows; S.src='sheet';
+    saveCache();
+    S.sel=null;
+    applyFilter();
+    var at=new Date();
+    setSync('구글 시트 연동 · '+rows.length.toLocaleString()+'곳 · '+at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준');
+  }).catch(function(e){
+    if(e&&e.needLogin&&S.user){ setSync('시트 로그인이 만료되었습니다 · 🔄 새로고침으로 다시 연결하세요','warn'); return; }
+    if(cached.length){
+      setSync('시트 연결 실패 — 이 기기에 저장된 목록으로 표시 중 ('+cached.length.toLocaleString()+'곳)','warn');
+    } else {
+      setSync('시트에 연결하지 못했습니다 · '+e.message,'err');
+    }
+  });
+}
+
+/* ---------- 로그인 ---------- */
+function setLoginMsg(t,info){
+  var m=$('#lg-msg');
+  m.textContent=t||'';
+  m.className='msg'+(info?' info':'');
+}
+function doLogin(){
+  if(S.busy) return;
+  var id=$('#lg-id').value.trim(), pw=$('#lg-pw').value, keep=$('#lg-keep').checked;
+  if(!id||!pw){ setLoginMsg('아이디와 비밀번호를 넣어 주세요'); return; }
+
+  /* 이 기기에 저장된 계정으로 먼저 확인 — 맞으면 바로 들어간다(시트는 뒤에서 확인) */
+  var fast=findLocal(id);
+  if(fast&&fast.hash&&fast.salt&&fast.active!==false&&hpHash(pw,fast.salt)===fast.hash){
+    enterApp(fast,pw,keep);
+    return;
+  }
+  S.busy=true; $('#lg-btn').disabled=true;
+  setLoginMsg('확인 중…',true);
+
+  function afterUsers(users){
+    saveUsersCache(users);
+    var u=findLocal(id);
+    if(!u){ S.busy=false; $('#lg-btn').disabled=false; setLoginMsg('등록되지 않은 아이디입니다'); return; }
+    if(u.active===false){ S.busy=false; $('#lg-btn').disabled=false; setLoginMsg('사용이 중지된 계정입니다'); return; }
+    if(!u.hash){ S.busy=false; $('#lg-btn').disabled=false; setLoginMsg('통합포털에서 한 번 로그인해 비밀번호를 등록해 주세요'); return; }
+    if(hpHash(pw,u.salt)!==u.hash){ S.busy=false; $('#lg-btn').disabled=false; setLoginMsg('비밀번호가 맞지 않습니다'); $('#lg-pw').value=''; $('#lg-pw').focus(); return; }
+    enterApp(u,pw,keep);
+  }
+  sharedUsers().then(afterUsers).catch(function(e){
+    var u=findLocal(id);
+    if(u&&u.hash&&hpHash(pw,u.salt)===u.hash){ enterApp(u,pw,keep); }
+    else { S.busy=false; $('#lg-btn').disabled=false; setLoginMsg('계정을 확인하지 못했습니다 · '+e.message); }
+  });
+}
+function enterApp(u,pw,keep){
+  S.user={id:u.id,name:u.name||u.id,role:u.role||'user',salt:u.salt,hash:u.hash};
+  sharedUsers().then(saveUsersCache).catch(function(){});   /* 계정 목록은 뒤에서 조용히 최신으로 */
+  S.canEdit=true;
+  S.key=ensureKey(u);
+  setSession(S.user,keep!==false);
+  $('#gate').hidden=true; $('#app').hidden=false;
+  $('#hd-who').textContent=(S.user.name||S.user.id)+' 님';
+  setSync('시트에 로그인하는 중…');
+  var chain=Promise.resolve();
+  if(pw) chain=sheetLogin(u.id,pw).catch(function(e){ setSync('시트 로그인 실패 · '+e.message,'warn'); });
+  chain.then(function(){ S.busy=false; return loadRows(); }).then(function(){
+    if(!S.rows.length) setSync('거래처 목록이 비어 있습니다','warn');
+    $('#q').focus();
+  });
+  fitPreview();
+}
+function trySSO(){
+  var s=portalSSO();
+  if(!s||!s.userId) return false;
+  var u=findLocal(s.userId);
+  if(!u||!u.hash) return false;
+  S.user={id:u.id,name:u.name||u.id,role:u.role||'user',salt:u.salt,hash:u.hash};
+  S.key=ensureKey(u);
+  setSession(S.user,true);
+  $('#gate').hidden=true; $('#app').hidden=false;
+  $('#hd-who').textContent=(S.user.name||S.user.id)+' 님';
+  var t=LS.get(kTok(u.id),null);
+  if(t&&t.token&&t.exp>Date.now()) S.token=t.token;
+  setSync('포털 로그인으로 들어왔습니다');
+  $('.syncbar').classList.add('warn');
+  $('#sync-text').textContent='포털 로그인으로 들어왔습니다 · 시트는 아래 🔄 새로고침을 누르면 갱신됩니다';
+  var cached=loadCache();
+  if(cached.length){ S.rows=cached; S.src='cache'; applyFilter(); }
+  fitPreview();
+  if(S.token) loadRows();
+  else toast('거래처 자료를 새로 받으려면 🔄 시트 새로고침을 누르세요');
+  return true;
+}
+function logout(){
+  clearSession();
+  LS.del(K_SSO);
+  try{ localStorage.removeItem('kd.portal.session.v1'); sessionStorage.removeItem('kd.portal.session.tmp.v1'); }catch(e){}
+  location.reload();
+}
+
+/* ---------- 시트 다시 연결 (토큰 없음/만료) ---------- */
+function askSheetLogin(){
+  if(document.getElementById('reLogin')) return;
+  var m=document.createElement('div');
+  m.className='modal'; m.id='reLogin';
+  m.innerHTML='<div class="box"><h3>시트 다시 연결</h3>'
+    +'<p style="margin:0 0 4px;color:#64748b;font-size:12.5px">거래처를 시트에서 새로 받으려면 비밀번호를 한 번 더 넣어 주세요.</p>'
+    +'<label>아이디</label><input id="rl-id" type="text" value="'+esc(S.user?S.user.id:'')+'">'
+    +'<label>비밀번호</label><input id="rl-pw" type="password">'
+    +'<div class="msg" id="rl-msg"></div>'
+    +'<div class="acts"><span class="sp"></span><button class="btn ghost" id="rl-cancel" type="button">닫기</button>'
+    +'<button class="btn primary" id="rl-ok" type="button">연결</button></div></div>';
+  document.body.appendChild(m);
+  $('#rl-pw').focus();
+  function close(){ m.remove(); }
+  $('#rl-cancel').onclick=close;
+  m.addEventListener('click',function(e){ if(e.target===m) close(); });
+  $('#rl-pw').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#rl-ok').click(); });
+  $('#rl-ok').onclick=function(){
+    var id=$('#rl-id').value.trim(), pw=$('#rl-pw').value;
+    if(!id||!pw){ $('#rl-msg').textContent='아이디와 비밀번호를 넣어 주세요'; return; }
+    this.disabled=true; $('#rl-msg').textContent='연결 중…';
+    api({action:'login',id:id,pw:pw}).then(function(j){
+      S.token=j.token;
+      LS.set(kTok(S.user.id),{v:1,token:j.token,exp:j.exp});
+      close(); loadRows();
+    }).catch(function(e){ $('#rl-ok').disabled=false; $('#rl-msg').textContent='연결하지 못했습니다 · '+e.message; });
+  };
+}
+
+/* ---------- 거래처 편집 ---------- */
+function openEditor(row){
+  var isNew=!row;
+  var m=document.createElement('div');
+  m.className='modal'; m.id='editModal';
+  m.innerHTML='<div class="box"><h3>'+(isNew?'거래처 추가':'거래처 수정')+'</h3>'
+    +'<label>고객명 *</label><input id="ed-name" type="text" value="'+esc(row?row.name:'')+'">'
+    +'<label>코드 (비우면 자동)</label><input id="ed-code" type="text" value="'+esc(row?row.code:'')+'">'
+    +'<label>전화번호</label><input id="ed-tel" type="text" value="'+esc(row?row.tel:'')+'">'
+    +'<label>휴대폰</label><input id="ed-mobile" type="text" value="'+esc(row?row.mobile:'')+'">'
+    +'<label>주소</label><input id="ed-addr" type="text" value="'+esc(row?row.addr:'')+'">'
+    +'<label>사업장주소</label><input id="ed-biz" type="text" value="'+esc(row?row.biz:'')+'">'
+    +'<div class="msg" id="ed-msg"></div>'
+    +'<div class="acts">'
+    +(isNew?'' :'<button class="btn" id="ed-del" type="button" style="background:#fee2e2;color:#b91c1c">삭제</button>')
+    +'<span class="sp"></span><button class="btn ghost" id="ed-cancel" type="button">닫기</button>'
+    +'<button class="btn primary" id="ed-save" type="button">시트에 저장</button></div></div>';
+  document.body.appendChild(m);
+  $('#ed-name').focus();
+  function close(){ m.remove(); }
+  $('#ed-cancel').onclick=close;
+  m.addEventListener('click',function(e){ if(e.target===m) close(); });
+  $('#ed-save').onclick=function(){
+    var row2={ code:$('#ed-code').value.trim(), name:$('#ed-name').value.trim(),
+      tel:$('#ed-tel').value.trim(), mobile:$('#ed-mobile').value.trim(),
+      addr:$('#ed-addr').value.trim(), biz:$('#ed-biz').value.trim() };
+    if(!row2.name && !row2.code){ $('#ed-msg').textContent='고객명을 넣어 주세요'; return; }
+    var btn=this; btn.disabled=true; $('#ed-msg').textContent='저장 중…';
+    api({action:'save',id:S.user.id,token:S.token,row:row2}).then(function(j){
+      var saved=j.saved;
+      var idx=-1;
+      for(var i=0;i<S.rows.length;i++) if(S.rows[i].code===saved.code){ idx=i; break; }
+      if(idx>=0) S.rows[idx]=saved; else S.rows.unshift(saved);
+      saveCache(); applyFilter(); selectRow(saved.code);
+      close(); toast(isNew?'거래처를 추가했습니다':'거래처를 저장했습니다');
+    }).catch(function(e){
+      btn.disabled=false; $('#ed-msg').textContent='저장하지 못했습니다 · '+e.message;
+    });
+  };
+  var del=$('#ed-del');
+  if(del) del.onclick=function(){
+    if(!isAdmin(S.user)){ $('#ed-msg').textContent='삭제는 관리자만 할 수 있습니다'; return; }
+    if(!confirm('['+(row.code||'')+'] '+(row.name||'')+' 거래처를 시트에서 지울까요?')) return;
+    del.disabled=true;
+    api({action:'del',id:S.user.id,token:S.token,code:row.code}).then(function(){
+      var out=[];
+      for(var i=0;i<S.rows.length;i++) if(S.rows[i].code!==row.code) out.push(S.rows[i]);
+      S.rows=out; if(S.sel&&S.sel.code===row.code) S.sel=null;
+      saveCache(); applyFilter(); renderPreview(); close(); toast('거래처를 지웠습니다');
+    }).catch(function(e){ del.disabled=false; $('#ed-msg').textContent='지우지 못했습니다 · '+e.message; });
+  };
+}
+
+/* ---------- 이벤트 ---------- */
+function wire(){
+  $('#lg-btn').onclick=doLogin;
+  $('#lg-pw').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+  $('#lg-id').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#lg-pw').focus(); });
+
+  $('#q').addEventListener('input',applyFilter);
+  $('#q').addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&S.view.length){ selectRow(S.view[0].code); }
+    else if(e.key==='ArrowDown'&&S.view.length){ selectRow(S.view[0].code); $('#list').focus(); }
+  });
+  $('#list').addEventListener('click',function(e){
+    var more=e.target.closest('#btn-more');
+    if(more){ S.shown=Math.min(S.view.length,S.shown+300); renderList(); return; }
+    var row=e.target.closest('.row');
+    if(row&&row.dataset.code!=null){ selectRow(row.dataset.code); }
+  });
+  ['rc-mobile','rc-tel','rc-custom'].forEach(function(id){
+    $('#'+id).addEventListener('change',function(){
+      S.contact=this.value;
+      $('#in-contact').hidden=(S.contact!=='custom');
+      if(S.contact!=='custom') $('#in-contact').value=pickValue(S.contact);
+      renderPreview();
+    });
+  });
+  ['ra-addr','ra-biz','ra-custom'].forEach(function(id){
+    $('#'+id).addEventListener('change',function(){
+      S.addrkind=this.value;
+      $('#in-addr').hidden=(S.addrkind!=='custom');
+      if(S.addrkind!=='custom') $('#in-addr').value=pickValue(S.addrkind);
+      renderPreview();
+    });
+  });
+  $('#in-contact').addEventListener('input',renderPreview);
+  $('#in-addr').addEventListener('input',renderPreview);
+  $('#in-item').addEventListener('input',renderPreview);
+  $('#sel-freight').addEventListener('change',function(){
+    S.freight=this.value;
+    $('#in-freight').hidden=(this.value!=='__custom');
+    if(this.value==='__custom') $('#in-freight').focus();
+    renderPreview();
+  });
+  $('#in-freight').addEventListener('input',renderPreview);
+  $('#btn-print').onclick=function(){
+    if(!S.sel&&!$('#in-addr').value.trim()&&!$('#ln-addr').textContent.trim()){ toast('먼저 거래처를 선택하세요'); return; }
+    renderPreview();
+    setTimeout(function(){ window.print(); },60);
+  };
+  $('#btn-clear').onclick=function(){
+    S.sel=null; S.contact='mobile'; S.addrkind='addr';
+    $('#in-contact').value=''; $('#in-addr').value=''; $('#in-item').value='';
+    $('#in-contact').hidden=true; $('#in-addr').hidden=true;
+    $('#sel-freight').value='<<착불>>'; S.freight='<<착불>>'; $('#in-freight').hidden=true;
+    $('#sel-name').textContent='';
+    renderList(); renderPreview();
+  };
+  $('#btn-edit').onclick=function(){ if(S.sel) openEditor(S.sel); else toast('수정할 거래처를 먼저 선택하세요'); };
+  $('#hd-add').onclick=function(){ openEditor(null); };
+  $('#hd-refresh').onclick=function(){
+    if(!S.user) return;
+    if(!S.token){ askSheetLogin(); return; }
+    loadRows();
+  };
+  $('#hd-portal').onclick=function(){ location.href=portalHome(); };
+  $('#hd-logout').onclick=function(){ if(confirm('로그아웃할까요?')) logout(); };
+  window.addEventListener('resize',function(){ fitPreview(); });
+  window.addEventListener('beforeprint',renderPreview);
+}
+
+/* ---------- 시작 ---------- */
+function boot(){
+  wire();
+  if(trySSO()) return;
+  var s=getSession();
+  if(s&&s.userId){
+    var u=findLocal(s.userId);
+    if(u&&u.hash){
+      S.user={id:u.id,name:u.name||u.id,role:u.role||'user',salt:u.salt,hash:u.hash};
+      S.key=ensureKey(u);
+      $('#gate').hidden=true; $('#app').hidden=false;
+      $('#hd-who').textContent=(S.user.name||S.user.id)+' 님';
+      var t=LS.get(kTok(u.id),null);
+      if(t&&t.token&&t.exp>Date.now()){ S.token=t.token; }
+      fitPreview();
+      loadRows();
+      return;
+    }
+  }
+  $('#gate').hidden=false;
+  $('#lg-id').focus();
+  if(!localUsers().length){
+    sharedUsers().then(saveUsersCache).catch(function(){});
+  }
+}
+
+/* 포털 화면(iframe 아님)에서 바로 열 때도 동작하도록 */
+window.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>

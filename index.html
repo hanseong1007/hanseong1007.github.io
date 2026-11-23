@@ -173,8 +173,8 @@
   .installbar:active{background:var(--brand-dark)}
 
   @media(min-width:600px){
-    .menu{grid-template-columns:repeat(3,1fr)}
-    .mcard{flex-direction:column;align-items:flex-start;gap:9px;min-height:132px;padding:16px}
+    .menu{grid-template-columns:repeat(2,1fr)}
+    .mcard{flex-direction:column;align-items:flex-start;gap:9px;min-height:124px;padding:16px}
     .mcard .tx span{white-space:normal}
     .mcard .ar{display:none}
   }
@@ -257,6 +257,11 @@
         <span class="tx"><b>근태 · 연차</b><span>출퇴근 · 연차 관리</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
+      <a class="mcard" id="menu-parcel" href="./parcel-label/" data-app="pl">
+        <span class="em" aria-hidden="true">🚚</span>
+        <span class="tx"><b>택배주소출력</b><span>거래처 택배주소 · A4 인쇄</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
     </nav>
     <p id="menu-none" hidden>접근 가능한 메뉴가 없습니다.<br>관리자에게 문의하세요.
       <span>관리자가 사용자 관리에서 이 계정의 메뉴를 지정하면 열립니다.</span></p>
@@ -325,6 +330,7 @@
           <label class="mopt"><input type="checkbox" value="order" checked> <span>발주화면</span></label>
           <label class="mopt"><input type="checkbox" value="worklog"> <span>업무일지</span></label>
           <label class="mopt"><input type="checkbox" value="attendance"> <span>근태·연차</span></label>
+          <label class="mopt"><input type="checkbox" value="parcel"> <span>택배주소출력</span></label>
         </div>
         <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
           admin·박한성 계정은 전체 메뉴 고정입니다.</p>
@@ -493,7 +499,11 @@
            wrap:'kdw.u.%s.seed.v1', wrapPw:'kdw.u.%s.seed.pw.v1', adminName:'박한성' },
     att: { label:'근태', dir:'attendance-app', users:'att.users.v1', sess:'att.session.v1', tmp:'att.session.tmp.v1',
            noseed:'att.noadmin.v1', hp:'att1|', mk:'atti1|', pp:'attw1|',
-           wrap:'att.u.%s.seedwrap.v1', wrapPw:'att.u.%s.seedwrap.pw.v1', adminName:'관리자' }
+           wrap:'att.u.%s.seedwrap.v1', wrapPw:'att.u.%s.seedwrap.pw.v1', adminName:'관리자' },
+    /* 택배주소출력 — 포털 계정(p1) 그대로 쓰고, 앱 안에서 자기 열쇠를 만든다 */
+    pl:  { label:'택배주소출력', dir:'parcel-label', users:'pl.users.v1', sess:'pl.session.v1', tmp:'pl.session.tmp.v1',
+           noseed:'pl.noadmin.v1', hp:'p1|', mk:'pli1|', pp:'plw1|',
+           wrap:'', wrapPw:'', adminName:'관리자' }
   };
   var ORDER = ['kd', 'kdw', 'att'];
   var P_USERS = 'kd.portal.users.v1';
@@ -544,9 +554,9 @@
      admin · 이름 '박한성' 계정은 전체 메뉴 고정,
      예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
      ============================================================ */
-  var MENU_KEYS = ['order', 'worklog', 'attendance'];
-  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차' };
-  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att' };
+  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력' };
+  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl' };
   function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
   function normMenus(list){
     if(!Array.isArray(list)) return null;
@@ -1525,6 +1535,7 @@
     $('#menu-order').href = appUrl('kd');
     $('#menu-worklog').href = appUrl('kdw');
     $('#menu-attendance').href = appUrl('att');
+    if($('#menu-parcel')) $('#menu-parcel').href = appUrl('pl');
     /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
     var ms = u ? menusOf(u) : MENU_KEYS.slice();
     MENU_KEYS.forEach(function(k){
