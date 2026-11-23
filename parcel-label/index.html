@@ -6,6 +6,12 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0f766e">
 <title>택배주소출력 · 경덕농수산</title>
+<!-- 서식 조절용 한글 글꼴 (없으면 시스템 글꼴로 대체) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 화면 첫 출력을 막지 않도록 비동기로 받는다(못 받으면 시스템 글꼴로 대신 인쇄) -->
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&display=swap"
+      rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{
   --bg:#f1f5f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
@@ -138,6 +144,32 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
 #page .ph-empty{color:#cbd5e1;font-weight:700}
 .pv-foot{padding:0 14px 12px;font-size:11.5px;color:var(--muted);text-align:center}
 
+/* ---- 서식 조절 바 ---- */
+.fmtbar{border:1.5px solid var(--line);border-radius:11px;background:#f8fafc;overflow:hidden}
+.fmtbar .fh{display:flex;align-items:center;gap:7px;width:100%;padding:8px 10px;border:0;background:#f1f5f9;
+  cursor:pointer;text-align:left;font-family:inherit}
+.fmtbar .fh b{font-size:12.5px;color:#334155;white-space:nowrap}
+.fmtbar .fh .fsum{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--brand);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmtbar .fh .caret{font-size:11px;color:var(--muted);flex:none}
+.fmtbar .fb{padding:9px 10px 10px;background:#fff;border-top:1px solid var(--line);display:grid;gap:8px}
+.fmtbar .frow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fmtbar .frow .lb{min-width:auto}
+.fmtbar .frow select{flex:1;min-width:130px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:6px 12px}
+.fitem{display:flex;align-items:center;gap:5px;min-width:0}
+.fitem .fn{font-size:11.5px;font-weight:800;color:#334155;min-width:36px;flex:none;white-space:nowrap}
+.stp{width:25px;height:25px;flex:none;padding:0;border:1.5px solid var(--line);border-radius:7px;
+  background:#fff;color:#334155;font-size:14px;font-weight:900;line-height:1;cursor:pointer}
+.stp:active{background:#e2e8f0}
+.stp:disabled{opacity:.35;cursor:not-allowed;background:#f8fafc}
+.szv{min-width:40px;flex:none;text-align:center;font-size:12px;font-weight:800;color:var(--brand);
+  font-variant-numeric:tabular-nums}
+.blab{display:inline-flex;align-items:center;gap:3px;margin-left:auto;font-size:11.5px;font-weight:700;
+  color:#475569;cursor:pointer;white-space:nowrap}
+.blab input{width:14px;height:14px;margin:0;accent-color:var(--brand)}
+@media (max-width:420px){ .fgrid{grid-template-columns:1fr} }
+
 /* ---- 모달 ---- */
 .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;
   justify-content:center;padding:16px;z-index:50}
@@ -245,6 +277,52 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
           </select>
           <input type="text" id="in-freight" placeholder="운임 직접 입력" hidden style="width:130px">
         </div>
+        <div class="fmtbar" id="fmtbar">
+          <button class="fh" id="fmt-toggle" type="button" aria-expanded="true" aria-controls="fmt-body">
+            <b>🔤 서식 조절</b>
+            <span class="fsum" id="fmt-sum">고딕 · 기본</span>
+            <span class="caret" id="fmt-caret">▾</span>
+          </button>
+          <div class="fb" id="fmt-body">
+            <div class="frow">
+              <span class="lb">글꼴</span>
+              <select id="fmt-font" aria-label="글꼴 선택">
+                <option value="gothic">고딕 (기본)</option>
+                <option value="nanumgothic">나눔고딕</option>
+                <option value="nanummyeongjo">나눔명조 (바탕체)</option>
+                <option value="blackhansans">검은고딕 (굵은 제목)</option>
+                <option value="dohyeon">도현체 (굵은 제목)</option>
+              </select>
+              <button class="btn ghost sm" id="fmt-reset" type="button">서식 초기화</button>
+            </div>
+            <div class="fgrid">
+              <div class="fitem"><span class="fn">주소</span>
+                <button class="stp" type="button" data-k="addr" data-d="-1" aria-label="주소 글자 작게">−</button>
+                <span class="szv" id="sz-addr">100%</span>
+                <button class="stp" type="button" data-k="addr" data-d="1" aria-label="주소 글자 크게">+</button>
+                <label class="blab"><input type="checkbox" id="bd-addr" checked><span>진하게</span></label>
+              </div>
+              <div class="fitem"><span class="fn">거래처명</span>
+                <button class="stp" type="button" data-k="name" data-d="-1" aria-label="거래처명 글자 작게">−</button>
+                <span class="szv" id="sz-name">100%</span>
+                <button class="stp" type="button" data-k="name" data-d="1" aria-label="거래처명 글자 크게">+</button>
+                <label class="blab"><input type="checkbox" id="bd-name" checked><span>진하게</span></label>
+              </div>
+              <div class="fitem"><span class="fn">연락처</span>
+                <button class="stp" type="button" data-k="tel" data-d="-1" aria-label="연락처 글자 작게">−</button>
+                <span class="szv" id="sz-tel">100%</span>
+                <button class="stp" type="button" data-k="tel" data-d="1" aria-label="연락처 글자 크게">+</button>
+                <label class="blab"><input type="checkbox" id="bd-tel" checked><span>진하게</span></label>
+              </div>
+              <div class="fitem"><span class="fn">품목</span>
+                <button class="stp" type="button" data-k="item" data-d="-1" aria-label="품목 글자 작게">−</button>
+                <span class="szv" id="sz-item">100%</span>
+                <button class="stp" type="button" data-k="item" data-d="1" aria-label="품목 글자 크게">+</button>
+                <label class="blab"><input type="checkbox" id="bd-item" checked><span>진하게</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="btnrow">
           <button class="btn primary" id="btn-print" type="button">🖨 인쇄 / PDF 저장</button>
           <button class="btn ghost" id="btn-clear" type="button">초기화</button>
@@ -263,7 +341,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
           </div>
         </div>
       </div>
-      <div class="pv-foot">긴 주소·상호도 한 장을 넘지 않게 글자 크기를 자동으로 맞춥니다</div>
+      <div class="pv-foot">긴 주소·상호도 한 장을 넘지 않게 자동으로 맞춥니다 · <b>🔤 서식 조절</b>에서 글꼴·크기·굵기를 바꿀 수 있습니다</div>
     </section>
   </main>
 </div>
@@ -392,6 +470,83 @@ function toast(msg){
   t.textContent=msg; t.hidden=false;
   clearTimeout(toastTimer);
   toastTimer=setTimeout(function(){ t.hidden=true; },2600);
+}
+
+/* ---------- 서식(글꼴 · 크기 · 굵기) ---------- */
+/* 비민감 화면 설정만 담는다 — 고객 정보는 여기에 저장하지 않는다. */
+var K_FMT='pl.fmt.v1';
+var FONTS={
+  gothic:{label:'고딕 (기본)', css:"'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif"},
+  nanumgothic:{label:'나눔고딕', css:"'Nanum Gothic','나눔고딕','Malgun Gothic','맑은 고딕','Noto Sans KR',sans-serif"},
+  nanummyeongjo:{label:'나눔명조 (바탕체)', css:"'Nanum Myeongjo','나눔명조','Batang','바탕','Apple SD Gothic Neo',serif"},
+  blackhansans:{label:'검은고딕 (굵은 제목)', css:"'Black Han Sans','검은고딕','Malgun Gothic','맑은 고딕',sans-serif"},
+  dohyeon:{label:'도현체 (굵은 제목)', css:"'Do Hyeon','도현','Malgun Gothic','맑은 고딕',sans-serif"}
+};
+var FMT_KEYS=['addr','name','tel','item'];
+/* 항목별 기본 최대 크기(mm) — 실제로는 한 줄 폭에 맞춰 이 값 안에서 자동으로 줄어든다 */
+var FMT_BASE={addr:24, name:30, tel:26, item:24};
+var FMT_MIN=60, FMT_MAX=160, FMT_STEP=10;
+var FMT_DEF={font:'gothic', sizes:{addr:100,name:100,tel:100,item:100},
+             bold:{addr:true,name:true,tel:true,item:true}, open:true};
+var FMT=loadFmt();
+
+function freshFmt(open){
+  return {font:FMT_DEF.font, sizes:{addr:100,name:100,tel:100,item:100},
+          bold:{addr:true,name:true,tel:true,item:true}, open:open!==false};
+}
+function loadFmt(){
+  var o=freshFmt(true), raw=null;
+  try{ raw=LS.get(K_FMT,null); }catch(e){ raw=null; }
+  if(raw&&typeof raw==='object'){
+    if(FONTS[raw.font]) o.font=raw.font;
+    for(var i=0;i<FMT_KEYS.length;i++){
+      var k=FMT_KEYS[i];
+      var v=raw.sizes?Number(raw.sizes[k]):NaN;
+      if(v>=FMT_MIN&&v<=FMT_MAX) o.sizes[k]=Math.round(v/FMT_STEP)*FMT_STEP;
+      if(raw.bold&&typeof raw.bold[k]==='boolean') o.bold[k]=raw.bold[k];
+    }
+    if(typeof raw.open==='boolean') o.open=raw.open;
+  }
+  return o;
+}
+function saveFmt(){ try{ LS.set(K_FMT,FMT); }catch(e){} }
+function fmtPct(k){ var v=Number(FMT.sizes[k]); return (v>=FMT_MIN&&v<=FMT_MAX)?v:100; }
+function fmtMaxMm(k){ return (FMT_BASE[k]||24)*fmtPct(k)/100; }
+function fmtWeight(k){ if(!FMT.bold[k]) return '400'; return k==='name'?'900':'800'; }
+
+function applyFmtUI(){
+  var page=$('#page');
+  if(page&&FONTS[FMT.font]) page.style.fontFamily=FONTS[FMT.font].css;
+  var fsel=$('#fmt-font'); if(fsel&&fsel.value!==FMT.font) fsel.value=FMT.font;
+  for(var i=0;i<FMT_KEYS.length;i++){
+    var k=FMT_KEYS[i], pct=fmtPct(k);
+    var lab=$('#sz-'+k); if(lab) lab.textContent=pct+'%';
+    var bx=$('#bd-'+k); if(bx) bx.checked=!!FMT.bold[k];
+    var steps=$$('.stp[data-k="'+k+'"]');
+    for(var j=0;j<steps.length;j++){
+      var d=parseInt(steps[j].dataset.d,10)||0;
+      steps[j].disabled=(d<0&&pct<=FMT_MIN)||(d>0&&pct>=FMT_MAX);
+    }
+  }
+  var body=$('#fmt-body'); if(body) body.hidden=!FMT.open;
+  var tg=$('#fmt-toggle'); if(tg) tg.setAttribute('aria-expanded',FMT.open?'true':'false');
+  var car=$('#fmt-caret'); if(car) car.textContent=FMT.open?'▾':'▸';
+  var sum=$('#fmt-sum');
+  if(sum){
+    var changed=[], short=(FONTS[FMT.font]||FONTS.gothic).label.replace(/\s*\(.*\)$/,'');
+    for(var q=0;q<FMT_KEYS.length;q++){ if(fmtPct(FMT_KEYS[q])!==100||!FMT.bold[FMT_KEYS[q]]) changed.push(FMT_KEYS[q]); }
+    sum.textContent=short+' · '+(changed.length? changed.length+'개 항목 조절' : '기본');
+  }
+}
+/* 웹 글꼴이 늦게 받아지면 그 뒤에 한 번 더 맞춘다(오프라인이면 시스템 글꼴로 대체) */
+function ensureFontLoaded(key, cb){
+  var f=FONTS[key];
+  if(!f||!document.fonts||!document.fonts.load){ if(cb) cb(); return; }
+  var fam=String(f.css).split(',')[0].replace(/['"]/g,'').trim();
+  var jobs=['400','700','800'].map(function(w){
+    try{ return document.fonts.load(w+' 80px "'+fam+'"','가나다 ABC 123'); }catch(e){ return null; }
+  });
+  Promise.all(jobs).then(function(){ if(cb) cb(); }).catch(function(){ if(cb) cb(); });
 }
 
 /* ---------- 시트 통신 ---------- */
@@ -631,12 +786,24 @@ function freightText(){
   if(S.freight==='__custom') return $('#in-freight').value.trim();
   return S.freight||'';
 }
+/* 글자 폭 재기: scrollWidth 는 글이 짧으면 상자 폭으로 잘려 나와 쓸 수 없다.
+   Range 로 실제 글자 폭을 재고, 미리보기 배율(transform)을 빼서 상자 폭과 같은 기준으로 맞춘다. */
+function textW(el){
+  try{
+    var rg=document.createRange();
+    rg.selectNodeContents(el);
+    var r=rg.getBoundingClientRect(), er=el.getBoundingClientRect();
+    var k=(el.offsetWidth&&er.width)?(er.width/el.offsetWidth):1;
+    return (r.width||0)/(k||1);
+  }catch(e){ return 0; }
+}
 function fitLine(el,maxMm,minMm){
-  var lo=minMm||5, hi=maxMm||26, mid, i;
-  for(i=0;i<18;i++){
+  var lo=minMm||5, hi=Math.max(lo,maxMm||26), mid, i;
+  var box=el.offsetWidth||el.clientWidth||0;
+  for(i=0;i<16;i++){
     mid=(lo+hi)/2;
     el.style.fontSize=mid+'mm';
-    if(el.scrollWidth>el.clientWidth*0.97) hi=mid; else lo=mid;   /* 오른쪽 끝에 닿지 않게 3% 여유 */
+    if(box&&textW(el)>box*0.97) hi=mid; else lo=mid;   /* 오른쪽 끝에 닿지 않게 3% 여유 */
   }
   el.style.fontSize=lo.toFixed(2)+'mm';
 }
@@ -655,29 +822,66 @@ function renderPreview(){
   fr.textContent = frt;
   fr.hidden = !frt;
 
-  /* 크기: 주소·상호·연락처는 한 줄에 꽉 차게, 품목 줄은 품목+운임이 같이 들어가게 */
-  if(!addr) a.style.fontSize='10mm'; else fitLine(a,24,6);
-  if(!name) n.style.fontSize='10mm'; else fitLine(n,30,8);
-  if(!tel) t.style.fontSize='10mm'; else fitLine(t,26,8);
+  /* 굵기: 항목별 '진하게' 설정 (기본은 기존처럼 진하게) */
+  a.style.fontWeight=fmtWeight('addr');
+  n.style.fontWeight=fmtWeight('name');
+  t.style.fontWeight=fmtWeight('tel');
+  it.style.fontWeight=fmtWeight('item');
+  fr.style.fontWeight=fmtWeight('item');
+
+  /* 크기: 사용자가 정한 배율을 '최대 크기'로 삼는다.
+     짧은 글씨는 그 크기 그대로, 한 줄을 넘는 긴 글씨만 그 안에서 줄여 맞춘다. */
+  var pa=fmtPct('addr')/100, pn=fmtPct('name')/100, pt=fmtPct('tel')/100, pi=fmtPct('item')/100;
+  if(!addr) a.style.fontSize=(10*pa).toFixed(2)+'mm'; else fitLine(a,FMT_BASE.addr*pa,6);
+  if(!name) n.style.fontSize=(10*pn).toFixed(2)+'mm'; else fitLine(n,FMT_BASE.name*pn,8);
+  if(!tel) t.style.fontSize=(10*pt).toFixed(2)+'mm'; else fitLine(t,FMT_BASE.tel*pt,8);
   /* 품목 줄: 운임 폭을 뺀 나머지 안에서 맞춘다 (아주 긴 품목명도 잘리지 않게 끝까지 줄인다) */
-  var lineW=it.parentNode.clientWidth;
-  fr.style.fontSize='13mm';
-  var frW=fr.hidden?0:fr.scrollWidth;
+  var lineW=it.parentNode.offsetWidth||it.parentNode.clientWidth;
+  fr.style.fontSize=(13*pi).toFixed(2)+'mm';
+  var frW=fr.hidden?0:textW(fr);
   var avail=Math.max(40,lineW-frW-6);
-  var lo=2.5,hi=24,mid,i;
-  for(i=0;i<20;i++){
+  var lo=2.5,hi=Math.max(6,FMT_BASE.item*pi),mid,i;
+  for(i=0;i<16;i++){
     mid=(lo+hi)/2;
     it.style.fontSize=mid+'mm';
-    if(it.scrollWidth>avail) hi=mid; else lo=mid;
+    if(textW(it)>avail) hi=mid; else lo=mid;
   }
   it.style.fontSize=lo.toFixed(2)+'mm';
-  if(fr.hidden){ fr.style.fontSize='13mm'; }
+  if(fr.hidden){ fr.style.fontSize=(13*pi).toFixed(2)+'mm'; }
   else {
-    var fl=2.5,fh=20,fm,k,favail=Math.max(30,lineW-it.scrollWidth-6);
-    for(k=0;k<20;k++){ fm=(fl+fh)/2; fr.style.fontSize=fm+'mm';
-      if(fr.scrollWidth>favail) fh=fm; else fl=fm; }
+    var fl=2.5,fh=Math.max(6,20*pi),fm,k,favail=Math.max(30,lineW-textW(it)-6);
+    for(k=0;k<16;k++){ fm=(fl+fh)/2; fr.style.fontSize=fm+'mm';
+      if(textW(fr)>favail) fh=fm; else fl=fm; }
     fr.style.fontSize=fl.toFixed(2)+'mm';
   }
+  fitPageHeight();
+}
+
+/* 네 줄이 A4 한 장(297×210mm) 높이를 넘을 때만 전체를 같은 비율로 줄인다. */
+function fitPageHeight(){
+  var page=$('#page');
+  if(!page) return false;
+  var lines=[$('#ln-addr'),$('#ln-name'),$('#ln-tel'),$('#ln-item')];
+  var cs=getComputedStyle(page);
+  var avail=page.clientHeight-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0);
+  if(!avail||avail<40) return false;
+  var shrunk=false, guard=0,i,j;
+  while(guard++<18){
+    var total=0;
+    for(i=0;i<lines.length;i++) total+=lines[i].offsetHeight;
+    if(total<=avail+0.5) break;
+    shrunk=true;
+    for(i=0;i<lines.length;i++){
+      scaleFont(lines[i],0.94);
+      var kids=lines[i].children;
+      for(j=0;j<kids.length;j++){ if(kids[j].style&&kids[j].style.fontSize) scaleFont(kids[j],0.94); }
+    }
+  }
+  return shrunk;
+}
+function scaleFont(el,f){
+  var v=parseFloat(el.style.fontSize);
+  if(v>0) el.style.fontSize=(v*f).toFixed(2)+'mm';
 }
 
 /* ---------- 화면 맞춤 ---------- */
@@ -939,10 +1143,45 @@ function wire(){
     renderPreview();
   });
   $('#in-freight').addEventListener('input',renderPreview);
+
+  /* ---- 서식 조절: 글꼴 · 항목별 크기 · 진하게 ---- */
+  $('#fmt-toggle').addEventListener('click',function(){
+    FMT.open=!FMT.open; saveFmt(); applyFmtUI();
+  });
+  $('#fmt-font').addEventListener('change',function(){
+    FMT.font=FONTS[this.value]?this.value:'gothic';
+    saveFmt(); applyFmtUI(); renderPreview();
+    ensureFontLoaded(FMT.font,renderPreview);   /* 글꼴이 늦게 받아지면 크기를 다시 맞춘다 */
+  });
+  $$('.stp').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var k=btn.dataset.k, d=parseInt(btn.dataset.d,10)||0;
+      if(FMT_KEYS.indexOf(k)<0) return;
+      var v=fmtPct(k)+d*FMT_STEP;
+      v=Math.max(FMT_MIN,Math.min(FMT_MAX,v));
+      FMT.sizes[k]=v; saveFmt(); applyFmtUI(); renderPreview();
+    });
+  });
+  FMT_KEYS.forEach(function(k){
+    var bx=$('#bd-'+k); if(!bx) return;
+    bx.addEventListener('change',function(){
+      FMT.bold[k]=!!this.checked; saveFmt(); applyFmtUI(); renderPreview();
+    });
+  });
+  $('#fmt-reset').addEventListener('click',function(){
+    FMT=freshFmt(FMT.open); saveFmt(); applyFmtUI(); renderPreview();
+    toast('서식을 기본값으로 되돌렸습니다');
+  });
+
   $('#btn-print').onclick=function(){
     if(!S.sel&&!$('#in-addr').value.trim()&&!$('#ln-addr').textContent.trim()){ toast('먼저 거래처를 선택하세요'); return; }
     renderPreview();
-    setTimeout(function(){ window.print(); },60);
+    var printed=false;
+    var go=function(){ if(printed) return; printed=true; renderPreview(); setTimeout(function(){ window.print(); },60); };
+    if(FMT.font!=='gothic'&&document.fonts&&document.fonts.ready){
+      document.fonts.ready.then(go);   /* 글꼴이 바뀐 상태면 글꼴을 받은 뒤 인쇄 */
+      setTimeout(go,900);
+    } else { go(); }
   };
   $('#btn-clear').onclick=function(){
     S.sel=null; S.contact='mobile'; S.addrkind='addr';
@@ -967,6 +1206,7 @@ function wire(){
 
 /* ---------- 시작 ---------- */
 function boot(){
+  loadFmtInto();
   wire();
   if(trySSO()) return;
   var sso=portalSSO();
@@ -994,6 +1234,11 @@ function boot(){
     }
   }
   showGate();
+}
+function loadFmtInto(){
+  try{ FMT=loadFmt(); }catch(e){ FMT=freshFmt(true); }
+  applyFmtUI();
+  ensureFontLoaded(FMT.font,function(){ try{ renderPreview(); }catch(e){} });
 }
 function showGate(){
   $('#gate').hidden=false;
