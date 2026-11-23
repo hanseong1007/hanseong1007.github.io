@@ -802,7 +802,8 @@ function trySSO(){
   if(cached.length){ S.rows=cached; S.src='cache'; applyFilter(); }
   fitPreview();
   if(S.token) loadRows();
-  else toast('거래처 자료를 새로 받으려면 🔄 시트 새로고침을 누르세요');
+  else if(!cached.length) askSheetLogin();          /* 처음 오는 기기: 비밀번호 한 번으로 180일 열쇠 */
+  else toast('새 자료를 받으려면 🔄 시트 새로고침을 누르세요');
   return true;
 }
 function logout(){
@@ -968,6 +969,15 @@ function wire(){
 function boot(){
   wire();
   if(trySSO()) return;
+  var sso=portalSSO();
+  if(sso&&sso.userId&&!localUsers().length){
+    setLoginMsg('포털 계정을 확인하는 중…',true);
+    sharedUsers().then(function(users){
+      saveUsersCache(users);
+      if(!trySSO()) showGate();
+    }).catch(function(){ showGate(); });
+    return;
+  }
   var s=getSession();
   if(s&&s.userId){
     var u=findLocal(s.userId);
@@ -983,7 +993,11 @@ function boot(){
       return;
     }
   }
+  showGate();
+}
+function showGate(){
   $('#gate').hidden=false;
+  $('#app').hidden=true;
   $('#lg-id').focus();
   if(!localUsers().length){
     sharedUsers().then(saveUsersCache).catch(function(){});
