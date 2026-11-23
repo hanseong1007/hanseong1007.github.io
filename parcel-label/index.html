@@ -341,7 +341,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
           </div>
         </div>
       </div>
-      <div class="pv-foot">긴 주소·상호도 한 장을 넘지 않게 자동으로 맞춥니다 · <b>🔤 서식 조절</b>에서 글꼴·크기·굵기를 바꿀 수 있습니다</div>
+      <div class="pv-foot" id="pv-foot">긴 주소·상호도 한 장을 넘지 않게 자동으로 맞춥니다 · <b>🔤 서식 조절</b>에서 글꼴·크기·굵기를 바꿀 수 있습니다</div>
     </section>
   </main>
 </div>
@@ -511,7 +511,6 @@ function loadFmt(){
 }
 function saveFmt(){ try{ LS.set(K_FMT,FMT); }catch(e){} }
 function fmtPct(k){ var v=Number(FMT.sizes[k]); return (v>=FMT_MIN&&v<=FMT_MAX)?v:100; }
-function fmtMaxMm(k){ return (FMT_BASE[k]||24)*fmtPct(k)/100; }
 function fmtWeight(k){ if(!FMT.bold[k]) return '400'; return k==='name'?'900':'800'; }
 
 function applyFmtUI(){
@@ -854,7 +853,18 @@ function renderPreview(){
       if(textW(fr)>favail) fh=fm; else fl=fm; }
     fr.style.fontSize=fl.toFixed(2)+'mm';
   }
-  fitPageHeight();
+  setPvFoot(fitPageHeight());
+}
+
+/* 한 장에 담으려고 줄였을 때는 아래 안내를 바꿔 준다 */
+var PV_FOOT_DEF='긴 주소·상호도 한 장을 넘지 않게 자동으로 맞춥니다 · <b>🔤 서식 조절</b>에서 글꼴·크기·굵기를 바꿀 수 있습니다';
+var PV_FOOT_FIT='한 장에 담으려고 글자를 조금 줄였습니다 · 서식 조절에서 크기를 낮춰 보세요';
+function setPvFoot(fit){
+  var el=$('#pv-foot'); if(!el) return;
+  var key=fit?'1':'0';
+  if(el.getAttribute('data-fit')===key) return;
+  el.setAttribute('data-fit',key);
+  el.innerHTML=fit?PV_FOOT_FIT:PV_FOOT_DEF;
 }
 
 /* 네 줄이 A4 한 장(297×210mm) 높이를 넘을 때만 전체를 같은 비율로 줄인다. */
