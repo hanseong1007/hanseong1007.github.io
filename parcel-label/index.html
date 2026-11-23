@@ -636,7 +636,7 @@ function fitLine(el,maxMm,minMm){
   for(i=0;i<18;i++){
     mid=(lo+hi)/2;
     el.style.fontSize=mid+'mm';
-    if(el.scrollWidth>el.clientWidth+1) hi=mid; else lo=mid;
+    if(el.scrollWidth>el.clientWidth*0.97) hi=mid; else lo=mid;   /* 오른쪽 끝에 닿지 않게 3% 여유 */
   }
   el.style.fontSize=lo.toFixed(2)+'mm';
 }
