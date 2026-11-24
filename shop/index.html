@@ -1971,7 +1971,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     var keyRow = $('#admin-key-row');
     if (keyRow) keyRow.hidden = !(syncUrl() && !adminKey());
     var s = state.sync;
-    if (!syncUrl()){ el.textContent = '이 기기에만 저장 중 · 관리자에게 시트 연결을 요청하세요'; return; }
+    if (!syncUrl()){ el.textContent = '이 기기에만 저장 중 · README의 「기기 간 동기화」로 시트를 연결할 수 있습니다'; return; }
     if (!adminKey()){ el.textContent = '시트 주소는 연결됨 · 관리자 키를 입력하면 기기 간 동기화됩니다'; return; }
     if (s.state === 'syncing'){ el.textContent = '☁️ 시트와 동기화 중…'; return; }
     if (s.state === 'error'){ el.textContent = '⚠️ 시트에 연결하지 못했습니다 · 이 기기에 저장됨'; return; }
