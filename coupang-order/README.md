@@ -50,6 +50,7 @@
 ## 검증
 
 - `scripts/test_coupang_deliverylist.py` — 실제 `DeliveryList` 41열 구조(가상 9건: 오늘 6·지난날 1·운송장 2)로 열 인식·상태 계산·현황판·ALPS 엑셀·송장·운송장 일괄등록·원본 주문서 채우기·재업로드·모바일까지 (54항목)
+- `scripts/test_live_coupang_deliverylist.py` — 배포본(라이브)에서 같은 가상 자료로 열 인식·현황판·ALPS 엑셀·원본 채우기 (11항목)
 - `scripts/test_coupang_order_app.py` — PC 1280×800 · 모바일 390×844에서 현황판·샘플·발주확인·2~4단계·엑셀 내려받기·인쇄 준비·콘솔 오류·가로 넘침 (37항목)
 - `scripts/test_coupang_upload.py` — 실제 모양의 쿠팡윙 주문서 업로드(열 매핑)·ALPS 결과 매칭·감열지 인쇄 화면·모바일 (15항목)
 - `scripts/test_coupang_edge.py` — 새 기기(포털 SSO만 있음)·잠금 화면 로그인 실패 안내·4단계 운송장번호 직접 입력 (12항목)
