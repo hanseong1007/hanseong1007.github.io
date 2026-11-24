@@ -1735,6 +1735,8 @@ function importTable(rows,fileName){
   saveOrders();
   renderBoard(); renderStep1(); renderStep2(); renderSteps();
   toast(added+updated+'건 읽었습니다'+(autoN?' · 발주확인 '+autoN+'건 자동 처리':'')+(skipped?' · '+skipped+'행 건너뜀':''));
+  /* 새 주문서를 올렸고 자동 발주확인이 켜져 있으면 바로 2단계로 — 일일이 체크해 누를 일을 줄인다 */
+  if(S.autoAck && added>0 && S.step===1) setStep(2);
   return {added:added,updated:updated,skipped:skipped,autoAck:autoN};
 }
 function labelOf(k){
