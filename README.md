@@ -9,7 +9,7 @@
 - 배포 주소: `https://hanseong1007.github.io/` (저장소 `hanseong1007/hanseong1007.github.io`)
 - 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` · `/parcel-label/` · `/coupang-order/` (같은 출처)
 - 쿠팡택배 앱: `coupang-order/index.html` · `coupang-order/xlsx.full.min.js` (SheetJS) — 설명은 `coupang-order/README.md`
-- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화)
+- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화)
 - 배포: `bash scripts/deploy_portal.sh`
 
 ## PC 앱으로 설치 (PWA)
