@@ -212,6 +212,45 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
 .mapline .miss{color:#a12424;font-weight:800}
 .mapline .hint{color:#4b6154;font-weight:700}
 .mapline ul{margin:3px 0 0;padding-left:14px}
+.mapline.ok{border-color:var(--brand-line);background:#f2fbf7}
+.mapline.bad{border-color:var(--red-line);background:var(--red-soft)}
+.mapline.bad b{color:#a12424}
+
+/* 자동 발주확인 스위치 */
+.autoline{
+  display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border:1px solid var(--brand-line);
+  border-radius:10px;background:var(--brand-soft);cursor:pointer;margin:0;
+}
+.autoline input{
+  -webkit-appearance:none;appearance:none;width:34px;height:20px;border-radius:999px;background:#c6d5cf;
+  position:relative;flex:0 0 auto;margin:1px 0 0;padding:0;border:0;cursor:pointer;transition:background .15s;
+}
+.autoline input::after{
+  content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.22);transition:left .15s;
+}
+.autoline input:checked{background:var(--brand)}
+.autoline input:checked::after{left:16px}
+.autoline .at{display:flex;flex-direction:column;gap:1px;min-width:0}
+.autoline .at b{font-size:11.3px;font-weight:800;color:var(--brand-dark);letter-spacing:-.02em}
+.autoline .at small{font-size:10.2px;color:#3d574d;font-weight:600;line-height:1.4}
+
+/* 4단계 쿠팡 업로드용 파일 */
+.dlstrip{
+  display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line2);
+  background:linear-gradient(180deg,#eefaf5,#fff);flex-wrap:wrap;
+}
+.btn.dl{
+  height:46px;padding:0 20px;border-radius:12px;font-size:13.5px;letter-spacing:-.02em;
+  background:linear-gradient(180deg,#13997b,#0a5a48);border-color:#0a5a48;color:#fff;
+  box-shadow:0 2px 8px rgba(10,90,72,.28);
+}
+.btn.dl:hover{background:linear-gradient(180deg,#0f8a6e,#084d3e);border-color:#084d3e}
+.btn.dl:disabled{background:#e1e9e5;border-color:#e1e9e5;color:#8a9a93;box-shadow:none}
+.dlmeta{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.dlmeta b{font-size:11.4px;font-weight:800;color:var(--brand-dark)}
+.dlmeta small{font-size:10.3px;color:#557066;font-weight:600;line-height:1.4}
+.dlalt{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ---------------- toolbar / filters ---------------- */
 .toolbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
@@ -474,6 +513,14 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
   .formgrid{grid-template-columns:1fr 1fr}
   .field input,.field select{height:38px;font-size:12.5px}
 
+  /* 4단계 쿠팡 업로드 파일 — 휴대폰에서는 위아래로 */
+  .dlstrip{flex-direction:column;align-items:stretch;gap:7px;padding:9px 12px}
+  .dlmeta{order:-1}
+  .btn.dl{width:100%;height:48px;font-size:13.5px}
+  .dlalt{justify-content:space-between}
+  .dlalt .btn{flex:1}
+  .autoline{padding:8px 10px}
+
   .logdock{position:fixed;left:0;right:0;bottom:0;z-index:60;box-shadow:0 -3px 14px rgba(10,22,18,.1);padding-bottom:env(safe-area-inset-bottom,0px)}
   .logbar{height:42px;padding:0 12px}
   .loglist{max-height:40vh;padding:0 12px 8px}
@@ -617,9 +664,18 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
         <div class="cardbody">
           <div class="guide">
             <div class="gstep"><span class="gi">1</span><span class="gt">아래 <b>쿠팡윙 배송관리</b>를 열어 오늘 처리할 주문을 확인합니다.</span></div>
-            <div class="gstep"><span class="gi">2</span><span class="gt">쿠팡윙에서 <b>주문서(엑셀) 내려받기</b>를 눌러 파일을 받습니다.</span></div>
-            <div class="gstep"><span class="gi">3</span><span class="gt">받은 파일을 여기에 올리면 주문이 표에 채워집니다.</span></div>
+            <div class="gstep"><span class="gi">2</span><span class="gt"><b>결제완료</b> 주문을 체크하고 <b>발주확인 처리</b>를 누릅니다. (누르면 <b>상품준비중</b>으로 바뀝니다)</span></div>
+            <div class="gstep"><span class="gi">3</span><span class="gt"><b>배송사 선택</b> 창이 뜨면 배송 택배사 <b>롯데택배</b>, 사유 <b>회사계약택배</b>를 넣고 <b>다운로드</b>를 누릅니다. 주문서 엑셀이 받아집니다.</span></div>
+            <div class="gstep"><span class="gi">4</span><span class="gt">받은 <b>주문서 엑셀</b>을 여기에 올리면 2단계로 이어집니다.</span></div>
           </div>
+
+          <label class="autoline" for="opt-autoack">
+            <input type="checkbox" id="opt-autoack" checked>
+            <span class="at">
+              <b>주문서를 올리면 전체 자동 발주확인</b>
+              <small>결제완료 주문도 발주확인 처리해 두어 2단계에서 바로 고를 수 있습니다 (실제 발주확인은 쿠팡윙에서 눌러 주세요)</small>
+            </span>
+          </label>
 
           <a class="btn wing block" id="btn-wing" href="https://wing.coupang.com/tenants/sfl-portal/delivery/management" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
@@ -679,6 +735,7 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
         <footer class="cardfoot">
           <span class="selinfo wrap">발주확인을 눌러 둔 주문이 <b>2단계</b>에서 고를 수 있습니다. 실제 발주확인은 쿠팡윙에서도 눌러 주세요.</span>
           <div class="spacer"></div>
+          <button class="btn ghost" id="btn-autoto2" type="button">전체 자동 발주확인 &amp; 2단계로</button>
           <button class="btn primary" id="btn-to2" type="button">2단계로 →</button>
         </footer>
       </div>
@@ -781,26 +838,21 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
   <section class="panel" id="p4">
     <div class="card">
       <header class="cardhead">
-        <h2>4. 운송장번호 등록 · 발송처리</h2>
+        <h2>4. 운송장 등록 · 쿠팡 업로드 파일</h2>
         <span class="sub" id="s4-sub">등록된 운송장이 없습니다</span>
         <div class="spacer"></div>
-        <button class="btn primary" id="btn-wing-xlsx" type="button" disabled>
-          <svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 20h16"/></svg>
-          쿠팡윙 운송장 일괄등록 엑셀
-        </button>
+        <button class="btn sm" id="btn-print4" type="button">송장 인쇄</button>
+        <button class="btn sm" id="btn-mark" type="button">쿠팡윙 등록 완료 표시</button>
       </header>
       <div class="toolbar" style="align-items:flex-start">
         <label class="btn ghost sm" for="file-inv">
           <svg viewBox="0 0 24 24"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
-          ALPS 결과 엑셀 올리기
+          롯데택배 ALPS 출력 엑셀 올리기
           <input type="file" id="file-inv" accept=".xlsx,.xls,.csv" hidden>
         </label>
         <button class="btn sm" id="btn-paste" type="button">붙여넣기 창 열기</button>
-        <button class="btn sm" id="btn-wing-full" type="button" disabled>원본 주문서에 운송장 채우기</button>
-        <button class="btn sm" id="btn-print4" type="button">송장 인쇄</button>
-        <button class="btn sm" id="btn-mark" type="button">쿠팡윙 등록 완료 표시</button>
         <div class="spacer"></div>
-        <span class="selinfo wrap" id="s4-note">ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.</span>
+        <span class="selinfo wrap" id="s4-note">ALPS 출력 엑셀이나 결과 엑셀을 올리면 운송장번호가 자동으로 들어갑니다. 붙여넣기로도 넣을 수 있습니다.</span>
       </div>
       <div id="paste-box" hidden style="padding:0 14px 10px">
         <div class="field">
@@ -812,6 +864,21 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
           <button class="btn sm" id="btn-paste-clear" type="button">지우기</button>
         </div>
       </div>
+      <div class="dlstrip">
+        <button class="btn dl" id="btn-coupang-upload" type="button" disabled>
+          <svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 20h16"/></svg>
+          쿠팡 업로드용 엑셀 내려받기
+        </button>
+        <div class="dlmeta">
+          <b id="dl-title">운송장을 먼저 넣어 주세요</b>
+          <small id="dl-sub">ALPS 출력 엑셀을 올리면 이 버튼이 켜집니다.</small>
+        </div>
+        <div class="dlalt">
+          <button class="btn sm" id="btn-wing-xlsx" type="button" disabled>운송장 일괄등록(3열)</button>
+          <button class="btn sm" id="btn-wing-full" type="button" disabled>원본 주문서 41열 그대로</button>
+        </div>
+      </div>
+      <div class="mapline" id="inv-summary" hidden style="margin:8px 14px 0"></div>
       <div class="listwrap">
         <div class="thead s4">
           <div>주문번호</div><div>수령인</div><div>상품</div><div>운송장번호</div><div>복사</div><div>상태</div>
@@ -958,7 +1025,8 @@ function decText(ct,keyHex){
 var S = {
   user:null, tier:'', orders:[], step:1, filter:'전체', bucket:null, q:'',
   ackSel:new Set(), picked:new Set(), cur:null, fmt:'thermal',
-  logs:[], logOpen:false, lastMap:null, srcSheet:null
+  logs:[], logOpen:false, lastMap:null, srcSheet:null,
+  autoAck:true, invSummary:null
 };
 
 /* ---------------- utils ---------------- */
@@ -1148,6 +1216,7 @@ function loadSaved(){
       S.picked=new Set(d.picked||[]);
       if(d.step) S.step=d.step;
       if(d.fmt) S.fmt=d.fmt;
+      if(typeof d.autoAck==='boolean') S.autoAck=d.autoAck;
       if(S.orders.length) log('이 브라우저 세션에 보관된 주문 '+S.orders.length+'건을 이어받았습니다','ok');
     }
   }catch(e){}
@@ -1155,7 +1224,7 @@ function loadSaved(){
 function saveOrders(){
   var key=dataKey();
   if(!key) return;
-  var payload={orders:S.orders,picked:Array.from(S.picked),step:S.step,fmt:S.fmt,at:Date.now()};
+  var payload={orders:S.orders,picked:Array.from(S.picked),step:S.step,fmt:S.fmt,autoAck:S.autoAck,at:Date.now()};
   sset(K_DATA,{v:1,uid:S.user?S.user.id:'',ct:encText(JSON.stringify(payload),key)});
 }
 
@@ -1320,6 +1389,8 @@ function renderStep1(){
   if(!S.lastMap){
     mp.innerHTML='아직 불러온 파일이 없습니다. <b>예시 엑셀 받기</b>로 형식을 먼저 볼 수 있습니다.';
   }
+  var oa=$('#opt-autoack');
+  if(oa) oa.checked=!!S.autoAck;
 }
 
 function renderStep2(){
@@ -1411,12 +1482,37 @@ function renderStep4(){
     }).join('');
   }
   var reg=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
+  var anyInv=S.orders.filter(function(o){ return o.invoice; }).length;
+  var hasSrc=!!(S.srcSheet&&S.srcSheet.invCol!=null);
   $('#btn-wing-xlsx').disabled=reg.length===0;
   var bf=$('#btn-wing-full');
-  if(bf) bf.disabled=!(S.srcSheet&&S.srcSheet.invCol!=null&&S.orders.filter(function(o){ return o.invoice; }).length);
+  if(bf) bf.disabled=!(hasSrc&&anyInv);
+  var cu=$('#btn-coupang-upload');
+  if(cu) cu.disabled=!(hasSrc?anyInv:reg.length);
+  var dt=$('#dl-title'), ds=$('#dl-sub');
+  if(dt){
+    if(hasSrc&&anyInv){
+      dt.textContent='주문서 41열 그대로 · 운송장 '+anyInv+'건';
+      ds.textContent='1단계에서 올린 쿠팡윙 주문서에 운송장번호·택배사(롯데택배)를 채워 드립니다. 이 파일을 쿠팡윙 운송장 일괄등록에 올리세요.';
+    }else if(hasSrc){
+      dt.textContent='운송장을 먼저 넣어 주세요';
+      ds.textContent='1단계 주문서(41열)는 그대로 둡니다. ALPS 출력 엑셀을 올리면 운송장만 채워 드립니다.';
+    }else if(reg.length){
+      dt.textContent='운송장 일괄등록 3열 · '+reg.length+'건';
+      ds.textContent='1단계 주문서가 없어 주문번호·택배사·운송장번호 3열 파일로 드립니다.';
+    }else if(anyInv){
+      dt.textContent='운송장을 모두 등록했습니다';
+      ds.textContent='1단계에서 쿠팡윙 주문서를 올리면 41열 원본 그대로도 받을 수 있습니다.';
+    }else{
+      dt.textContent='운송장을 먼저 넣어 주세요';
+      ds.textContent='롯데택배 ALPS 출력 엑셀을 올리면 이 버튼이 켜집니다.';
+    }
+  }
   $('#btn-mark').disabled=reg.length===0;
   $('#btn-print4').disabled=withInv.length===0;
-  $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'+(S.srcSheet&&S.srcSheet.invCol!=null?' · <b>원본 주문서에 운송장 채우기</b>로 주문서 41열 그대로도 받을 수 있습니다.':'')):'ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.';
+  $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'):
+    '롯데택배 ALPS 출력 엑셀(PIDPIC002U)을 올리면 주문번호로 맞춰 운송장번호를 자동으로 넣습니다.';
+  renderInvSummary();
 }
 
 function renderLog(){
@@ -1449,7 +1545,7 @@ var ALIASES={
   phoneAlt:['구매자전화번호'],
   phone2:['수취인휴대폰번호','수령인휴대폰번호','수령인핸드폰번호','휴대폰번호','휴대폰','핸드폰','휴대전화'],
   zip:['우편번호','배송지우편번호','우편번호신','zipcode'],
-  addr:['수취인주소','주소','배송지주소','기본주소','수령인주소','도로명주소','배송주소'],
+  addr:['수취인주소','주소','배송지주소','기본주소','수령인주소','도로명주소','배송주소','수하인기본주소'],
   addr2:['상세주소','나머지주소'],
   showName:['노출상품명(옵션명)','노출상품명'],
   regItem:['등록상품명'],
@@ -1467,7 +1563,10 @@ var ALIASES={
   doneAt:['배송완료일'],
   confirmedAt:['구매확정일자'],
   courier:['택배사','배송업체','택배업체'],
-  invoice:['운송장번호','송장번호','운송장']
+  invoice:['운송장번호','송장번호','운송장'],
+  /* 롯데택배 ALPS 출력 엑셀(PIDPIC002U, Sheet0 48열) */
+  printed:['출력여부'],
+  manage:['관리번호']
 };
 var REQUIRED=['orderNo','name','addr','phone'];
 function normHead(v){ return String(v==null?'':v).replace(/[\s()\[\]{}_\-]/g,'').trim().toLowerCase(); }
@@ -1574,9 +1673,27 @@ function rowToOrder(rows,map,idx,headerIdx){
   return o;
 }
 
+/* 발주확인 표시를 한 번에 — 실제 쿠팡윙 발주확인 처리는 사람이 누른다 */
+function autoAckOrders(){
+  var n=0;
+  S.orders.forEach(function(o){
+    if(o.acked) return;
+    if(o.status==='취소'||o.status==='반품') return;
+    o.acked=true;
+    if(o.status==='결제완료') o.status='상품준비중';
+    n++;
+  });
+  if(n) S.ackSel.clear();
+  return n;
+}
+
 function importTable(rows,fileName){
   if(!rows||!rows.length) throw new Error('표가 비어 있습니다');
   var head=pickHeaderRow(rows);
+  /* 롯데택배 ALPS 출력 엑셀(PIDPIC002U)을 1단계에 올리면 4단계로 안내한다 */
+  if(head.map.printed!=null || head.map.manage!=null){
+    throw new Error('이 파일은 롯데택배 ALPS 출력 엑셀입니다 — 4단계에 올려 주세요. 1단계에는 쿠팡윙 주문서(주문서 엑셀)를 올립니다');
+  }
   if(head.score<2) throw new Error('주문번호·수령인 같은 열 이름을 찾지 못했습니다. 쿠팡윙 주문서 파일인지 확인해 주세요');
   var map=head.map, added=0, updated=0, skipped=0;
   for(var i=head.idx+1;i<rows.length;i++){
@@ -1598,28 +1715,34 @@ function importTable(rows,fileName){
   S.lastMap={ map:map, file:fileName, added:added, updated:updated, skipped:skipped, headerIdx:head.idx };
   /* 원본 주문서(쿠팡윙 DeliveryList)를 메모리에만 남겨 둔다 — 4단계에서 운송장번호를 채워 그대로 돌려준다 */
   S.srcSheet={ rows:rows, headIdx:head.idx, fileName:fileName||'',
-    invCol:(map.invoice==null?null:map.invoice), statusCol:(map.status==null?null:map.status) };
+    invCol:(map.invoice==null?null:map.invoice), statusCol:(map.status==null?null:map.status),
+    courierCol:(map.courier==null?null:map.courier) };
   var missing=REQUIRED.filter(function(k){ return map[k]==null; });
   var usedLabels=[];
   Object.keys(map).forEach(function(k){ if(map[k]==null) return; var l=labelOf(k); if(usedLabels.indexOf(l)<0) usedLabels.push(l); });
   var derived=(map.status==null && (map.doneAt!=null||map.invoice!=null));
+  var autoN=S.autoAck?autoAckOrders():0;
 
   $('#wing-map').innerHTML='<b>'+esc(fileName||'파일')+'</b> — 새 주문 <b>'+added+'건</b>'+(updated?' · 갱신 '+updated+'건':'')+
     '<br>읽은 열: '+esc(usedLabels.join('·'))+
     (derived?'<br><span class="hint">배송상태 열이 없어 <b>배송완료일</b>·<b>운송장번호</b>로 상태를 계산했습니다</span>':'')+
+    (autoN?'<br><span class="hint">발주확인 <b>'+autoN+'건을 자동 처리</b>했습니다 — 실제 발주확인은 쿠팡윙에서 눌러 주세요</span>':
+      (S.autoAck?'<br><span class="hint">발주확인 <b>자동 처리 켜짐</b> — 결제완료 주문이 없어 따로 처리할 건 없었습니다</span>':
+        '<br><span class="hint">자동 발주확인 꺼짐 — 위 스위치를 켜거나 <b>발주확인 처리</b>를 눌러 주세요</span>'))+
     (missing.length?'<br><span class="miss">못 찾은 열: '+esc(missing.map(labelOf).join('·'))+'</span>':'');
-  log('엑셀 불러오기 · '+esc(fileName||'')+' → 새 주문 '+added+'건'+(updated?' · 갱신 '+updated+'건':''),'wing');
+  log('엑셀 불러오기 · '+esc(fileName||'')+' → 새 주문 '+added+'건'+(updated?' · 갱신 '+updated+'건':'')+
+    (autoN?' · 발주확인 자동 '+autoN+'건':''),'wing');
   saveOrders();
   renderBoard(); renderStep1(); renderStep2(); renderSteps();
-  toast(added+updated+'건 읽었습니다'+(skipped?' · '+skipped+'행 건너뜀':''));
-  return {added:added,updated:updated,skipped:skipped};
+  toast(added+updated+'건 읽었습니다'+(autoN?' · 발주확인 '+autoN+'건 자동 처리':'')+(skipped?' · '+skipped+'행 건너뜀':''));
+  return {added:added,updated:updated,skipped:skipped,autoAck:autoN};
 }
 function labelOf(k){
   var m={orderNo:'주문번호',bundle:'묶음배송번호',itemNo:'상품ID',orderedAt:'주문일시',name:'수령인',phone:'전화번호',phoneAlt:'전화번호',phone2:'휴대폰',
     zip:'우편번호',addr:'주소',addr2:'상세주소',showName:'상품명(옵션)',regItem:'등록상품명',regOption:'등록옵션',
     item:'상품명',option:'옵션',qty:'수량',msg:'배송메시지',msgAlt:'상품별 메시지',msgAlt2:'주문자 메시지',
     status:'배송상태',due:'출고예정일',dueSplit:'분리배송 출고예정일',shippedAt:'출고일',doneAt:'배송완료일',
-    confirmedAt:'구매확정일',courier:'택배사',invoice:'운송장번호'};
+    confirmedAt:'구매확정일',courier:'택배사',invoice:'운송장번호',printed:'출력여부',manage:'관리번호'};
   return m[k]||k;
 }
 
@@ -1707,25 +1830,37 @@ function exportWingInvoices(){
   toast(list.length+'건 '+(ok?'엑셀':'CSV')+'을 내려받았습니다');
   window.__cp_lastInvoiceRows=rows;
 }
-/* 1단계에서 올린 쿠팡윙 원본 주문서(DeliveryList) 41열을 그대로 두고 운송장번호 칸만 채워 돌려준다.
+/* 1단계에서 올린 쿠팡윙 원본 주문서(DeliveryList) 41열을 그대로 두고
+   `운송장번호`·`택배사` 칸만 채워 돌려준다 — 쿠팡윙 운송장 일괄등록에 그대로 올린다.
    파일은 브라우저에서만 만들어진다 — 서버·GitHub를 거치지 않는다. */
 function exportWingFull(){
   var src=S.srcSheet;
-  if(!src){ toast('1단계에서 쿠팡윙 주문서를 먼저 올려 주세요','warn'); return; }
-  if(src.invCol==null){ toast('올린 주문서에 운송장번호 열이 없습니다','warn'); return; }
+  if(!src){ toast('1단계에서 쿠팡윙 주문서를 먼저 올려 주세요','warn'); return 0; }
+  if(src.invCol==null){ toast('올린 주문서에 운송장번호 열이 없습니다','warn'); return 0; }
   var rows=src.rows.map(function(r){ return (r||[]).slice(); });
-  var filled=0;
+  var filled=0, couriered=0;
   S.orders.forEach(function(o){
     if(!o.invoice) return;
     var r=(o.srcRow!=null)?rows[o.srcRow]:null;
-    if(!r){ return; }
+    if(!r) return;
     r[src.invCol]=String(o.invoice);
     filled++;
+    if(src.courierCol!=null){
+      var cur=String(r[src.courierCol]==null?'':r[src.courierCol]).trim();
+      if(cur!==(o.courier||'롯데택배')){ r[src.courierCol]=o.courier||'롯데택배'; couriered++; }
+    }
   });
-  if(!filled){ toast('채울 운송장번호가 없습니다','warn'); return; }
-  var ok=saveTable(rows,'Delivery','쿠팡윙_운송장채운_주문서_'+stamp()+'.xlsx');
-  log('쿠팡윙 원본 주문서에 운송장 '+filled+'건 채움','wing');
-  toast(filled+'건 운송장을 채운 원본 주문서를 '+(ok?'엑셀':'CSV')+'으로 내려받았습니다');
+  if(!filled){ toast('채울 운송장번호가 없습니다','warn'); return 0; }
+  var ok=saveTable(rows,'Delivery','쿠팡윙_업로드용_운송장채운_'+stamp()+'.xlsx');
+  log('쿠팡 업로드용 엑셀 · 원본 주문서 41열에 운송장 '+filled+'건'+(couriered?' · 택배사 '+couriered+'건':'')+' 채움','wing');
+  toast(filled+'건 운송장을 채운 쿠팡 업로드용 '+(ok?'엑셀':'CSV')+'을 내려받았습니다');
+  window.__cp_lastWingFull={rows:rows, invCol:src.invCol, courierCol:(src.courierCol==null?null:src.courierCol), filled:filled};
+  return filled;
+}
+/* 4단계 대표 버튼 — 원본 주문서가 있으면 41열 그대로, 없으면 운송장 일괄등록(3열) */
+function exportCoupangUpload(){
+  if(S.srcSheet && S.srcSheet.invCol!=null) return exportWingFull();
+  return exportWingInvoices();
 }
 function exportTemplate(){
   var rows=[['주문번호','주문일시','수령인','수령인전화번호','수령인휴대폰번호','우편번호','주소','상세주소','상품명','옵션','수량','배송메시지','배송상태','출고예정일'],
@@ -1735,42 +1870,133 @@ function exportTemplate(){
 }
 
 /* ---------------- 운송장 넣기 ---------------- */
+/* 롯데택배 ALPS 출력 엑셀(PIDPIC002U, Sheet0 48열)·결과 엑셀을 읽어
+   주문번호(1순위) → 수하인명(2순위) 순서로 맞춰 운송장번호만 채운다.
+   관리번호(ALPS 접수번호)는 운송장번호가 아니므로 절대 쓰지 않는다. */
+function isAlpsTable(rows,head){
+  var h=rows[head.idx]||[], m=head.map;
+  return m.printed!=null || m.manage!=null ||
+    normHead(h[m.addr])==='수하인기본주소' || normHead(h[m.name])==='수하인명';
+}
 function matchInvoiceRows(rows){
   if(!rows||!rows.length) throw new Error('표가 비어 있습니다');
   var head=pickHeaderRow(rows);
-  var map=head.map;
+  var map=head.map, hdr=rows[head.idx]||[];
   if(map.invoice==null){
-    /* 운송장 열이 없으면 첫 줄을 헤더로 보고 이름으로 다시 찾는다 */
-    throw new Error('운송장번호 열을 찾지 못했습니다');
+    throw new Error('운송장번호 열을 찾지 못했습니다. 롯데택배 ALPS에서 내려받은 출력 엑셀인지 확인해 주세요');
   }
-  var pending=S.orders.filter(function(o){ return S.picked.has(o.id) && !o.invoice; });
-  var all=S.orders.filter(function(o){ return !o.invoice; });
-  var pool=pending.length?pending:all;
-  var used={}, added=0, matched=0, unmatched=[];
+  if(normHead(hdr[map.invoice])==='관리번호' || (map.manage!=null && map.invoice===map.manage)){
+    throw new Error('관리번호는 운송장번호가 아닙니다. ALPS 출력 엑셀의 운송장번호 열을 써야 합니다');
+  }
+  var alps=isAlpsTable(rows,head);
+
+  /* 파일의 줄 수 · 운송장이 채워진 줄 · 출력여부 */
+  var total=0, withInv=0, printed=0, unprinted=0, parsed=[];
   for(var i=head.idx+1;i<rows.length;i++){
-    var r=rows[i]||[];
-    function v(f){ var k=map[f]; return k==null?'':String(r[k]==null?'':r[k]).trim(); }
-    var inv=digits(v('invoice'));
+    var r=rows[i]||[], blank=true, z;
+    for(z=0;z<r.length;z++){ if(String(r[z]==null?'':r[z]).trim()!==''){ blank=false; break; } }
+    if(blank) continue;
+    total++;
+    if(map.printed!=null){
+      var p=String(r[map.printed]==null?'':r[map.printed]).trim();
+      if(/미출력/.test(p)) unprinted++;
+      else if(/출력/.test(p)) printed++;
+    }
+    var inv=digits(r[map.invoice]);
     if(!inv) continue;
-    var target=null,j;
-    var ono=digits(v('orderNo'));
-    if(ono){ for(j=0;j<S.orders.length;j++){ if(digits(S.orders[j].orderNo)===ono && !used[S.orders[j].id]){ target=S.orders[j]; break; } } }
-    if(!target && v('name')){
-      var nm=v('name').replace(/\s/g,'');
-      for(j=0;j<pool.length;j++){ if(!used[pool[j].id] && String(pool[j].name||'').replace(/\s/g,'')===nm){ target=pool[j]; break; } }
-    }
-    if(!target && !v('name') && !ono){
-      /* 주문번호·이름이 없는 결과 파일(번호만 있는 목록)은 보낸 순서대로 넣는다 */
-      for(j=0;j<pool.length;j++){ if(!used[pool[j].id]){ target=pool[j]; break; } }
-    }
-    if(!target){ unmatched.push([v('orderNo'),v('name'),inv].filter(Boolean).join(' · ')); continue; }
-    used[target.id]=true;
-    target.invoice=inv;
-    if(v('courier')) target.courier=v('courier');
-    added++;
+    withInv++;
+    parsed.push({ inv:inv,
+      ono:map.orderNo==null?'':digits(r[map.orderNo]),
+      name:map.name==null?'':String(r[map.name]==null?'':r[map.name]).trim(),
+      courier:map.courier==null?'':String(r[map.courier]==null?'':r[map.courier]).trim() });
   }
+  if(!withInv){
+    throw new Error('이 파일은 운송장번호가 아직 비어 있습니다(미출력 상태). ALPS에서 운송장 출력 후 다시 내려받은 엑셀을 올려 주세요.');
+  }
+
+  var pending=S.orders.filter(function(o){ return S.picked.has(o.id) && !o.invoice; });
+  var pool=pending.length?pending:S.orders.filter(function(o){ return !o.invoice; });
+  var used={}, added=0, updated=0, same=0, filled=0, unmatched=[], conflicts=[];
+  function nm(s){ return String(s||'').replace(/\s/g,''); }
+  /* 1순위 — 주문번호 정확 매칭 (아직 번호 없는 주문 먼저, 그다음 같은 번호가 이미 든 주문) */
+  function byOrderNo(ono,inv){
+    if(!ono) return null;
+    for(var k=0;k<S.orders.length;k++){
+      var c=S.orders[k];
+      if(used[c.id] || digits(c.orderNo)!==ono) continue;
+      if(!c.invoice || digits(c.invoice)===inv) return c;
+    }
+    return null;
+  }
+  /* 2순위 — 수하인명 (아직 번호가 없는 주문 안에서만) */
+  function byName(name){
+    if(!name) return null;
+    var want=nm(name);
+    for(var k=0;k<pool.length;k++){
+      var c=pool[k];
+      if(used[c.id]||c.invoice) continue;
+      if(nm(c.name)===want) return c;
+    }
+    return null;
+  }
+  parsed.forEach(function(row){
+    var target=byOrderNo(row.ono,row.inv) || byName(row.name);
+    if(!target && !row.ono && !row.name && !alps){
+      /* 번호만 있는 목록 파일은 보낸 순서대로 넣는다 (ALPS 파일에는 쓰지 않음) */
+      for(var k=0;k<pool.length;k++){ if(!used[pool[k].id]&&!pool[k].invoice){ target=pool[k]; break; } }
+    }
+    if(!target){
+      unmatched.push([row.ono,row.name,row.inv].filter(Boolean).join(' · '));
+      return;
+    }
+    used[target.id]=true;
+    if(target.invoice===row.inv){ same++; filled++; return; }
+    if(target.invoice && target.shipped){
+      conflicts.push([target.orderNo,target.name,target.invoice+'→'+row.inv].filter(Boolean).join(' · '));
+      return;
+    }
+    if(target.invoice) updated++; else added++;
+    target.invoice=row.inv;
+    if(row.courier) target.courier=row.courier;
+    if(!target.courier) target.courier='롯데택배';
+    filled++;
+  });
+  S.invSummary={ total:total, withInv:withInv, filled:filled, added:added, updated:updated, same:same,
+    unmatched:unmatched, conflicts:conflicts, printed:printed, unprinted:unprinted, alps:alps };
   saveOrders(); renderAll();
-  return {added:added,unmatched:unmatched};
+  return S.invSummary;
+}
+
+/* 4단계가 보여 주는 매칭 결과 요약 */
+function renderInvSummary(){
+  var el=$('#inv-summary'); if(!el) return;
+  var s=S.invSummary;
+  if(!s){ el.hidden=true; el.innerHTML=''; el.className='mapline'; return; }
+  el.hidden=false;
+  if(s.error){
+    el.className='mapline bad';
+    el.innerHTML='<b>운송장을 넣지 못했습니다</b><br>'+esc(s.error);
+    return;
+  }
+  el.className='mapline ok';
+  var out='<b>총 '+s.withInv+'건 중 '+s.filled+'건 운송장 자동 기입 완료</b>';
+  if(s.unmatched.length) out+=' · <span class="miss">미매칭 '+s.unmatched.length+'건</span>';
+  if(s.conflicts.length) out+=' · <span class="miss">이미 발송된 번호 '+s.conflicts.length+'건</span>';
+  out+='<br>'+(s.alps?'롯데택배 ALPS 출력 엑셀 · ':'')+'파일 '+s.total+'줄 · 운송장 있는 줄 '+s.withInv+'건'+
+    (s.printed?' · 출력 '+s.printed:'')+(s.unprinted?' · 미출력 '+s.unprinted:'')+
+    (s.same?' · 이미 등록된 번호 '+s.same+'건':'')+
+    (s.added?' · 새로 넣음 '+s.added+'건':'')+(s.updated?' · 바꿔 넣음 '+s.updated+'건':'');
+  if(s.unmatched.length){
+    out+='<br><span class="miss">못 맞춘 줄: </span>'+esc(s.unmatched.slice(0,5).join(' / '))+
+      (s.unmatched.length>5?' 외 '+(s.unmatched.length-5)+'건':'');
+  }
+  if(s.unmatched.length){
+    out+='<br><span class="hint">주문번호가 다르면 1단계에서 쿠팡윙 주문서를 올린 뒤 이 파일을 다시 올려 주세요. 번호는 아래 표에 직접 넣을 수도 있습니다.</span>';
+  }
+  if(!s.unmatched.length && !s.conflicts.length){
+    out+='<br><span class="hint">이제 위 <b>쿠팡 업로드용 엑셀 내려받기</b>를 누르면 됩니다.</span>';
+  }
+  el.innerHTML=out;
 }
 function applyPaste(){
   var txt=$('#paste-text').value||'';
@@ -1778,7 +2004,7 @@ function applyPaste(){
   if(!lines.length){ toast('붙여넣은 내용이 없습니다','warn'); return; }
   var pool=S.orders.filter(function(o){ return S.picked.has(o.id)&&!o.invoice; });
   if(!pool.length) pool=S.orders.filter(function(o){ return !o.invoice; });
-  var idx=0, added=0, unknown=[];
+  var idx=0, added=0, unknown=[], used={};
   lines.forEach(function(line){
     var parts=line.split(/[,\t;|]+/).map(function(s){ return s.trim(); });
     var inv='', ono='';
@@ -1795,12 +2021,17 @@ function applyPaste(){
         if(digits(S.orders[i].orderNo)===ono && !S.orders[i].invoice){ target=S.orders[i]; break; }
       }
     }
-    if(!target && idx<pool.length) target=pool[idx];
+    if(!target && idx<pool.length){
+      for(var k=0;k<pool.length;k++){ if(!used[pool[k].id]&&!pool[k].invoice){ target=pool[k]; break; } }
+    }
     if(!target){ unknown.push(line); return; }
+    used[target.id]=true;
     idx++;
     target.invoice=inv;
+    if(!target.courier) target.courier='롯데택배';
     added++;
   });
+  S.invSummary=null;
   saveOrders(); renderAll();
   log('운송장번호 붙여넣기 적용 · '+added+'건','alps');
   toast(added+'건 넣었습니다'+(unknown.length?' · '+unknown.length+'줄 확인 필요':''));
@@ -1955,7 +2186,7 @@ function wire(){
   });
   $('#btn-reset').addEventListener('click',function(){
     if(!confirm('불러온 주문을 모두 지울까요? (내려받은 엑셀은 그대로 남습니다)')) return;
-    S.orders=[]; S.picked.clear(); S.ackSel.clear(); S.cur=null; S.lastMap=null; S.srcSheet=null; S.bucket=null; S.filter='전체'; S.q='';
+    S.orders=[]; S.picked.clear(); S.ackSel.clear(); S.cur=null; S.lastMap=null; S.srcSheet=null; S.bucket=null; S.filter='전체'; S.q=''; S.invSummary=null;
     var q=$('#f-q'); if(q) q.value='';
     srm(K_DATA);
     $('#wing-map').textContent='아직 불러온 파일이 없습니다.';
@@ -1980,6 +2211,24 @@ function wire(){
 
   $('#btn-sample').addEventListener('click',loadSample);
   $('#btn-template').addEventListener('click',exportTemplate);
+
+  var oa=$('#opt-autoack');
+  if(oa){
+    oa.checked=!!S.autoAck;
+    oa.addEventListener('change',function(){
+      S.autoAck=!!this.checked;
+      saveOrders();
+      log('자동 발주확인 '+(S.autoAck?'켬':'끔'),'wing');
+      toast(S.autoAck?'주문서를 올리면 발주확인까지 자동 처리합니다':'자동 발주확인을 꽀습니다');
+    });
+  }
+  $('#btn-autoto2').addEventListener('click',function(){
+    var n=autoAckOrders();
+    saveOrders(); renderAll();
+    log('전체 자동 발주확인 · '+n+'건 (실제 발주확인은 쿠팡윙에서 눌러 주세요)','wing');
+    toast(n?n+'건 발주확인으로 표시했습니다':'발주확인할 결제완료 주문이 없습니다');
+    setStep(2);
+  });
 
   var fw=$('#file-wing');
   function takeFile(file){
@@ -2043,11 +2292,24 @@ function wire(){
     readTable(f).then(function(rows){
       try{
         var r=matchInvoiceRows(rows);
-        log('ALPS 결과 반영 · 운송장 '+r.added+'건'+(r.unmatched.length?' · 미매칭 '+r.unmatched.length+'건':''),'alps');
-        toast('운송장 '+r.added+'건을 넣었습니다'+(r.unmatched.length?' · 미매칭 '+r.unmatched.length:''));
-      }catch(e){ toast(e.message,'warn'); }
-    }).catch(function(e){ toast(e.message,'warn'); });
+        var msg='총 '+r.withInv+'건 중 '+r.filled+'건 운송장 자동 기입 완료';
+        log('ALPS 출력 엑셀 반영 · '+msg+(r.unmatched.length?' · 미매칭 '+r.unmatched.length+'건':''),'alps');
+        toast(msg+(r.unmatched.length?' · 미매칭 '+r.unmatched.length+'건':''));
+      }catch(e){
+        var m=(e&&e.message)||String(e);
+        S.invSummary={error:m};
+        renderStep4();
+        log('ALPS 엑셀 반영 실패 · '+m,'alps');
+        toast(m,'warn');
+      }
+    }).catch(function(e){
+      var m=(e&&e.message)||String(e);
+      S.invSummary={error:m};
+      renderStep4();
+      toast(m,'warn');
+    });
   });
+  $('#btn-coupang-upload').addEventListener('click',exportCoupangUpload);
   $('#btn-paste').addEventListener('click',function(){
     var b=$('#paste-box'); b.hidden=!b.hidden;
     if(!b.hidden) $('#paste-text').focus();
@@ -2152,7 +2414,9 @@ window.__cp={
   state:S, preparePrint:preparePrint, importTable:importTable, alpsRows:alpsRows,
   readTable:readTable, applyPaste:applyPaste, matchInvoiceRows:matchInvoiceRows,
   bucketOf:bucketOf, counts:counts, enter:enter, sampleRows:sampleRows,
-  headerMap:headerMap, exportWingFull:exportWingFull, labelHTML:labelHTML
+  headerMap:headerMap, exportWingFull:exportWingFull, labelHTML:labelHTML,
+  exportCoupangUpload:exportCoupangUpload, exportWingInvoices:exportWingInvoices,
+  autoAckOrders:autoAckOrders, isAlpsTable:isAlpsTable, renderInvSummary:renderInvSummary
 };
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
