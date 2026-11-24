@@ -194,7 +194,7 @@
       <div class="bm">경덕</div>
       <div class="brandtxt">
         <b>(주)경덕농수산</b>
-        <span>통합 로그인 · 발주 · 업무일지 · 근태 · 쿠팡택배</span>
+        <span>통합 로그인 · 발주 · 업무일지 · 근태 · 쿠팡택배 · 쇼핑몰</span>
       </div>
     </div>
     <form class="authcard" id="login-form" autocomplete="on" novalidate>
@@ -263,9 +263,14 @@
         <span class="tx"><b>택배주소출력</b><span>거래처 택배주소 · A4 인쇄</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
-      <a class="mcard whole" id="menu-coupang" href="./coupang-order/" data-app="cp">
+      <a class="mcard" id="menu-coupang" href="./coupang-order/" data-app="cp">
         <span class="em" aria-hidden="true">🧾</span>
         <span class="tx"><b>쿠팡택배</b><span>쿠팡윙 주문 → 롯데택배 송장</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+      <a class="mcard" id="menu-shop" href="../shop/" data-app="shop">
+        <span class="em" aria-hidden="true">🛒</span>
+        <span class="tx"><b>바다로운 쇼핑몰</b><span>건어물·견과류 · 회원 주문</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
     </nav>
@@ -338,6 +343,7 @@
           <label class="mopt"><input type="checkbox" value="attendance"> <span>근태·연차</span></label>
           <label class="mopt"><input type="checkbox" value="parcel"> <span>택배주소출력</span></label>
           <label class="mopt"><input type="checkbox" value="coupang"> <span>쿠팡택배</span></label>
+          <label class="mopt"><input type="checkbox" value="shop"> <span>쇼핑몰</span></label>
         </div>
         <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
           admin·박한성 계정은 전체 메뉴 고정입니다.</p>
@@ -565,9 +571,10 @@
      admin · 이름 '박한성' 계정은 전체 메뉴 고정,
      예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
      ============================================================ */
-  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang'];
-  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배' };
+  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang', 'shop'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배', shop:'쇼핑몰' };
   var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp' };
+  function menuUrl(k){ return k === 'shop' ? (appBase() + 'shop/') : appUrl(MENU_APP[k]); }
   function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
   function normMenus(list){
     if(!Array.isArray(list)) return null;
@@ -1608,6 +1615,7 @@
     $('#menu-attendance').href = appUrl('att');
     if($('#menu-parcel')) $('#menu-parcel').href = appUrl('pl');
     if($('#menu-coupang')) $('#menu-coupang').href = appUrl('cp');
+    if($('#menu-shop')) $('#menu-shop').href = appBase() + 'shop/';
     /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
     var ms = u ? menusOf(u) : MENU_KEYS.slice();
     MENU_KEYS.forEach(function(k){
@@ -1650,8 +1658,9 @@
     /* 메뉴가 하나뿐인 직원은 그 화면으로 바로 — ?stay=1 이면 포털에 남는다 */
     if(!admin && ms.length === 1 && !stayRequested()){
       var only = MENU_APP[ms[0]];
+      if(ms[0] === 'shop'){ location.replace(menuUrl('shop')); return; }
       if(only === 'pl' && PL_SEED){ waitParcelSeed().then(function(){ location.replace(appUrl(only)); }); return; }
-      location.replace(appUrl(MENU_APP[ms[0]]));
+      location.replace(appUrl(only));
       return;
     }
     document.body.setAttribute('data-view', 'dash');
@@ -1895,6 +1904,8 @@
     $('#users-list').addEventListener('click', onUsersClick);
     $$('.mcard').forEach(function(a){
       a.addEventListener('click', function(e){
+        /* 쇼핑몰은 포털 SSO 없이 누구나 열리는 공개 페이지 — 카드의 링크로 바로 이동 */
+        if(a.getAttribute('data-app') === 'shop') return;
         e.preventDefault();
         go(a.getAttribute('data-app'));
       });

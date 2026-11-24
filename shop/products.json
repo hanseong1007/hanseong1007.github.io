@@ -28,7 +28,9 @@
         "salt": "3a8a9ed7e7828430",
         "hash": "3bbc744785e7ddd3fccb5e7506a5b56433cf2d21cedbc07bfbbec656e55977c6"
       }
-    ]
+    ],
+    "syncUrl": "",
+    "syncNote": "구글 Apps Script 웹앱(/exec) 주소를 넣으면 회원·거래처·주문이 기기 간 동기화됩니다."
   },
   "products": [
     {
