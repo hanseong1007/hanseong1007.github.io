@@ -107,6 +107,8 @@ function readTable_(name){
 
 function writeTable_(name, rows){
   var sh = tab_(name);
+  var need = (rows ? rows.length : 0) + 1;
+  if (sh.getMaxRows() < need) sh.insertRowsAfter(sh.getMaxRows(), need - sh.getMaxRows());
   var last = Math.max(sh.getMaxRows() - 1, 1);
   sh.getRange(2, 1, last, HEAD[name].length).clearContent();
   if (rows && rows.length){

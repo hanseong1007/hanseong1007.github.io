@@ -1570,7 +1570,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     setTimeout(function(){ var el = isJoin ? $('#jn-name') : $('#mb-id'); if (el) el.focus(); }, 80);
   }
   function openAuth(tab){
-    if (state.member || state.admin){ openMypage(); return; }
+    if (state.member || state.admin || state.dealer){ openMypage(); return; }
     openWrap('auth-backdrop');
     lockBody(true);
     setAuthTab(tab || 'login');
@@ -1702,7 +1702,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     lockBody(true);
   }
   function renderMyPage(){
-    var who = state.member || state.admin;
+    var who = state.member || state.admin || state.dealer;
     var guest = $('#my-for-guest'), prof = $('#my-profile');
     if (!who){ guest.hidden = false; prof.hidden = true; return; }
     guest.hidden = true; prof.hidden = false;
@@ -1729,7 +1729,12 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     var box = $('#my-orders');
     if (!box) return;
     var m = state.member;
-    if (!m){ box.innerHTML = '<div class="empty-note">관리자 계정입니다. 주문은 <b>거래처·회원 관리 → 주문</b>에서 확인해 주세요.</div>'; return; }
+    if (!m){
+      box.innerHTML = isAdmin()
+        ? '<div class="empty-note">관리자 계정입니다. 주문은 <b>거래처·회원 관리 → 주문</b>에서 확인해 주세요.</div>'
+        : '<div class="empty-note">거래처 계정입니다. 주문·정산 문의는 <b>061-743-1790</b>으로 연락해 주세요.</div>';
+      return;
+    }
     var list = state.orders.filter(function(o){
       return (o.memberId && o.memberId === m.id) || (o.customer && o.customer.phone && o.customer.phone === m.phone);
     });
@@ -2961,7 +2966,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
 
     // 회원 · 관리자
     $('#btn-user').addEventListener('click', function(){
-      if (state.member || state.admin) openMypage(); else openAuth('login');
+      if (state.member || state.admin || state.dealer) openMypage(); else openAuth('login');
     });
     $('#auth-close').addEventListener('click', closeAuth);
     $('#auth-backdrop').addEventListener('click', function(e){ if (e.target.getAttribute('data-close') === 'auth') closeAuth(); });

@@ -137,7 +137,7 @@ GitHub Pages(브랜치 `main` / 루트)가 1~2분 뒤 자동 반영합니다.
 
 ```bash
 python3 scripts/test_shop.py              # 64항목 — 상품·상세·장바구니·주문
-python3 scripts/test_shop_members.py      # 35항목 — 회원·거래처·기기 간 동기화(모의 시트)
+python3 scripts/test_shop_members.py      # 37항목 — 회원·거래처·기기 간 동기화(모의 시트)
 python3 scripts/test_portal_shop.py       # 24항목 — 포털 6번째 메뉴 → 쇼핑몰·상세
 python3 scripts/test_portal_menus.py      # 65항목 — 사용자별 메뉴(쇼핑몰 포함)
 ```
