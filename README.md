@@ -9,7 +9,7 @@
 - 배포 주소: `https://hanseong1007.github.io/` (저장소 `hanseong1007/hanseong1007.github.io`)
 - 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` · `/parcel-label/` · `/coupang-order/` (같은 출처)
 - 쿠팡택배 앱: `coupang-order/index.html` · `coupang-order/xlsx.full.min.js` (SheetJS) — 설명은 `coupang-order/README.md`
-- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화)
+- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화) · `scripts/test_portal_parcel.py` (14항목, 포털→택배주소출력 1회 로그인·보안)
 - 배포: `bash scripts/deploy_portal.sh`
 
 ## PC 앱으로 설치 (PWA)
@@ -86,6 +86,18 @@
 4. **로그아웃 정리** — 앱의 `로그아웃`을 누르면 SSO 표시와 세 앱의 세션, 그리고 포털 로그인까지 함께 지웁니다(포털은 다시 로그인 화면).
    포털의 `로그아웃`도 같습니다. 앱의 `내 계정`에는 로그인한 사람이면 누구나 `🔐 통합 포털` 버튼이 보이고,
    `?stay=1` 로 포털에 돌아와 자기 메뉴 카드를 다시 고를 수 있습니다.
+
+### 택배주소출력도 1회 로그인 (시트 토큰 미리 받기)
+
+택배주소출력은 거래처를 자기 Apps Script 시트에만 두고, `{action:'login', id, pw}` 로 받은
+180일 토큰이 있어야 목록을 엽니다. 다른 세 앱처럼 세션만 심어서는 열리지 않으므로,
+**포털이 로그인 순간에 그 앱의 시트 토큰을 대신 받아** `pl.u.<아이디>.tok.v1` 에 넣어 둡니다.
+
+- 비밀번호는 시트 로그인 요청에만 쓰고 어디에도 저장하지 않습니다(토큰만 남음).
+- 토큰 발급은 시트가 직접 검증하므로, 아이디만 아는 사람은 포털 SSO를 흉내 내도 토큰을 받을 수 없습니다.
+- `menus` 에 `parcel` 이 없는 계정에는 토큰을 만들지 않습니다.
+- 앱 카드를 누를 때 발급이 아직 진행 중이면 최대 8초 기다렸다 넘어갑니다(재로그인 없이 열리도록).
+- 포털을 거치지 않고 택배주소출력 주소를 직접 열거나 토큰이 만료되면 그때만 비밀번호를 한 번 묻습니다.
 
 ### 초대 링크
 

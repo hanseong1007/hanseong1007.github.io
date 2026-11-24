@@ -936,7 +936,14 @@ function loadRows(){
     var at=new Date();
     setSync('구글 시트 연동 · '+rows.length.toLocaleString()+'곳 · '+at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준');
   }).catch(function(e){
-    if(e&&e.needLogin&&S.user){ setSync('시트 로그인이 만료되었습니다 · 🔄 새로고침으로 다시 연결하세요','warn'); return; }
+    if(e&&e.needLogin&&S.user){
+      /* 포털 로그인 토큰이 만료됐다 — 만료된 표시를 지우고 다시 받을 수 있게 한다 */
+      LS.del(kTok(S.user.id)); S.token='';
+      setSync('시트 로그인이 만료되었습니다 · 비밀번호를 한 번 넣어 다시 연결해 주세요','warn');
+      if(cached.length){ S.rows=cached; S.src='cache'; applyFilter(); }
+      askSheetLogin();
+      return;
+    }
     if(cached.length){
       setSync('시트 연결 실패 — 이 기기에 저장된 목록으로 표시 중 ('+cached.length.toLocaleString()+'곳)','warn');
     } else {
@@ -1009,15 +1016,19 @@ function trySSO(){
   $('#hd-who').textContent=(S.user.name||S.user.id)+' 님';
   var t=LS.get(kTok(u.id),null);
   if(t&&t.token&&t.exp>Date.now()) S.token=t.token;
-  setSync('포털 로그인으로 들어왔습니다');
-  $('.syncbar').classList.add('warn');
-  $('#sync-text').textContent='포털 로그인으로 들어왔습니다 · 시트는 아래 🔄 새로고침을 누르면 갱신됩니다';
   var cached=loadCache();
   if(cached.length){ S.rows=cached; S.src='cache'; applyFilter(); }
   fitPreview();
-  if(S.token) loadRows();
-  else if(!cached.length) askSheetLogin();          /* 처음 오는 기기: 비밀번호 한 번으로 180일 열쇠 */
-  else toast('새 자료를 받으려면 🔄 시트 새로고침을 누르세요');
+  if(S.token){
+    /* 포털 로그인 때 함께 받아 둔 시트 토큰 — 비밀번호를 다시 묻지 않고 바로 연결한다 */
+    setSync('포털 로그인으로 들어왔습니다 · 시트에서 거래처 목록을 불러오는 중…');
+    loadRows();
+  } else if(!cached.length){
+    askSheetLogin();          /* 포털 로그인 없이 이 화면만 연 경우: 비밀번호 한 번으로 180일 열쇠 */
+  } else {
+    setSync('이 기기에 저장된 목록을 표시 중입니다 · 🔄 를 누르면 시트에서 새로 받습니다','warn');
+    toast('새 자료를 받으려면 🔄 시트 새로고침을 누르세요');
+  }
   return true;
 }
 function logout(){
@@ -1034,6 +1045,7 @@ function askSheetLogin(){
   m.className='modal'; m.id='reLogin';
   m.innerHTML='<div class="box"><h3>시트 다시 연결</h3>'
     +'<p style="margin:0 0 4px;color:#64748b;font-size:12.5px">거래처를 시트에서 새로 받으려면 비밀번호를 한 번 더 넣어 주세요.</p>'
+    +'<p style="margin:0 0 6px;color:#94a3b8;font-size:11.5px">통합 포털(<b>🔐</b>)에서 로그인해 들어오면 비밀번호 없이 바로 연결됩니다.</p>'
     +'<label>아이디</label><input id="rl-id" type="text" value="'+esc(S.user?S.user.id:'')+'">'
     +'<label>비밀번호</label><input id="rl-pw" type="password">'
     +'<div class="msg" id="rl-msg"></div>'
