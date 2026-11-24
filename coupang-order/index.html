@@ -1372,11 +1372,12 @@ function renderStep3(){
 }
 
 function renderStep4(){
-  var rows=S.orders.filter(function(o){ return o.invoice; });
-  var waiting=S.orders.filter(function(o){ return !o.invoice&&S.picked.has(o.id); });
-  $('#s4-sub').textContent=rows.length
-    ? ('운송장 '+rows.length+'건 · 미등록 '+waiting.length+'건')
-    : '등록된 운송장이 없습니다';
+  var rows=S.orders.filter(function(o){ return o.invoice || S.picked.has(o.id); });
+  var withInv=rows.filter(function(o){ return o.invoice; });
+  var noInv=rows.filter(function(o){ return !o.invoice; });
+  $('#s4-sub').textContent=withInv.length
+    ? ('운송장 '+withInv.length+'건 · 번호 입력 대기 '+noInv.length+'건')
+    : (noInv.length?'운송장번호를 넣어 주세요':'등록된 운송장이 없습니다');
 
   var list=$('#list4');
   if(!rows.length){
@@ -1387,16 +1388,16 @@ function renderStep4(){
         '<div data-l="주문번호"><span class="v"><b class="mono">'+esc(o.orderNo||'—')+'</b></span></div>'+
         '<div data-l="수령인"><span class="v"><b>'+esc(o.name||'')+'</b><small>'+esc(o.phone||o.phone2||'')+'</small></span></div>'+
         '<div data-l="상품"><span class="v"><span class="pname">'+esc(o.item||'')+'</span><small>수량 '+esc(o.qty||1)+'</small></span></div>'+
-        '<div data-l="운송장번호"><span class="v"><input class="inp-inv" data-id="'+esc(o.id)+'" value="'+esc(o.invoice||'')+'" inputmode="numeric" aria-label="운송장번호" style="width:100%;height:28px;border:1px solid var(--line);border-radius:7px;background:#fbfcfb;padding:0 7px;font-size:11px;font-weight:700;font-family:var(--mono)"></span></div>'+
+        '<div data-l="운송장번호"><span class="v"><input class="inp-inv" data-id="'+esc(o.id)+'" value="'+esc(o.invoice||'')+'" inputMode="numeric" placeholder="번호 입력" aria-label="운송장번호" style="width:100%;height:28px;border:1px solid var(--line);border-radius:7px;background:#fbfcfb;padding:0 7px;font-size:11px;font-weight:700;font-family:var(--mono)"></span></div>'+
         '<div data-l="복사"><span class="v"><button class="btn sm" type="button" data-act="copy-inv" data-id="'+esc(o.id)+'">복사</button></span></div>'+
-        '<div data-l="상태"><span class="v"><span class="pill '+(o.shipped?'green':'blue')+'">'+(o.shipped?'발송완료':'등록 대기')+'</span></span></div>'+
+        '<div data-l="상태"><span class="v"><span class="pill '+(o.shipped?'green':(o.invoice?'blue':'gray'))+'">'+(o.shipped?'발송완료':(o.invoice?'등록 대기':'번호 없음'))+'</span></span></div>'+
       '</div>';
     }).join('');
   }
   var reg=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
   $('#btn-wing-xlsx').disabled=reg.length===0;
   $('#btn-mark').disabled=reg.length===0;
-  $('#btn-print4').disabled=rows.length===0;
+  $('#btn-print4').disabled=withInv.length===0;
   $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'):'ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.';
 }
 
@@ -1986,7 +1987,6 @@ function wire(){
     var list=S.orders.filter(function(o){ return o.invoice; });
     doPrint(list,S.fmt);
   });
-
   document.addEventListener('change',function(e){
     var t=e.target;
     if(t.dataset&&t.dataset.act==='sel'){
