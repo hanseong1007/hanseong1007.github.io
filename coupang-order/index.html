@@ -955,7 +955,7 @@ function decText(ct,keyHex){
 var S = {
   user:null, tier:'', orders:[], step:1, filter:'전체', bucket:null, q:'',
   ackSel:new Set(), picked:new Set(), cur:null, fmt:'thermal',
-  logs:[], logOpen:false, lastMap:null, token:0
+  logs:[], logOpen:false, lastMap:null
 };
 
 /* ---------------- utils ---------------- */
@@ -1904,7 +1904,6 @@ function wire(){
     });
   });
 
-  $('#btn-load-sample');
   $('#btn-sample').addEventListener('click',loadSample);
   $('#btn-template').addEventListener('click',exportTemplate);
 
