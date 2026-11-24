@@ -210,6 +210,7 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
 }
 .mapline b{color:var(--ink);font-weight:800}
 .mapline .miss{color:#a12424;font-weight:800}
+.mapline .hint{color:#4b6154;font-weight:700}
 .mapline ul{margin:3px 0 0;padding-left:14px}
 
 /* ---------------- toolbar / filters ---------------- */
@@ -759,7 +760,8 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
             <ul>
               <li>운송장번호는 ALPS 접수 결과로 받습니다. 4단계에서 번호를 넣으면 이 미리보기에도 찍힙니다.</li>
               <li>번호가 없으면 송장 <b>번호 자리만 비어서</b> 인쇄됩니다.</li>
-              <li>보내는분: <b>(주)경덕농수산 · 전남 순천시 해룡면 해룡산단1로 82-7</b></li>
+              <li>보내는분: <b>주식회사 경덕농수산 · 061-743-1790 · 전남 순천시 해룡면 해룡산단1로 82-7</b></li>
+            <li>품명은 주문서의 <b>노출상품명(옵션명)</b>, 비고는 <b>배송메세지</b>가 그대로 돕니다.</li>
             </ul>
           </div>
         </div>
@@ -794,6 +796,7 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
           <input type="file" id="file-inv" accept=".xlsx,.xls,.csv" hidden>
         </label>
         <button class="btn sm" id="btn-paste" type="button">붙여넣기 창 열기</button>
+        <button class="btn sm" id="btn-wing-full" type="button" disabled>원본 주문서에 운송장 채우기</button>
         <button class="btn sm" id="btn-print4" type="button">송장 인쇄</button>
         <button class="btn sm" id="btn-mark" type="button">쿠팡윙 등록 완료 표시</button>
         <div class="spacer"></div>
@@ -871,7 +874,7 @@ var SHARED_USERS = 'https://script.google.com/macros/s/AKfycbx8vtZ9wxfqwEUhuIC5h
 var K_SSO = 'kd.portal.sso.v1', K_PU = 'kd.portal.users.v1';
 var K_SESS = 'cp.session.v1', K_TMP = 'cp.session.tmp.v1';
 var K_USERS = 'cp.users.v1', K_DATA = 'cp.data.v1';
-var SENDER = { name:'(주)경덕농수산', addr:'전남 순천시 해룡면 해룡산단1로 82-7' };
+var SENDER = { name:'주식회사 경덕농수산', tel:'061-743-1790', addr:'전남 순천시 해룡면 해룡산단1로 82-7' };
 
 /* ---------------- storage helpers ---------------- */
 function jget(k, d){ try{ var s = localStorage.getItem(k); return s ? JSON.parse(s) : d; }catch(e){ return d; } }
@@ -955,7 +958,7 @@ function decText(ct,keyHex){
 var S = {
   user:null, tier:'', orders:[], step:1, filter:'전체', bucket:null, q:'',
   ackSel:new Set(), picked:new Set(), cur:null, fmt:'thermal',
-  logs:[], logOpen:false, lastMap:null
+  logs:[], logOpen:false, lastMap:null, srcSheet:null
 };
 
 /* ---------------- utils ---------------- */
@@ -1180,7 +1183,10 @@ function normStatus(v){
 }
 function bucketOf(o){
   if(o.shipped) return '배송완료';
+  if(o.status==='취소' || o.status==='반품') return o.status;
   if(o.status==='출고중지요청') return '출고중지요청';
+  if(o.doneAt) return '배송완료';
+  if(o.invoice) return '배송중';   /* 운송장번호가 들어오면 배송중으로 본다 */
   if(o.status==='배송완료') return '배송완료';
   if(o.status==='배송중') return '배송중';
   if(o.status==='배송지시') return '배송지시';
@@ -1196,7 +1202,17 @@ function bucketOf(o){
 }
 function isOpen(o){
   var b=bucketOf(o);
-  return b!=='배송완료' && b!=='배송중' && b!=='배송지시';
+  return b!=='배송완료' && b!=='배송중' && b!=='배송지시' && b!=='취소' && b!=='반품';
+}
+/* 표의 상태 갈에 작게 붙는 안내 — 출고예정일·배송완료일을 사람이 바로 알아보게 */
+function stateHint(o){
+  if(o.doneAt) return '배송완료 '+String(o.doneAt).slice(5);
+  if(o.due){
+    if(o.due===todayStr()) return '출고예정 오늘';
+    return '출고예정 '+String(o.due).slice(5);
+  }
+  if(o.invoice) return '운송장 등록됨';
+  return '';
 }
 function counts(){
   var c={}; BUCKETS.forEach(function(k){ c[k]=0; });
@@ -1285,7 +1301,7 @@ function renderStep1(){
         '<div data-l="수령인"><span class="v"><b>'+esc(o.name||'—')+'</b><small>'+esc(o.phone||o.phone2||'')+'</small></span></div>'+
         '<div data-l="배송지"><span class="v"><span class="addr">'+esc((o.zip?'['+o.zip+'] ':'')+(o.addr||'')+(o.addr2?' '+o.addr2:''))+'</span></span></div>'+
         '<div data-l="상품"><span class="v"><span class="pname">'+esc(o.item||'—')+(o.option?' · '+esc(o.option):'')+'</span><small>수량 '+esc(o.qty||1)+'</small></span></div>'+
-        '<div data-l="배송상태"><span class="v"><span class="pill '+(BUCKET_PILL[b]||'gray')+'">'+esc(b)+'</span></span></div>'+
+        '<div data-l="배송상태"><span class="v"><span class="pill '+(BUCKET_PILL[b]||'gray')+'">'+esc(b)+'</span>'+(stateHint(o)?'<small>'+esc(stateHint(o))+'</small>':'')+'</span></div>'+
         '<div data-l="발주확인"><span class="v"><label class="ack"><input type="checkbox" data-act="acked" data-id="'+esc(o.id)+'"'+(o.acked?' checked':'')+'><span>'+(o.acked?'완료':'대기')+'</span></label></span></div>'+
       '</div>';
     }).join('');
@@ -1396,9 +1412,11 @@ function renderStep4(){
   }
   var reg=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
   $('#btn-wing-xlsx').disabled=reg.length===0;
+  var bf=$('#btn-wing-full');
+  if(bf) bf.disabled=!(S.srcSheet&&S.srcSheet.invCol!=null&&S.orders.filter(function(o){ return o.invoice; }).length);
   $('#btn-mark').disabled=reg.length===0;
   $('#btn-print4').disabled=withInv.length===0;
-  $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'):'ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.';
+  $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'+(S.srcSheet&&S.srcSheet.invCol!=null?' · <b>원본 주문서에 운송장 채우기</b>로 주문서 41열 그대로도 받을 수 있습니다.':'')):'ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.';
 }
 
 function renderLog(){
@@ -1419,25 +1437,39 @@ function setStep(n){
 }
 
 /* ---------------- excel 읽기 ---------------- */
+/* 열 이름 사전 — 앞에 쓴 이름이 우선순위가 높다.
+   (예: `수취인이름`이 있으면 `구매자`보다 먼저 쓰고, `노출상품명(옵션명)`이 있으면 `등록상품명`보다 먼저 쓴다.) */
 var ALIASES={
   orderNo:['주문번호','주문번호(쿠팡)','주문ID','오더번호','주문No','orderNo','OrderNo'],
-  itemNo:['주문상품번호','상품주문번호','주문상품','itemNo','vendorItemId'],
+  bundle:['묶음배송번호'],
+  itemNo:['주문상품번호','상품주문번호','노출상품ID','주문상품','vendorItemId','itemNo'],
   orderedAt:['주문일시','주문일자','주문일','결제일시','결제일','주문시간','주문날짜'],
-  name:['수령인','수령인명','수하인명','받는사람','받는분','수취인','받는분성명'],
-  phone:['수령인전화번호','전화번호','연락처','수령인연락처','전화'],
-  phone2:['수령인휴대폰번호','휴대폰번호','휴대폰','핸드폰','휴대전화','수령인핸드폰번호'],
+  name:['수취인이름','수령인','수령인명','수하인명','받는사람','받는분','수취인','받는분성명','구매자'],
+  phone:['수취인전화번호','수령인전화번호','전화번호','연락처','수령인연락처','전화'],
+  phoneAlt:['구매자전화번호'],
+  phone2:['수취인휴대폰번호','수령인휴대폰번호','수령인핸드폰번호','휴대폰번호','휴대폰','핸드폰','휴대전화'],
   zip:['우편번호','배송지우편번호','우편번호신','zipcode'],
-  addr:['주소','배송지주소','기본주소','수령인주소','도로명주소','배송주소'],
+  addr:['수취인주소','주소','배송지주소','기본주소','수령인주소','도로명주소','배송주소'],
   addr2:['상세주소','나머지주소'],
-  item:['상품명','상품','품목명','등록상품명','상품이름','상품명옵션'],
-  option:['옵션','상품옵션','옵션명','등록옵션명'],
-  qty:['수량','주문수량','구매수량','개수'],
-  msg:['배송메시지','배송메세지','배송요청사항','요청사항','배송메모'],
+  showName:['노출상품명(옵션명)','노출상품명'],
+  regItem:['등록상품명'],
+  regOption:['등록옵션명'],
+  item:['상품명','품목명','상품','상품이름','상품명옵션'],
+  option:['옵션','상품옵션','옵션명'],
+  qty:['구매수(수량)','구매수','수량','주문수량','구매수량','개수'],
+  msg:['배송메세지','배송메시지','배송요청사항','요청사항','배송메모'],
+  msgAlt:['상품별 추가메시지'],
+  msgAlt2:['주문자 추가메시지'],
   status:['배송상태','주문상태','상태','배송상태명'],
-  due:['출고예정일','발송기한','출고기한','출고예정'],
+  due:['주문시 출고예정일','출고예정일','발송기한','출고기한','출고예정'],
+  dueSplit:['분리배송 출고예정일'],
+  shippedAt:['출고일(발송일)','출고일'],
+  doneAt:['배송완료일'],
+  confirmedAt:['구매확정일자'],
   courier:['택배사','배송업체','택배업체'],
   invoice:['운송장번호','송장번호','운송장']
 };
+var REQUIRED=['orderNo','name','addr','phone'];
 function normHead(v){ return String(v==null?'':v).replace(/[\s()\[\]{}_\-]/g,'').trim().toLowerCase(); }
 var NORM_ALIASES={};
 Object.keys(ALIASES).forEach(function(k){ NORM_ALIASES[k]=ALIASES[k].map(normHead); });
@@ -1446,14 +1478,14 @@ function headerMap(headerRow){
   var heads=headerRow.map(normHead), map={};
   Object.keys(NORM_ALIASES).forEach(function(field){
     var list=NORM_ALIASES[field];
-    for(var i=0;i<heads.length;i++){
-      if(!heads[i]) continue;
-      if(list.indexOf(heads[i])>=0){ map[field]=i; break; }
+    for(var a=0;a<list.length;a++){
+      var i=heads.indexOf(list[a]);
+      if(i>=0){ map[field]=i; break; }
     }
   });
   return map;
 }
-function scoreMap(map){ return ['orderNo','name','addr','phone','qty','item'].filter(function(k){ return map[k]!=null; }).length; }
+function scoreMap(map){ return ['orderNo','name','addr','phone','qty','item','showName','invoice'].filter(function(k){ return map[k]!=null; }).length; }
 function pickHeaderRow(rows){
   var best={idx:-1,map:{},score:0};
   for(var i=0;i<Math.min(rows.length,12);i++){
@@ -1512,20 +1544,33 @@ function rowToOrder(rows,map,idx,headerIdx){
   function v(f){ var i=map[f]; return i==null?'':String(r[i]==null?'':r[i]).trim(); }
   var orderNo=v('orderNo'), name=v('name');
   if(!orderNo && !name) return null;
-  var phone=v('phone'), phone2=v('phone2');
-  if(!phone2) phone2=phone;
+  var phone=v('phone')||v('phoneAlt'), phone2=v('phone2')||phone;
   if(!phone) phone=phone2;
-  var item=v('item')||v('option');
+  /* 품명: `노출상품명(옵션명)`(쿠팡이 보여 주는 이름)을 먼저, 없으면 `등록상품명`+`등록옵션명` */
+  var showName=v('showName'), regItem=v('regItem'), regOption=v('regOption');
+  var item=showName||regItem||v('item');
+  var option=showName?'':(regOption||v('option'));
+  var invoice=digits(v('invoice')), doneAt=toDay(v('doneAt')), shippedAt=toDay(v('shippedAt'));
+  /* 쿠팡윙 DeliveryList에는 배송상태 열이 없다 — 배송완료일·운송장번호로 상태를 만든다 */
+  var status=normStatus(v('status'));
+  if(!status){
+    if(doneAt) status='배송완료';
+    else if(invoice) status='배송중';
+    else status='상품준비중';   /* 발주확인 후 내려받은 주문서이므로 기본은 상품준비중 */
+  }
   var o={
     id:'', orderNo:orderNo, itemNo:v('itemNo'), orderedAt:v('orderedAt'),
     name:name, phone:phone, phone2:phone2, zip:zipStr(v('zip')),
-    addr:v('addr'), addr2:v('addr2'), item:item, option:v('option'),
-    qty:v('qty')||'1', msg:v('msg'), courier:v('courier'), invoice:digits(v('invoice')),
-    status:normStatus(v('status')), due:toDay(v('due')), shipped:false, acked:false, src:'excel'
+    addr:v('addr'), addr2:v('addr2'), item:item, option:option,
+    regItem:regItem, regOption:regOption,
+    qty:v('qty')||'1', msg:v('msg')||v('msgAlt')||v('msgAlt2'),
+    courier:v('courier'), invoice:invoice, status:status,
+    due:toDay(v('dueSplit'))||toDay(v('due')),
+    shippedAt:shippedAt, doneAt:doneAt, confirmedAt:toDay(v('confirmedAt')),
+    shipped:false, acked:false, src:'excel', srcRow:idx
   };
   o.id=(o.orderNo||('row'+idx))+'-'+(o.itemNo||(''+(idx-headerIdx)));
-  if(!o.status) o.status='결제완료';
-  o.acked=(bucketOf(o)!=='결제완료');
+  o.acked=!(o.status==='결제완료'||o.status==='취소'||o.status==='반품');
   return o;
 }
 
@@ -1551,11 +1596,17 @@ function importTable(rows,fileName){
     }
   }
   S.lastMap={ map:map, file:fileName, added:added, updated:updated, skipped:skipped, headerIdx:head.idx };
-  var missing=Object.keys(map).filter(function(k){ return map[k]==null; });
-  var used=Object.keys(map).filter(function(k){ return map[k]!=null; });
+  /* 원본 주문서(쿠팡윙 DeliveryList)를 메모리에만 남겨 둔다 — 4단계에서 운송장번호를 채워 그대로 돌려준다 */
+  S.srcSheet={ rows:rows, headIdx:head.idx, fileName:fileName||'',
+    invCol:(map.invoice==null?null:map.invoice), statusCol:(map.status==null?null:map.status) };
+  var missing=REQUIRED.filter(function(k){ return map[k]==null; });
+  var usedLabels=[];
+  Object.keys(map).forEach(function(k){ if(map[k]==null) return; var l=labelOf(k); if(usedLabels.indexOf(l)<0) usedLabels.push(l); });
+  var derived=(map.status==null && (map.doneAt!=null||map.invoice!=null));
 
   $('#wing-map').innerHTML='<b>'+esc(fileName||'파일')+'</b> — 새 주문 <b>'+added+'건</b>'+(updated?' · 갱신 '+updated+'건':'')+
-    '<br>읽은 열: '+esc(used.map(function(k){ return labelOf(k); }).join('·'))+
+    '<br>읽은 열: '+esc(usedLabels.join('·'))+
+    (derived?'<br><span class="hint">배송상태 열이 없어 <b>배송완료일</b>·<b>운송장번호</b>로 상태를 계산했습니다</span>':'')+
     (missing.length?'<br><span class="miss">못 찾은 열: '+esc(missing.map(labelOf).join('·'))+'</span>':'');
   log('엑셀 불러오기 · '+esc(fileName||'')+' → 새 주문 '+added+'건'+(updated?' · 갱신 '+updated+'건':''),'wing');
   saveOrders();
@@ -1564,9 +1615,11 @@ function importTable(rows,fileName){
   return {added:added,updated:updated,skipped:skipped};
 }
 function labelOf(k){
-  var m={orderNo:'주문번호',itemNo:'주문상품번호',orderedAt:'주문일시',name:'수령인',phone:'전화번호',phone2:'휴대폰',
-    zip:'우편번호',addr:'주소',addr2:'상세주소',item:'상품명',option:'옵션',qty:'수량',msg:'배송메시지',
-    status:'배송상태',due:'출고예정일',courier:'택배사',invoice:'운송장번호'};
+  var m={orderNo:'주문번호',bundle:'묶음배송번호',itemNo:'상품ID',orderedAt:'주문일시',name:'수령인',phone:'전화번호',phoneAlt:'전화번호',phone2:'휴대폰',
+    zip:'우편번호',addr:'주소',addr2:'상세주소',showName:'상품명(옵션)',regItem:'등록상품명',regOption:'등록옵션',
+    item:'상품명',option:'옵션',qty:'수량',msg:'배송메시지',msgAlt:'상품별 메시지',msgAlt2:'주문자 메시지',
+    status:'배송상태',due:'출고예정일',dueSplit:'분리배송 출고예정일',shippedAt:'출고일',doneAt:'배송완료일',
+    confirmedAt:'구매확정일',courier:'택배사',invoice:'운송장번호'};
   return m[k]||k;
 }
 
@@ -1653,6 +1706,26 @@ function exportWingInvoices(){
   log('쿠팡윙 운송장 일괄등록 엑셀 내려받기 · '+list.length+'건','wing');
   toast(list.length+'건 '+(ok?'엑셀':'CSV')+'을 내려받았습니다');
   window.__cp_lastInvoiceRows=rows;
+}
+/* 1단계에서 올린 쿠팡윙 원본 주문서(DeliveryList) 41열을 그대로 두고 운송장번호 칸만 채워 돌려준다.
+   파일은 브라우저에서만 만들어진다 — 서버·GitHub를 거치지 않는다. */
+function exportWingFull(){
+  var src=S.srcSheet;
+  if(!src){ toast('1단계에서 쿠팡윙 주문서를 먼저 올려 주세요','warn'); return; }
+  if(src.invCol==null){ toast('올린 주문서에 운송장번호 열이 없습니다','warn'); return; }
+  var rows=src.rows.map(function(r){ return (r||[]).slice(); });
+  var filled=0;
+  S.orders.forEach(function(o){
+    if(!o.invoice) return;
+    var r=(o.srcRow!=null)?rows[o.srcRow]:null;
+    if(!r){ return; }
+    r[src.invCol]=String(o.invoice);
+    filled++;
+  });
+  if(!filled){ toast('채울 운송장번호가 없습니다','warn'); return; }
+  var ok=saveTable(rows,'Delivery','쿠팡윙_운송장채운_주문서_'+stamp()+'.xlsx');
+  log('쿠팡윙 원본 주문서에 운송장 '+filled+'건 채움','wing');
+  toast(filled+'건 운송장을 채운 원본 주문서를 '+(ok?'엑셀':'CSV')+'으로 내려받았습니다');
 }
 function exportTemplate(){
   var rows=[['주문번호','주문일시','수령인','수령인전화번호','수령인휴대폰번호','우편번호','주소','상세주소','상품명','옵션','수량','배송메시지','배송상태','출고예정일'],
@@ -1763,12 +1836,13 @@ function labelHTML(o){
       '<div class="lb-row"><span>주소</span><b>('+esc(o.zip||'')+') '+esc((o.addr||'')+(o.addr2?' '+o.addr2:''))+'</b></div>'+
     '</div>'+
     '<div class="lb-items">'+
-      '<div><span>품목</span><b>'+esc(o.item||'')+(o.option?' / '+esc(o.option):'')+'</b></div>'+
+      '<div><span>품명</span><b>'+esc(o.item||'')+(o.option?' / '+esc(o.option):'')+'</b></div>'+
       '<div><span>수량</span><b>'+esc(o.qty||1)+'개</b></div>'+
-      '<div><span>배송메시지</span><b>'+esc(o.msg||'—')+'</b></div>'+
+      '<div><span>비고</span><b>'+esc(o.msg||'—')+'</b></div>'+
     '</div>'+
     '<div class="lb-from">'+
       '<div><span>보내는분</span><b>'+esc(SENDER.name)+'</b></div>'+
+      '<div><span>연락처</span><b>'+esc(SENDER.tel)+'</b></div>'+
       '<div><span>주소</span><b>'+esc(SENDER.addr)+'</b></div>'+
     '</div>'+
   '</div>';
@@ -1881,7 +1955,7 @@ function wire(){
   });
   $('#btn-reset').addEventListener('click',function(){
     if(!confirm('불러온 주문을 모두 지울까요? (내려받은 엑셀은 그대로 남습니다)')) return;
-    S.orders=[]; S.picked.clear(); S.ackSel.clear(); S.cur=null; S.lastMap=null; S.bucket=null; S.filter='전체'; S.q='';
+    S.orders=[]; S.picked.clear(); S.ackSel.clear(); S.cur=null; S.lastMap=null; S.srcSheet=null; S.bucket=null; S.filter='전체'; S.q='';
     var q=$('#f-q'); if(q) q.value='';
     srm(K_DATA);
     $('#wing-map').textContent='아직 불러온 파일이 없습니다.';
@@ -1981,6 +2055,7 @@ function wire(){
   $('#btn-paste-apply').addEventListener('click',applyPaste);
   $('#btn-paste-clear').addEventListener('click',function(){ $('#paste-text').value=''; });
   $('#btn-wing-xlsx').addEventListener('click',exportWingInvoices);
+  $('#btn-wing-full').addEventListener('click',exportWingFull);
   $('#btn-mark').addEventListener('click',markShipped);
   $('#btn-print4').addEventListener('click',function(){
     var list=S.orders.filter(function(o){ return o.invoice; });
@@ -2076,7 +2151,8 @@ function boot(){
 window.__cp={
   state:S, preparePrint:preparePrint, importTable:importTable, alpsRows:alpsRows,
   readTable:readTable, applyPaste:applyPaste, matchInvoiceRows:matchInvoiceRows,
-  bucketOf:bucketOf, counts:counts, enter:enter, sampleRows:sampleRows
+  bucketOf:bucketOf, counts:counts, enter:enter, sampleRows:sampleRows,
+  headerMap:headerMap, exportWingFull:exportWingFull, labelHTML:labelHTML
 };
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
