@@ -1,0 +1,2085 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f7b63">
+<meta name="robots" content="noindex, nofollow">
+<title>(주)경덕농수산 · 쿠팡택배</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f7b63'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='32' font-weight='700' text-anchor='middle' fill='white'%3E경%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#edf1ef;
+  --card:#ffffff;
+  --ink:#12211c;
+  --ink2:#3b4c46;
+  --muted:#77877f;
+  --line:#e2e8e4;
+  --line2:#eef2ef;
+  --brand:#0f7b63;
+  --brand-dark:#0a5a48;
+  --brand-soft:#e8f4f0;
+  --brand-line:#bfe0d4;
+  --amber:#a96a10;
+  --amber-soft:#fdf4e3;
+  --amber-line:#eedcb5;
+  --red:#bf2b2b;
+  --red-soft:#fdecec;
+  --red-line:#f0c9c9;
+  --blue:#1f5fa8;
+  --blue-soft:#eaf1fa;
+  --blue-line:#c9dbf0;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(18,33,28,.04),0 4px 14px rgba(18,33,28,.05);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Helvetica Neue",sans-serif;
+  font-size:13.5px;line-height:1.45;-webkit-text-size-adjust:100%;
+}
+body:not(.locked){display:flex;flex-direction:column;height:100vh;overflow:hidden}
+button{font-family:inherit}
+input,select,textarea{font-family:inherit;color:inherit}
+h2{margin:0}
+.spacer{flex:1;min-width:0}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+#app{display:flex;flex-direction:column;flex:1;min-height:0}
+#app[hidden]{display:none}
+
+/* ---------------- top bar ---------------- */
+.topbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:12px;
+  padding:9px 18px;background:#fff;border-bottom:1px solid var(--line);z-index:20;
+}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brandmark{
+  width:38px;height:38px;border-radius:11px;flex:0 0 auto;
+  background:linear-gradient(145deg,#13997b,#0a5a48);color:#fff;
+  display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:-.05em;
+  box-shadow:0 2px 6px rgba(10,90,72,.25);
+}
+.brand .bt{display:flex;flex-direction:column;line-height:1.22;min-width:0}
+.brand .bt b{font-size:15px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.brand .bt span{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+
+.shortcuts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.slink{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:9px;
+  border:1px solid var(--line);background:#f8faf9;font-size:11px;font-weight:800;color:var(--ink2);
+  text-decoration:none;white-space:nowrap;
+}
+.slink:hover{background:#f1f6f3;border-color:#d3e0da}
+.slink.wing{border-color:var(--amber-line);background:var(--amber-soft);color:#8a5608}
+.slink.alps{border-color:var(--red-line);background:var(--red-soft);color:#a12424}
+.slink svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.who{margin-left:auto;display:flex;align-items:center;gap:6px}
+.whochip{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
+  border:1px solid var(--line);background:#f8faf9;font-size:11.5px;font-weight:800;color:var(--ink2);
+  white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis;
+}
+.whochip i{width:7px;height:7px;border-radius:50%;background:var(--brand);flex:0 0 auto}
+.iconbtn{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink2);
+  display:grid;place-items:center;padding:0;cursor:pointer;flex:0 0 auto;
+}
+.iconbtn:hover{background:#f5f8f6}
+.iconbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------------- status board ---------------- */
+.board{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;padding:8px 18px 0}
+.brow{display:grid;gap:6px;align-items:stretch}
+.brow.r1{grid-template-columns:104px repeat(4,minmax(0,1fr))}
+.brow.r2{grid-template-columns:104px repeat(5,minmax(0,1fr))}
+.bl{display:flex;flex-direction:column;justify-content:center;font-size:10.5px;font-weight:800;color:var(--muted);line-height:1.3}
+.bl b{font-size:11px;color:var(--ink2);font-weight:800;letter-spacing:-.02em}
+.btile{
+  display:flex;align-items:center;gap:9px;padding:6px 11px;border-radius:11px;
+  border:1px solid var(--line);background:#fff;cursor:pointer;text-align:left;min-width:0;
+  transition:border-color .12s,box-shadow .12s;
+}
+.btile:hover{border-color:#cfdad5}
+.btile.on{border-color:var(--brand);box-shadow:0 0 0 2px rgba(15,123,99,.12)}
+.btile .nv{font-size:19px;font-weight:800;letter-spacing:-.05em;line-height:1.15;font-variant-numeric:tabular-nums;min-width:20px}
+.btile .nt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.btile .nt b{font-size:10.8px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btile .nt small{font-size:9.5px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btile.warn .nv{color:var(--red)}
+.btile.warn{border-color:var(--red-line);background:#fffafa}
+.btile.ready .nv{color:var(--brand-dark)}
+.btile.mid .nv{color:var(--amber)}
+.btile.dim .nv{color:#42564e}
+
+/* ---------------- steps ---------------- */
+.steps{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 18px 0}
+.step{
+  display:flex;align-items:center;gap:9px;padding:7px 11px;min-width:0;
+  background:#fff;border:1px solid var(--line);border-radius:12px;cursor:pointer;text-align:left;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+.step:hover{border-color:#cfdad5}
+.step .num{
+  width:24px;height:24px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;
+  background:#eff3f1;color:#5d6d66;font-size:11px;font-weight:800;
+}
+.step .t{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.25}
+.step .t b{font-size:11.8px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.step .t small{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step .badge{
+  flex:0 0 auto;min-width:19px;height:19px;padding:0 6px;border-radius:999px;
+  background:var(--amber-soft);color:#8a5608;border:1px solid var(--amber-line);
+  font-size:10.5px;font-weight:800;display:grid;place-items:center;font-variant-numeric:tabular-nums;
+  display:none;
+}
+.step .badge.show{display:grid}
+.step .badge.ok{background:var(--brand-soft);border-color:var(--brand-line);color:var(--brand-dark)}
+.step.on{border-color:var(--brand);box-shadow:0 0 0 2px rgba(15,123,99,.13)}
+.step.on .num{background:var(--brand);color:#fff}
+
+/* ---------------- main ---------------- */
+main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
+.panel{display:none;width:100%;min-width:0;min-height:0}
+.panel.on{display:grid;gap:12px}
+#p1.on{grid-template-columns:352px minmax(0,1fr)}
+#p2.on{grid-template-rows:minmax(0,1fr)}
+#p3.on{grid-template-columns:352px minmax(0,1fr)}
+#p4.on{grid-template-rows:minmax(0,1fr)}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);display:flex;flex-direction:column;min-width:0;min-height:0;
+}
+.cardhead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line2)}
+.cardhead h2{font-size:12.5px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.cardhead .sub{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cardbody{padding:11px 13px;min-height:0;overflow:auto;flex:1;display:flex;flex-direction:column;gap:10px}
+.cardfoot{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:9px 13px;border-top:1px solid var(--line2);background:#fcfdfc;border-radius:0 0 var(--radius) var(--radius);flex-wrap:wrap}
+
+/* ---------------- buttons ---------------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:36px;padding:0 13px;border-radius:10px;border:1px solid var(--line);
+  background:#fff;color:var(--ink2);font-size:12px;font-weight:800;letter-spacing:-.01em;
+  cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,opacity .15s;
+  text-decoration:none;
+}
+.btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{background:#f5f8f6}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(10,90,72,.2)}
+.btn.primary:hover{background:var(--brand-dark);border-color:var(--brand-dark)}
+.btn.parcel{background:#b62525;border-color:#b62525;color:#fff}
+.btn.parcel:hover{background:#981d1d;border-color:#981d1d}
+.btn.ghost{background:var(--brand-soft);border-color:var(--brand-line);color:var(--brand-dark)}
+.btn.ghost:hover{background:#dcefe8}
+.btn.wing{background:#ffd43b;border-color:#f0c400;color:#3b2f00}
+.btn.wing:hover{background:#f5c800}
+.btn.lg{height:42px;font-size:13px;border-radius:11px;padding:0 16px}
+.btn.sm{height:28px;padding:0 9px;font-size:11px;border-radius:8px}
+.btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+.btn:disabled:hover{background:#fff}
+.btn.primary:disabled:hover{background:var(--brand)}
+.btn.block{width:100%}
+
+/* ---------------- step 1 ---------------- */
+.guide{display:flex;flex-direction:column;gap:8px}
+.gstep{display:flex;gap:9px;align-items:flex-start}
+.gstep .gi{
+  width:20px;height:20px;border-radius:6px;background:#eff3f1;color:#5d6d66;flex:0 0 auto;
+  display:grid;place-items:center;font-size:10.5px;font-weight:800;margin-top:1px;
+}
+.gstep .gt{min-width:0;font-size:11.2px;color:var(--ink2);line-height:1.45;font-weight:600}
+.gstep .gt b{color:var(--ink);font-weight:800}
+
+.drop{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:15px 12px;border:1.5px dashed var(--brand-line);border-radius:12px;background:#f7fbf9;
+  cursor:pointer;text-align:center;transition:background .15s,border-color .15s;
+}
+.drop:hover,.drop.over{background:#eef8f4;border-color:var(--brand)}
+.drop svg{width:22px;height:22px;fill:none;stroke:var(--brand);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.drop b{font-size:12px;font-weight:800;color:var(--brand-dark)}
+.drop span{font-size:10.3px;color:var(--muted);font-weight:600;line-height:1.4}
+.drop.small{padding:12px 10px}
+.mapline{
+  border:1px solid var(--line2);border-radius:10px;background:#fbfcfb;padding:8px 10px;
+  font-size:10.5px;line-height:1.55;color:var(--ink2);font-weight:600;
+}
+.mapline b{color:var(--ink);font-weight:800}
+.mapline .miss{color:#a12424;font-weight:800}
+.mapline ul{margin:3px 0 0;padding-left:14px}
+
+/* ---------------- toolbar / filters ---------------- */
+.toolbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{
+  height:26px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  color:var(--ink2);font-size:10.8px;font-weight:800;cursor:pointer;white-space:nowrap;
+}
+.chip:hover{border-color:#cfdad5}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.selinfo{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.selinfo b{color:var(--brand-dark);font-weight:800}
+.selinfo.wrap{white-space:normal;line-height:1.45;font-weight:600}
+.search{position:relative;width:180px;flex:0 0 auto}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;pointer-events:none}
+.search input{width:100%;height:29px;border:1px solid var(--line);border-radius:9px;background:#fbfcfb;padding:0 10px 0 26px;font-size:11.5px;font-weight:600}
+.search input:focus{outline:none;border-color:var(--brand-line);background:#fff;box-shadow:0 0 0 3px rgba(15,123,99,.08)}
+
+/* ---------------- list ---------------- */
+.listwrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.thead,.row{display:grid;gap:9px;align-items:center;padding:7px 14px}
+.thead{flex:0 0 auto;font-size:10.3px;font-weight:800;color:var(--muted);border-bottom:1px solid var(--line);background:#fafcfb}
+.thead.s1,.row.s1{grid-template-columns:28px 118px 118px minmax(120px,1fr) minmax(140px,1.1fr) 96px 92px}
+.thead.s2,.row.s2{grid-template-columns:28px 118px 112px minmax(120px,1fr) minmax(130px,1fr) 96px}
+.thead.s4,.row.s4{grid-template-columns:118px 96px minmax(110px,1fr) 150px 56px 86px}
+.list{flex:1;min-height:0;overflow:auto}
+.row{border-bottom:1px solid var(--line2);font-size:11.8px}
+.row:hover{background:#fafcfb}
+.row:last-child{border-bottom:0}
+.row b{font-weight:800;letter-spacing:-.02em}
+.row .mono{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:-.02em}
+.row small{display:block;font-size:10.2px;color:var(--muted);font-weight:600;line-height:1.35;margin-top:1px}
+.row .addr{font-size:10.8px;color:var(--ink2);line-height:1.4;overflow-wrap:anywhere;font-weight:600}
+.row .pname{font-size:11.2px;font-weight:700;line-height:1.38;overflow-wrap:anywhere}
+.row .v{display:block;min-width:0}
+.c-chk{display:grid;place-items:center}
+.c-chk input,.pchk{width:16px;height:16px;accent-color:var(--brand);cursor:pointer;margin:0}
+.c-chk input:disabled{cursor:not-allowed;opacity:.35}
+.pill{
+  display:inline-grid;place-items:center;padding:2px 7px;border-radius:6px;
+  font-size:10px;font-weight:800;white-space:nowrap;letter-spacing:-.01em;
+  background:#eff3f1;color:#52645c;border:1px solid #e0e7e3;
+}
+.pill.amber{background:var(--amber-soft);color:#8a5608;border-color:var(--amber-line)}
+.pill.green{background:var(--brand-soft);color:var(--brand-dark);border-color:var(--brand-line)}
+.pill.blue{background:var(--blue-soft);color:#1a4e8c;border-color:var(--blue-line)}
+.pill.gray{background:#f1f4f2;color:#5d6d66;border-color:#e2e8e4}
+.pill.red{background:var(--red-soft);color:#a12424;border-color:var(--red-line)}
+.ack{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.ack input{width:15px;height:15px;accent-color:var(--brand);margin:0;cursor:pointer}
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  height:100%;min-height:140px;padding:22px 16px;text-align:center;color:var(--muted);
+}
+.empty svg{width:28px;height:28px;fill:none;stroke:#b5c2bb;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.empty b{font-size:12px;color:var(--ink2);font-weight:800}
+.empty span{font-size:11px;line-height:1.5}
+
+/* ---------------- step 3 ---------------- */
+.picklist{flex:1;min-height:0;overflow:auto;padding:7px}
+.pick{
+  display:flex;gap:9px;align-items:flex-start;padding:8px 9px;border-radius:10px;
+  border:1px solid transparent;cursor:pointer;transition:background .12s,border-color .12s;
+}
+.pick:hover{background:#f7faf8}
+.pick.on{background:var(--brand-soft);border-color:var(--brand-line)}
+.pick .pchk{margin-top:2px;flex:0 0 auto}
+.pick .pmain{min-width:0;flex:1}
+.pick .ptop{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.pick .ptop b{font-size:11.8px;font-weight:800}
+.pick .ptop .pg{font-size:10.3px;color:var(--ink2);font-weight:600;min-width:0;overflow-wrap:anywhere}
+.pick .paddr{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px;overflow-wrap:anywhere;line-height:1.4}
+.pick .pmeta{font-size:10px;color:#9aa8a1;font-weight:600;margin-top:1px;font-variant-numeric:tabular-nums}
+.pick .pid{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span{font-size:10.3px;font-weight:800;color:var(--muted)}
+.field input,.field select,.field textarea{
+  width:100%;min-width:0;height:35px;border:1px solid var(--line);border-radius:9px;
+  background:#fbfcfb;padding:0 10px;font-size:12px;font-weight:700;letter-spacing:-.01em;
+}
+.field textarea{height:96px;padding:8px 10px;line-height:1.5;font-weight:600;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand-line);background:#fff;box-shadow:0 0 0 3px rgba(15,123,99,.08)}
+.field.span2{grid-column:1/-1}
+.field select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2377877f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}
+.inputrow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:7px;font-size:10.8px;align-items:baseline}
+.inputrow span{color:var(--muted);font-weight:800}
+.inputrow b{font-weight:700;overflow-wrap:anywhere;color:var(--ink2)}
+.receipt-note{border:1px solid var(--line2);border-radius:10px;background:#fafcfb;padding:8px 11px}
+.receipt-note>b{font-size:10.5px;font-weight:800;display:block;margin-bottom:3px;color:var(--ink2)}
+.receipt-note ul{margin:0;padding-left:13px;display:flex;flex-direction:column;gap:1px}
+.receipt-note li{font-size:10.4px;color:var(--ink2);line-height:1.45;font-weight:500}
+.receipt-note li b{font-weight:800;color:#2c4038}
+.fmtrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fmtbtn{
+  height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:#fff;
+  font-size:10.8px;font-weight:800;color:var(--ink2);cursor:pointer;
+}
+.fmtbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ---------------- log dock ---------------- */
+.logdock{flex:0 0 auto;border-top:1px solid var(--line);background:#fff}
+.logbar{display:flex;align-items:center;gap:9px;padding:0 18px;height:38px;cursor:pointer;user-select:none}
+.logbar>b{font-size:11.3px;font-weight:800;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.logbar>b svg{width:13px;height:13px;fill:none;stroke:var(--brand);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logbar .latest{font-size:10.8px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.logbar .cntpill{font-size:9.5px;font-weight:800;color:#5d6d66;background:#f1f4f2;border:1px solid var(--line);border-radius:999px;padding:1px 6px;white-space:nowrap}
+.logbar .chev{width:13px;height:13px;fill:none;stroke:var(--muted);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s;flex:0 0 auto}
+.logdock.open .chev{transform:rotate(180deg)}
+.loglist{display:none;max-height:170px;overflow:auto;padding:0 18px 8px}
+.logdock.open .loglist{display:block}
+.logrow{display:flex;gap:9px;align-items:flex-start;padding:5px 0;border-top:1px solid var(--line2);font-size:11.1px;line-height:1.45}
+.logrow time{flex:0 0 52px;color:#9aa8a1;font-family:var(--mono);font-size:10.3px;font-weight:700;padding-top:1px}
+.logrow .dot{width:6px;height:6px;border-radius:50%;background:#b5c2bb;flex:0 0 auto;margin-top:5px}
+.logrow.wing .dot{background:#e0a02a}
+.logrow.alps .dot{background:#d94141}
+.logrow.ok .dot{background:var(--brand)}
+.logrow p{margin:0;min-width:0;color:var(--ink2);font-weight:600;overflow-wrap:anywhere}
+
+/* ---------------- modal ---------------- */
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,22,18,.55)}
+.modal.on{display:flex}
+.modal-card{
+  background:#f3f5f4;border-radius:15px;width:min(520px,100%);max-height:calc(100vh - 36px);
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(6,18,14,.35);
+}
+.modal-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line)}
+.modal-head b{font-size:12.3px;font-weight:800;letter-spacing:-.02em}
+.modal-head .sub{font-size:10.4px;color:var(--muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-head .x{margin-left:auto;width:27px;height:27px;border:0;border-radius:8px;background:#f1f4f2;color:#5d6d66;font-size:15px;line-height:1;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.modal-body{padding:10px;overflow:auto;min-height:0}
+.modal-actions{flex:0 0 auto;display:flex;gap:8px;justify-content:flex-end;padding:9px 14px;background:#fff;border-top:1px solid var(--line);flex-wrap:wrap}
+
+/* label */
+.label{background:#fff;border:1px solid #b9c2bd;border-radius:4px;overflow:hidden;color:#111}
+.lb-top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:2px solid #111}
+.lb-brand b{font-size:14px;letter-spacing:-.03em;display:block;line-height:1.1}
+.lb-brand span{font-size:7.6px;letter-spacing:.12em;color:#666;font-weight:700}
+.lb-code{text-align:right;flex:0 0 auto}
+.lb-code span{display:block;font-size:8.2px;letter-spacing:.1em;color:#555;font-weight:800}
+.lb-code b{font-family:var(--mono);font-size:14px;letter-spacing:-.01em}
+.lb-barcode{padding:8px 12px 2px;text-align:center}
+.lb-barcode .bc{width:100%;height:42px;display:block}
+.lb-barcode em{display:block;font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.2em;margin-top:2px;font-weight:700}
+.lb-nonum{padding:12px 12px 6px;text-align:center;font-size:10.5px;font-weight:800;color:#8a3a10;background:#fdf4e3;border-top:1px dashed #d9b57a;border-bottom:1px dashed #d9b57a}
+.lb-to{border-top:1px dashed #8f9a94;padding:4px 0}
+.lb-to .lb-row:first-child b{font-size:13px}
+.lb-row{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;padding:2px 12px;font-size:10.6px;align-items:baseline}
+.lb-row span{color:#6b7671;font-size:9.2px;font-weight:800}
+.lb-row b{font-weight:700;overflow-wrap:anywhere;line-height:1.35}
+.lb-items{border-top:1px dashed #8f9a94;background:#f7f7f6;padding:4px 0}
+.lb-items>div{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;padding:2px 12px;font-size:10.6px}
+.lb-items span{color:#6b7671;font-size:9.2px;font-weight:800}
+.lb-items b{font-weight:700;overflow-wrap:anywhere}
+.lb-from{border-top:2px solid #111;padding:4px 0 6px}
+.lb-from>div{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;padding:2px 12px;font-size:9.8px}
+.lb-from span{color:#6b7671;font-size:8.8px;font-weight:800}
+.lb-from b{font-weight:700;overflow-wrap:anywhere}
+
+/* print area (hidden on screen) */
+#printArea{display:none}
+
+/* ---------------- gate ---------------- */
+#gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+#gate[hidden]{display:none}
+.gwrap{width:100%;max-width:392px}
+.gbrand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.gbrand .gm{width:42px;height:42px;border-radius:12px;background:linear-gradient(145deg,#13997b,#0a5a48);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800}
+.gbrand div{display:flex;flex-direction:column;line-height:1.25}
+.gbrand b{font-size:14.5px;font-weight:800;letter-spacing:-.03em}
+.gbrand span{font-size:10.8px;color:var(--muted);font-weight:700}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.gcard h1{margin:0 0 4px;font-size:17px;font-weight:800;letter-spacing:-.03em}
+.gcard .lead{margin:0 0 14px;font-size:11.5px;color:var(--muted);line-height:1.5;font-weight:600}
+.gfield{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+.gfield span{font-size:10.5px;font-weight:800;color:var(--muted)}
+.gfield input{height:42px;border:1px solid var(--line);border-radius:10px;background:#fbfcfb;padding:0 12px;font-size:13.5px;font-weight:700}
+.gfield input:focus{outline:none;border-color:var(--brand-line);background:#fff;box-shadow:0 0 0 3px rgba(15,123,99,.09)}
+.grow{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
+.grow .keep{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--ink2)}
+.gpanel{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.gmsg{min-height:16px;font-size:11.3px;font-weight:700;color:#a12424;margin:2px 0 0;line-height:1.4}
+.gmsg.ok{color:var(--brand-dark)}
+.gfoot{margin:12px 0 0;font-size:10.5px;color:var(--muted);font-weight:600;line-height:1.5;text-align:center}
+
+/* ---------------- toast ---------------- */
+.toast{
+  position:fixed;left:50%;bottom:58px;transform:translate(-50%,14px);
+  background:#12211c;color:#fff;padding:9px 15px;border-radius:11px;font-size:12px;font-weight:700;
+  box-shadow:0 10px 26px rgba(8,20,16,.3);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;
+  z-index:90;max-width:calc(100% - 32px);text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.warn{background:#8a3a10}
+
+/* ---------------- mobile ---------------- */
+@media (max-width:899px){
+  body:not(.locked){display:block;height:auto;min-height:100vh;overflow:auto;padding-bottom:70px;font-size:14px}
+  #app{display:block}
+  .topbar{flex-wrap:wrap;gap:8px;padding:8px 12px}
+  .brand{order:1;flex:1;min-width:0}
+  .brand .bt{min-width:0}
+  .brand .bt b{font-size:13.6px}
+  .brand .bt span{font-size:9.6px;white-space:normal}
+  .brandmark{width:34px;height:34px;border-radius:10px;font-size:12px}
+  .shortcuts{order:3;width:100%;gap:5px}
+  .slink{font-size:10.4px;padding:5px 8px;flex:1;justify-content:center}
+  .who{order:2;margin-left:0;gap:5px}
+  .whochip{font-size:10.5px;padding:4px 8px;max-width:120px}
+  .iconbtn{width:31px;height:31px}
+
+  .board{padding:8px 12px 0;gap:6px}
+  .brow.r1,.brow.r2{grid-template-columns:1fr 1fr;gap:5px}
+  .brow .bl{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:6px}
+  .btile{padding:5px 9px;gap:7px;border-radius:10px}
+  .btile .nv{font-size:16px;min-width:16px}
+  .btile .nt b{font-size:10.2px}
+  .btile .nt small{font-size:9px}
+
+  .steps{grid-template-columns:1fr 1fr;gap:6px;padding:8px 12px 0}
+  .step{padding:7px 8px;gap:7px}
+  .step .num{width:21px;height:21px;font-size:10.2px;border-radius:7px}
+  .step .t b{font-size:10.8px}
+  .step .t small{display:none}
+  .step .badge{height:17px;min-width:17px;font-size:9.4px;padding:0 5px}
+
+  main{display:block;padding:8px 12px 0;overflow:visible}
+  .panel.on{display:block}
+  #p1.on,#p2.on,#p3.on,#p4.on{display:block;overflow:visible}
+  .col{gap:10px}
+  .card{margin-bottom:10px}
+  .cardhead{padding:9px 12px;flex-wrap:wrap;gap:6px}
+  .cardhead .sub{white-space:normal}
+  .cardbody{padding:10px 12px;overflow:visible}
+  .cardfoot{padding:9px 12px;flex-direction:column;align-items:stretch;gap:6px}
+  .cardfoot .spacer{display:none}
+  .cardfoot .btn{width:100%;height:40px}
+  .listwrap{overflow:visible}
+  .list{overflow:visible;max-height:none}
+  .picklist{overflow:visible;max-height:none;padding:6px}
+  .thead{display:none}
+  .row{display:block;padding:10px 12px;position:relative}
+  .row>div{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;padding:1.5px 0;align-items:baseline}
+  .row>div::before{content:attr(data-l);font-size:9.8px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .row>div:empty{display:none}
+  .row .c-chk{position:absolute;top:10px;right:11px;display:block;grid-template-columns:none;padding:0}
+  .row .c-chk::before{display:none}
+  .row>div[data-l]{padding-right:26px}
+  .row b{font-size:11.8px}
+  .row .addr{font-size:11px}
+  .empty{min-height:100px}
+  .toolbar{padding:7px 12px;gap:6px}
+  .search{width:100%;order:-1}
+  .chips{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:1px}
+  .selinfo{margin-left:auto}
+  .formgrid{grid-template-columns:1fr 1fr}
+  .field input,.field select{height:38px;font-size:12.5px}
+
+  .logdock{position:fixed;left:0;right:0;bottom:0;z-index:60;box-shadow:0 -3px 14px rgba(10,22,18,.1);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .logbar{height:42px;padding:0 12px}
+  .loglist{max-height:40vh;padding:0 12px 8px}
+  .toast{bottom:88px}
+
+  .modal{padding:10px;align-items:flex-end}
+  .modal-card{width:100%;max-height:92vh;border-radius:14px}
+  .modal-body{padding:9px}
+  .modal-actions .btn{flex:1}
+  .lb-code b{font-size:13px}
+}
+@media (max-width:420px){
+  .brand .bt span{display:none}
+}
+
+@media print{
+  #gate,#app,.modal,.toast{display:none!important}
+  body,body:not(.locked){display:block!important;height:auto;overflow:visible;background:#fff;padding:0}
+  #printArea{display:block!important}
+  #printArea .label{width:100mm;margin:0 auto 0;border:1px solid #000;page-break-after:always;break-after:page}
+  #printArea .label:last-child{page-break-after:auto;break-after:auto}
+  #printArea.a4{display:grid!important;grid-template-columns:1fr 1fr;gap:4mm}
+  #printArea.a4 .label{width:auto;page-break-inside:avoid;break-inside:avoid}
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- ================= 잠금 (미로그인) ================= -->
+<div id="gate" hidden>
+  <div class="gwrap">
+    <div class="gbrand">
+      <div class="gm">경덕</div>
+      <div><b>(주)경덕농수산</b><span>통합 로그인 · 쿠팡택배</span></div>
+    </div>
+    <div class="gcard">
+      <h1>쿠팡택배</h1>
+      <p class="lead">통합포털(<b>hanseong1007.github.io</b>)에 로그인한 상태면 이 화면이 바로 열립니다. 포털 로그인이 없으면 같은 아이디·비밀번호로 들어오세요.</p>
+      <form id="gate-form" autocomplete="on" novalidate>
+        <label class="gfield"><span>아이디</span>
+          <input id="g-id" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="아이디">
+        </label>
+        <label class="gfield"><span>비밀번호</span>
+          <input id="g-pw" type="password" autocomplete="current-password" placeholder="비밀번호">
+        </label>
+        <div class="grow"><label class="keep"><input type="checkbox" id="g-keep" checked> 로그인 유지</label></div>
+        <p class="gmsg" id="g-msg" role="status" aria-live="polite"></p>
+        <button class="btn primary block lg" id="g-login" type="submit">로그인</button>
+      </form>
+      <div class="gpanel">
+        <a class="btn ghost block" id="g-portal" href="../?stay=1">🏠 통합포털에서 로그인</a>
+      </div>
+      <p class="gfoot">계정은 포털·발주·업무일지와 같은 것을 씁니다.<br>이 화면은 고객 주문·주소를 서버에 저장하지 않습니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 앱 ================= -->
+<div id="app" hidden>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brandmark" aria-hidden="true">경덕</div>
+    <div class="bt">
+      <b>(주)경덕농수산 · 쿠팡택배</b>
+      <span>쿠팡윙 주문 → 발주확인 → 롯데택배(ALPS) → 운송장 등록</span>
+    </div>
+  </div>
+
+  <div class="shortcuts" aria-label="바로가기">
+    <a class="slink wing" id="lnk-wing" href="https://wing.coupang.com/tenants/sfl-portal/delivery/management" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v9l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/></svg>쿠팡윙 배송관리
+    </a>
+    <a class="slink alps" id="lnk-alps" href="https://partner.alps.llogis.com/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="18.5" r="1.6"/><circle cx="17" cy="18.5" r="1.6"/></svg>롯데택배 ALPS
+    </a>
+  </div>
+
+  <div class="who">
+    <span class="whochip" id="who-name"><i></i>–</span>
+    <a class="iconbtn" id="btn-portal" href="../?stay=1" title="통합포털" aria-label="통합포털">
+      <svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg>
+    </a>
+    <button class="iconbtn" id="btn-logout" type="button" title="로그아웃" aria-label="로그아웃">
+      <svg viewBox="0 0 24 24"><path d="M15 12H4"/><polyline points="8 8 4 12 8 16"/><path d="M14 4h5v16h-5"/></svg>
+    </button>
+    <button class="iconbtn" id="btn-reset" type="button" title="불러온 주문 비우기" aria-label="불러온 주문 비우기">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- 현황판 (쿠팡윙 배송관리와 같은 항목) -->
+<div class="board" id="board" aria-label="배송 현황">
+  <div class="brow r1">
+    <div class="bl"><b>먼저 확인</b><span>처리해주세요</span></div>
+    <button class="btile warn" type="button" data-bucket="출고중지요청"><span class="nv" id="b-stop">—</span><span class="nt"><b>출고중지요청</b><small>출고 멈춤</small></span></button>
+    <button class="btile warn" type="button" data-bucket="당일출고필요"><span class="nv" id="b-today">—</span><span class="nt"><b>당일출고필요</b><small>오늘 꼭 발송</small></span></button>
+    <button class="btile warn" type="button" data-bucket="출고지연"><span class="nv" id="b-late">—</span><span class="nt"><b>출고지연</b><small>기한 지남</small></span></button>
+    <button class="btile dim" type="button" data-bucket="장기미배송"><span class="nv" id="b-long">—</span><span class="nt"><b>장기미배송</b><small>최근 1일</small></span></button>
+  </div>
+  <div class="brow r2">
+    <div class="bl"><b>배송처리</b><span>진행해주세요</span></div>
+    <button class="btile mid" type="button" data-bucket="결제완료"><span class="nv" id="b-paid">—</span><span class="nt"><b>결제완료</b><small>발주확인 전</small></span></button>
+    <button class="btile ready" type="button" data-bucket="상품준비중"><span class="nv" id="b-ready">—</span><span class="nt"><b>상품준비중</b><small>발주확인 완료</small></span></button>
+    <button class="btile dim" type="button" data-bucket="배송지시"><span class="nv" id="b-dir">—</span><span class="nt"><b>배송지시</b><small>집화 대기</small></span></button>
+    <button class="btile dim" type="button" data-bucket="배송중"><span class="nv" id="b-ship">—</span><span class="nt"><b>배송중</b><small>운송장 등록됨</small></span></button>
+    <button class="btile dim" type="button" data-bucket="배송완료"><span class="nv" id="b-done">—</span><span class="nt"><b>배송완료</b><small>최근 30일</small></span></button>
+  </div>
+</div>
+
+<nav class="steps" id="steps" aria-label="진행 단계">
+  <button class="step on" type="button" data-step="1">
+    <span class="num">1</span>
+    <span class="t"><b>쿠팡윙 확인·발주확인</b><small>주문 엑셀 불러오기</small></span>
+    <span class="badge" id="b1"></span>
+  </button>
+  <button class="step" type="button" data-step="2">
+    <span class="num">2</span>
+    <span class="t"><b>당일 출고 선택</b><small>오늘 보낼 주문만 체크</small></span>
+    <span class="badge" id="b2"></span>
+  </button>
+  <button class="step" type="button" data-step="3">
+    <span class="num">3</span>
+    <span class="t"><b>ALPS 접수·송장</b><small>일괄접수 엑셀·라벨</small></span>
+    <span class="badge" id="b3"></span>
+  </button>
+  <button class="step" type="button" data-step="4">
+    <span class="num">4</span>
+    <span class="t"><b>운송장 등록</b><small>쿠팡윙 일괄등록</small></span>
+    <span class="badge" id="b4"></span>
+  </button>
+</nav>
+
+<main>
+  <!-- ================= STEP 1 ================= -->
+  <section class="panel on" id="p1">
+    <div class="col">
+      <div class="card">
+        <header class="cardhead"><h2>1. 쿠팡윙에서 주문 가져오기</h2></header>
+        <div class="cardbody">
+          <div class="guide">
+            <div class="gstep"><span class="gi">1</span><span class="gt">아래 <b>쿠팡윙 배송관리</b>를 열어 오늘 처리할 주문을 확인합니다.</span></div>
+            <div class="gstep"><span class="gi">2</span><span class="gt">쿠팡윙에서 <b>주문서(엑셀) 내려받기</b>를 눌러 파일을 받습니다.</span></div>
+            <div class="gstep"><span class="gi">3</span><span class="gt">받은 파일을 여기에 올리면 주문이 표에 채워집니다.</span></div>
+          </div>
+
+          <a class="btn wing block" id="btn-wing" href="https://wing.coupang.com/tenants/sfl-portal/delivery/management" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+            쿠팡윙 배송관리 열기
+          </a>
+
+          <label class="drop" id="drop-wing" for="file-wing">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+            <b>쿠팡윙 주문 엑셀 올리기</b>
+            <span>.xlsx · .xls · .csv — 파일을 끌어다 놓아도 됩니다</span>
+            <input type="file" id="file-wing" accept=".xlsx,.xls,.csv" hidden>
+          </label>
+
+          <div class="actions" style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn ghost sm" id="btn-sample" type="button">샘플 주문 12건</button>
+            <button class="btn sm" id="btn-template" type="button">예시 엑셀 받기</button>
+          </div>
+
+          <div class="mapline" id="wing-map">아직 불러온 파일이 없습니다.</div>
+
+          <div class="receipt-note" style="margin-top:auto">
+            <b>이 화면이 하는 일 / 하지 않는 일</b>
+            <ul>
+              <li>주문 엑셀을 <b>이 브라우저 안에서만</b> 읽어 표로 정리합니다. 서버·GitHub에 올리지 않습니다.</li>
+              <li>쿠팡윙 <b>발주확인</b>과 ALPS <b>접수</b>는 각 사이트에서 직접 눌러야 합니다(자동 로그인·자동 접수하지 않습니다).</li>
+              <li>아이디·비밀번호는 저장하지 않습니다. 로그인은 통합포털 계정으로 합니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <header class="cardhead">
+          <h2>불러온 주문</h2>
+          <span class="sub" id="s1-sub">엑셀을 올리면 표시됩니다</span>
+          <div class="spacer"></div>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            <input id="f-q" type="search" placeholder="주문번호·수령인·주소 검색" aria-label="주문 검색">
+          </div>
+        </header>
+        <div class="toolbar">
+          <div class="chips" id="filters"></div>
+          <div class="spacer"></div>
+          <span class="selinfo">선택 <b id="ackcount">0</b>건</span>
+          <button class="btn primary sm" id="btn-ack" type="button" disabled>발주확인 처리</button>
+        </div>
+        <div class="listwrap">
+          <div class="thead s1">
+            <div><input type="checkbox" id="ack-all" aria-label="전체 선택"></div>
+            <div>주문번호</div><div>수령인</div><div>배송지</div><div>상품 / 수량</div><div>배송상태</div><div>발주확인</div>
+          </div>
+          <div class="list" id="list1"></div>
+        </div>
+        <footer class="cardfoot">
+          <span class="selinfo wrap">발주확인을 눌러 둔 주문이 <b>2단계</b>에서 고를 수 있습니다. 실제 발주확인은 쿠팡윙에서도 눌러 주세요.</span>
+          <div class="spacer"></div>
+          <button class="btn primary" id="btn-to2" type="button">2단계로 →</button>
+        </footer>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 2 ================= -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <header class="cardhead">
+        <h2>2. 오늘 출고할 주문 선택</h2>
+        <span class="sub" id="s2-sub">발주확인된 주문이 없습니다</span>
+        <div class="spacer"></div>
+        <span class="selinfo"><b id="pickcount">0</b>건 선택</span>
+        <button class="btn sm" id="btn-pickall" type="button">오늘 출고 전체 선택</button>
+        <button class="btn primary" id="btn-to3" type="button" disabled>3단계로 →</button>
+      </header>
+      <div class="listwrap">
+        <div class="thead s2">
+          <div><input type="checkbox" id="pick-all" aria-label="전체 선택"></div>
+          <div>주문번호</div><div>수령인</div><div>배송지</div><div>상품 / 수량</div><div>배송상태</div>
+        </div>
+        <div class="list" id="list2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 3 ================= -->
+  <section class="panel" id="p3">
+    <div class="col">
+      <div class="card">
+        <header class="cardhead">
+          <h2>오늘 보낼 주문</h2>
+          <div class="spacer"></div>
+          <span class="selinfo"><b id="sendcount">0</b>건</span>
+        </header>
+        <div class="picklist" id="list3"></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <header class="cardhead">
+          <h2>롯데택배 ALPS 일괄주문접수</h2>
+          <span class="sub" id="p3-sub">선택한 주문이 없습니다</span>
+          <div class="spacer"></div>
+          <a class="btn parcel sm" id="btn-alps" href="https://partner.alps.llogis.com/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+            ALPS 열기
+          </a>
+        </header>
+        <div class="cardbody">
+          <div class="actions" style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn primary" id="btn-alps-xlsx" type="button">
+              <svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 20h16"/></svg>
+              일괄주문접수 엑셀 내려받기
+            </button>
+            <button class="btn sm" id="btn-copy-one" type="button">선택한 건 정보 복사</button>
+            <button class="btn sm" id="btn-copy-all" type="button">전체 정보 복사</button>
+          </div>
+          <div class="mapline">
+            <b>엑셀 열 구성</b> — 수하인명 · 전화번호 · 휴대폰 · 우편번호 · 주소 · 품목명 · 수량 · 배송메시지
+            <ul>
+              <li>ALPS <b>접수 → 일괄주문접수 → 엑셀 업로드</b>에서 이 파일을 올리면 됩니다.</li>
+              <li>전화·휴대폰 번호가 하나만 있으면 두 칸에 같이 넣습니다.</li>
+              <li>접수가 끝나면 ALPS에서 <b>운송장번호가 들어 있는 결과 엑셀</b>을 받아 4단계에 올리세요.</li>
+            </ul>
+          </div>
+          <div class="field span2">
+            <span>송장지 종류</span>
+            <div class="fmtrow">
+              <button class="fmtbtn on" type="button" data-fmt="thermal">100mm 감열지</button>
+              <button class="fmtbtn" type="button" data-fmt="a4">A4 (2장씩)</button>
+            </div>
+          </div>
+          <div id="label-preview" style="border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff"></div>
+          <div class="receipt-note">
+            <b>송장 인쇄</b>
+            <ul>
+              <li>운송장번호는 ALPS 접수 결과로 받습니다. 4단계에서 번호를 넣으면 이 미리보기에도 찍힙니다.</li>
+              <li>번호가 없으면 송장 <b>번호 자리만 비어서</b> 인쇄됩니다.</li>
+              <li>보내는분: <b>(주)경덕농수산 · 전남 순천시 해룡면 해룡산단1로 82-7</b></li>
+            </ul>
+          </div>
+        </div>
+        <footer class="cardfoot">
+          <button class="btn" id="btn-print3" type="button">
+            <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 17h12v4H6z"/></svg>
+            체크한 송장 인쇄
+          </button>
+          <div class="spacer"></div>
+          <button class="btn primary" id="btn-to4" type="button">4단계로 →</button>
+        </footer>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STEP 4 ================= -->
+  <section class="panel" id="p4">
+    <div class="card">
+      <header class="cardhead">
+        <h2>4. 운송장번호 등록 · 발송처리</h2>
+        <span class="sub" id="s4-sub">등록된 운송장이 없습니다</span>
+        <div class="spacer"></div>
+        <button class="btn primary" id="btn-wing-xlsx" type="button" disabled>
+          <svg viewBox="0 0 24 24"><path d="M12 4v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 20h16"/></svg>
+          쿠팡윙 운송장 일괄등록 엑셀
+        </button>
+      </header>
+      <div class="toolbar" style="align-items:flex-start">
+        <label class="btn ghost sm" for="file-inv">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4"/><polyline points="7 9 12 4 17 9"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+          ALPS 결과 엑셀 올리기
+          <input type="file" id="file-inv" accept=".xlsx,.xls,.csv" hidden>
+        </label>
+        <button class="btn sm" id="btn-paste" type="button">붙여넣기 창 열기</button>
+        <button class="btn sm" id="btn-print4" type="button">송장 인쇄</button>
+        <button class="btn sm" id="btn-mark" type="button">쿠팡윙 등록 완료 표시</button>
+        <div class="spacer"></div>
+        <span class="selinfo wrap" id="s4-note">ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.</span>
+      </div>
+      <div id="paste-box" hidden style="padding:0 14px 10px">
+        <div class="field">
+          <span>운송장번호 붙여넣기 — 한 줄에 하나(번호만) 또는 <b>주문번호,운송장번호</b></span>
+          <textarea id="paste-text" placeholder="예)&#10;4051-1234-5678&#10;4051-1234-5679&#10;또는&#10;2026112400012,4051-1234-5678"></textarea>
+        </div>
+        <div class="actions" style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn primary sm" id="btn-paste-apply" type="button">적용</button>
+          <button class="btn sm" id="btn-paste-clear" type="button">지우기</button>
+        </div>
+      </div>
+      <div class="listwrap">
+        <div class="thead s4">
+          <div>주문번호</div><div>수령인</div><div>상품</div><div>운송장번호</div><div>복사</div><div>상태</div>
+        </div>
+        <div class="list" id="list4"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="logdock" id="logdock">
+  <div class="logbar" id="logbar" role="button" tabindex="0" aria-expanded="false">
+    <b><svg viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h13"/></svg>작업 로그</b>
+    <span class="latest" id="log-latest">아직 기록이 없습니다</span>
+    <span class="cntpill" id="log-count">0</span>
+    <svg class="chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div class="loglist" id="loglist"></div>
+</footer>
+
+</div><!-- /#app -->
+
+<div id="printArea" aria-hidden="true"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="송장 미리보기">
+  <div class="modal-card">
+    <div class="modal-head">
+      <b>송장 미리보기</b>
+      <span class="sub" id="modal-sub">롯데택배</span>
+      <button class="x" id="modal-x" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-close" type="button">닫기</button>
+      <button class="btn primary" id="modal-print" type="button">
+        <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 17h12v4H6z"/></svg>
+        인쇄
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   경덕농수산 · 쿠팡택배
+   - 쿠팡윙 주문 엑셀 → 발주확인 → 롯데택배(ALPS) 일괄접수 → 운송장 등록
+   - 고객 주문·주소는 이 브라우저 안에서만 다룬다(서버·GitHub 저장 없음).
+   - 로그인은 통합포털(kd.portal.sso.v1) 세션을 그대로 이어받는다.
+   ============================================================ */
+
+var WING_URL = 'https://wing.coupang.com/tenants/sfl-portal/delivery/management';
+var ALPS_URL = 'https://partner.alps.llogis.com/';
+var SHARED_USERS = 'https://script.google.com/macros/s/AKfycbx8vtZ9wxfqwEUhuIC5hhV5dncN7IbVmrbjbPS93hfibfXAxMpwx-YtCGiqHeZXfEY81Q/exec';
+var K_SSO = 'kd.portal.sso.v1', K_PU = 'kd.portal.users.v1';
+var K_SESS = 'cp.session.v1', K_TMP = 'cp.session.tmp.v1';
+var K_USERS = 'cp.users.v1', K_DATA = 'cp.data.v1';
+var SENDER = { name:'(주)경덕농수산', addr:'전남 순천시 해룡면 해룡산단1로 82-7' };
+
+/* ---------------- storage helpers ---------------- */
+function jget(k, d){ try{ var s = localStorage.getItem(k); return s ? JSON.parse(s) : d; }catch(e){ return d; } }
+function jset(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function jrm(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function sget(k, d){ try{ var s = sessionStorage.getItem(k); return s ? JSON.parse(s) : d; }catch(e){ return d; } }
+function sset(k, v){ try{ sessionStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function srm(k){ try{ sessionStorage.removeItem(k); }catch(e){} }
+
+/* ---------------- SHA-256 (외부 라이브러리 없이) ---------------- */
+function sha256hex(msg){
+  function rr(x,n){ return (x>>>n)|(x<<(32-n)); }
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var bytes=[],i,c,c2,cp;
+  for(i=0;i<msg.length;i++){
+    c=msg.charCodeAt(i);
+    if(c<0x80) bytes.push(c);
+    else if(c<0x800) bytes.push(0xc0|(c>>6),0x80|(c&63));
+    else if(c<0xd800||c>=0xe000) bytes.push(0xe0|(c>>12),0x80|((c>>6)&63),0x80|(c&63));
+    else { c2=msg.charCodeAt(++i); cp=0x10000+(((c&0x3ff)<<10)|(c2&0x3ff));
+      bytes.push(0xf0|(cp>>18),0x80|((cp>>12)&63),0x80|((cp>>6)&63),0x80|(cp&63)); }
+  }
+  var bl=bytes.length*8, hi=Math.floor(bl/4294967296);
+  bytes.push(0x80);
+  while(bytes.length%64!==56) bytes.push(0);
+  bytes.push((hi>>>24)&255,(hi>>>16)&255,(hi>>>8)&255,hi&255);
+  bytes.push((bl>>>24)&255,(bl>>>16)&255,(bl>>>8)&255,bl&255);
+  var w=new Array(64),t,off;
+  for(off=0;off<bytes.length;off+=64){
+    for(t=0;t<16;t++) w[t]=(bytes[off+t*4]<<24)|(bytes[off+t*4+1]<<16)|(bytes[off+t*4+2]<<8)|bytes[off+t*4+3];
+    for(t=16;t<64;t++){
+      var s0=rr(w[t-15],7)^rr(w[t-15],18)^(w[t-15]>>>3);
+      var s1=rr(w[t-2],17)^rr(w[t-2],19)^(w[t-2]>>>10);
+      w[t]=(w[t-16]+s0+w[t-7]+s1)|0;
+    }
+    var a=H[0],b=H[1],c3=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(t=0;t<64;t++){
+      var S1=rr(e,6)^rr(e,11)^rr(e,25);
+      var ch=(e&f)^((~e)&g);
+      var t1=(h+S1+ch+K[t]+w[t])|0;
+      var S0=rr(a,2)^rr(a,13)^rr(a,22);
+      var mj=(a&b)^(a&c3)^(b&c3);
+      var t2=(S0+mj)|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c3; c3=b; b=a; a=(t1+t2)|0;
+    }
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c3)|0;H[3]=(H[3]+d)|0;
+    H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  return H.map(function(x){ return ('00000000'+(x>>>0).toString(16)).slice(-8); }).join('');
+}
+function utf8bin(s){ return unescape(encodeURIComponent(String(s))); }
+function binutf8(b){ return decodeURIComponent(escape(b)); }
+function ksBlock(keyHex,i){ return sha256hex(keyHex+'|'+i); }
+function xorBin(bin,keyHex){
+  var out=[],blk='',i,j,p;
+  for(i=0;i<bin.length;i++){
+    j=i&31;
+    if(j===0) blk=ksBlock(keyHex,i>>5);
+    p=j*2;
+    out.push(String.fromCharCode((bin.charCodeAt(i)&255) ^ parseInt(blk.substr(p,2),16)));
+  }
+  return out.join('');
+}
+function encText(plain,keyHex){
+  try{ return btoa(xorBin(utf8bin(plain),keyHex)); }catch(e){ return ''; }
+}
+function decText(ct,keyHex){
+  if(!ct||!keyHex) return '';
+  try{ return binutf8(xorBin(atob(ct),keyHex)); }catch(e){ return ''; }
+}
+
+/* ---------------- state ---------------- */
+var S = {
+  user:null, tier:'', orders:[], step:1, filter:'전체', bucket:null, q:'',
+  ackSel:new Set(), picked:new Set(), cur:null, fmt:'thermal',
+  logs:[], logOpen:false, lastMap:null, token:0
+};
+
+/* ---------------- utils ---------------- */
+function $(s,r){ return (r||document).querySelector(s); }
+function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function normId(v){ return String(v==null?'':v).trim().toLowerCase(); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowStr(){ var d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function stamp(){
+  var d=new Date();
+  return ''+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes());
+}
+function toDay(v){
+  if(!v) return '';
+  if(v instanceof Date){ return v.getFullYear()+'-'+pad(v.getMonth()+1)+'-'+pad(v.getDate()); }
+  var s=String(v).trim();
+  var m=s.match(/^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})/);
+  if(m) return m[1]+'-'+pad(m[2])+'-'+pad(m[3]);
+  return '';
+}
+function digits(v){ return String(v==null?'':v).replace(/[^0-9]/g,''); }
+function zipStr(v){
+  var d=digits(v);
+  if(!d) return String(v==null?'':v).trim();
+  if(d.length<5) d=('00000'+d).slice(-5);
+  return d;
+}
+
+var toastTimer;
+function toast(msg,tone){
+  var el=$('#toast'); if(!el) return;
+  el.textContent=msg;
+  el.className='toast on'+(tone?' '+tone:'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.className='toast'; },2600);
+}
+function log(msg,tone){
+  S.logs.unshift({t:nowStr(),msg:msg,tone:tone||'info'});
+  if(S.logs.length>80) S.logs.pop();
+  renderLog();
+}
+
+/* ---------------- account / portal SSO ---------------- */
+function portalSSO(){
+  var s=jget(K_SSO,null);
+  if(!s||!s.userId) return null;
+  if(s.exp && Date.now()>s.exp){ jrm(K_SSO); return null; }
+  return s;
+}
+function portalUsers(){
+  var d=jget(K_PU,null);
+  return (d&&Array.isArray(d.users))?d.users:[];
+}
+function localUsers(){
+  var d=jget(K_USERS,null);
+  return (d&&Array.isArray(d.users))?d.users:[];
+}
+function saveUsersCache(users){
+  var out=users.map(function(u){
+    var hs=u.hashes||{};
+    return { id:normId(u.id), name:u.name||u.id, role:u.role||'user', salt:u.salt||'', hash:hs.portal||u.hash||'' };
+  });
+  jset(K_USERS,{v:1,at:Date.now(),users:out});
+}
+function findUser(id){
+  var n=normId(id), i, u;
+  u=localUsers(); for(i=0;i<u.length;i++) if(normId(u[i].id)===n) return u[i];
+  u=portalUsers(); for(i=0;i<u.length;i++) if(normId(u[i].id)===n) return u[i];
+  return null;
+}
+function portalBase(){
+  var s=portalSSO();
+  if(s&&s.portal) return s.portal;
+  var p=(location.pathname||'').replace(/coupang-order\/(index\.html)?$/,'');
+  return p||'../';
+}
+function portalHome(){ var b=portalBase(); return b+(b.indexOf('?')>=0?'&':'?')+'stay=1'; }
+
+function setSession(user,keep){
+  var rec={userId:user.id,ts:Date.now(),name:user.name||user.id,role:user.role||'user',keep:!!keep};
+  jrm(K_SESS); srm(K_TMP);
+  if(keep) jset(K_SESS,rec); else sset(K_TMP,rec);
+}
+function getSession(){
+  var s=jget(K_SESS,null);
+  if(!s||!s.userId) s=sget(K_TMP,null);
+  return (s&&s.userId)?s:null;
+}
+function dataKey(){
+  if(!S.user) return '';
+  var u=findUser(S.user.id);
+  if(u&&u.salt&&u.hash) return sha256hex('cp1|'+u.salt+'|'+u.hash);
+  return '';
+}
+
+/* ---------------- boot / gate ---------------- */
+function showGate(msg,tone){
+  document.body.classList.add('locked');
+  $('#app').hidden=true;
+  $('#gate').hidden=false;
+  var g=$('#g-portal');
+  if(g) g.href=portalHome();
+  if(msg) setGateMsg(msg,tone);
+  var id=$('#g-id'); if(id && !id.value) id.value='';
+  setTimeout(function(){ try{ $('#g-id').focus(); }catch(e){} },60);
+}
+function setGateMsg(msg,tone){
+  var el=$('#g-msg'); if(!el) return;
+  el.textContent=msg||'';
+  el.className='gmsg'+(tone==='ok'?' ok':'');
+}
+function enter(user,tier){
+  S.user={id:normId(user.id),name:user.name||user.id,role:user.role||'user'};
+  S.tier=tier||'';
+  document.body.classList.remove('locked');
+  $('#gate').hidden=true;
+  $('#app').hidden=false;
+  renderWho();
+  loadSaved();
+  renderAll();
+  log('로그인 · '+(S.user.name||S.user.id)+' ('+(tier==='portal'?'포털 세션':'직접 로그인')+')','ok');
+}
+function renderWho(){
+  var el=$('#who-name');
+  if(el) el.innerHTML='<i></i>'+esc((S.user.name||S.user.id)+' 님');
+  var p=$('#btn-portal'); if(p) p.href=portalHome();
+}
+function fetchSharedUsers(){
+  return fetch(SHARED_USERS+'?action=users_get&_='+Date.now(),{cache:'no-store',redirect:'follow'})
+    .then(function(r){ return r.text(); })
+    .then(function(txt){
+      var j=JSON.parse(txt);
+      var doc=JSON.parse(j.usersJson||'{}');
+      if(!doc||!Array.isArray(doc.users)) throw new Error('계정 목록을 읽지 못했습니다');
+      return doc.users;
+    });
+}
+function trySharedLogin(id,pw){
+  setGateMsg('계정을 확인하는 중…','ok');
+  var btn=$('#g-login'); btn.disabled=true;
+  return fetchSharedUsers().then(function(users){
+    saveUsersCache(users);
+    var u=null,i;
+    for(i=0;i<users.length;i++) if(normId(users[i].id)===id) u=users[i];
+    if(!u) throw new Error('포털에 없는 아이디입니다');
+    var salt=u.salt||'', hs=u.hashes||{}, ok=false;
+    if(hs.portal && sha256hex('p1|'+salt+'|'+pw)===hs.portal) ok=true;
+    if(!ok && hs.order && sha256hex('kd1|'+salt+'|'+pw)===hs.order) ok=true;
+    if(!ok && hs.worklog && sha256hex('wl1|'+salt+'|'+pw)===hs.worklog) ok=true;
+    if(!ok && hs.attendance && sha256hex('att1|'+salt+'|'+pw)===hs.attendance) ok=true;
+    if(!ok && u.hash && sha256hex('p1|'+salt+'|'+pw)===u.hash) ok=true;
+    if(!ok) throw new Error('비밀번호가 맞지 않습니다');
+    return { id:u.id, name:u.name||u.id, role:u.role||'user' };
+  }).then(function(user){
+    var keep=$('#g-keep').checked;
+    setSession(user,keep);
+    jset(K_SSO,{ v:1, userId:user.id, name:user.name, role:user.role, keep:!!keep,
+      at:Date.now(), exp:Date.now()+(keep?30*86400000:12*3600000), portal:portalBase() });
+    $('#g-pw').value='';
+    setGateMsg('',''); 
+    enter(user,'direct');
+  }).catch(function(e){
+    setGateMsg(e&&e.message?e.message:'로그인하지 못했습니다 — 인터넷 연결을 확인하세요');
+  }).then(function(){
+    var b=$('#g-login'); if(b) b.disabled=false;
+  });
+}
+
+/* ---------------- load / save orders (암호문, 탭 세션 한정) ---------------- */
+function loadSaved(){
+  var key=dataKey();
+  if(!key) return;
+  var box=sget(K_DATA,null);
+  if(!box||!box.ct||box.uid!==S.user.id) return;
+  var raw=decText(box.ct,key);
+  if(!raw) return;
+  try{
+    var d=JSON.parse(raw);
+    if(d&&Array.isArray(d.orders)){
+      S.orders=d.orders;
+      S.picked=new Set(d.picked||[]);
+      if(d.step) S.step=d.step;
+      if(d.fmt) S.fmt=d.fmt;
+      if(S.orders.length) log('이 브라우저 세션에 보관된 주문 '+S.orders.length+'건을 이어받았습니다','ok');
+    }
+  }catch(e){}
+}
+function saveOrders(){
+  var key=dataKey();
+  if(!key) return;
+  var payload={orders:S.orders,picked:Array.from(S.picked),step:S.step,fmt:S.fmt,at:Date.now()};
+  sset(K_DATA,{v:1,uid:S.user?S.user.id:'',ct:encText(JSON.stringify(payload),key)});
+}
+
+/* ---------------- order model ---------------- */
+var BUCKETS=['출고중지요청','당일출고필요','출고지연','장기미배송','결제완료','상품준비중','배송지시','배송중','배송완료'];
+var BUCKET_LABEL={ '출고중지요청':'출고중지요청','당일출고필요':'당일출고필요','출고지연':'출고지연','장기미배송':'장기미배송',
+  '결제완료':'결제완료','상품준비중':'상품준비중','배송지시':'배송지시','배송중':'배송중','배송완료':'배송완료' };
+var BUCKET_PILL={ '출고중지요청':'red','당일출고필요':'red','출고지연':'amber','장기미배송':'gray',
+  '결제완료':'amber','상품준비중':'blue','배송지시':'blue','배송중':'green','배송완료':'gray' };
+
+function normStatus(v){
+  var s=String(v||'').replace(/\s/g,'');
+  if(!s) return '';
+  if(/출고중지/.test(s)) return '출고중지요청';
+  if(/당일출고/.test(s)) return '당일출고필요';
+  if(/출고지연/.test(s)) return '출고지연';
+  if(/배송완료|배송완/.test(s)) return '배송완료';
+  if(/배송중/.test(s)) return '배송중';
+  if(/배송지시/.test(s)) return '배송지시';
+  if(/상품준비|준비중/.test(s)) return '상품준비중';
+  if(/결제완료|결제/.test(s)) return '결제완료';
+  if(/취소/.test(s)) return '취소';
+  if(/반품/.test(s)) return '반품';
+  return '';
+}
+function bucketOf(o){
+  if(o.shipped) return '배송완료';
+  if(o.status==='출고중지요청') return '출고중지요청';
+  if(o.status==='배송완료') return '배송완료';
+  if(o.status==='배송중') return '배송중';
+  if(o.status==='배송지시') return '배송지시';
+  var due=toDay(o.due), t=todayStr();
+  if(due){
+    if(due<t) return '출고지연';
+    if(due===t) return '당일출고필요';
+  }
+  if(o.status==='당일출고필요') return '당일출고필요';
+  if(o.status==='출고지연') return '출고지연';
+  if(o.acked||o.status==='상품준비중') return '상품준비중';
+  return '결제완료';
+}
+function isOpen(o){
+  var b=bucketOf(o);
+  return b!=='배송완료' && b!=='배송중' && b!=='배송지시';
+}
+function counts(){
+  var c={}; BUCKETS.forEach(function(k){ c[k]=0; });
+  S.orders.forEach(function(o){ var b=bucketOf(o); c[b]=(c[b]||0)+1; });
+  c['장기미배송']=0;  /* 쿠팡윙에서 직접 확인하는 항목 — 엑셀에는 없습니다 */
+  return c;
+}
+function findOrder(id){ for(var i=0;i<S.orders.length;i++) if(S.orders[i].id===id) return S.orders[i]; return null; }
+function pickedOrders(){ return Array.from(S.picked).map(findOrder).filter(Boolean); }
+
+/* ---------------- render ---------------- */
+function renderAll(){ renderBoard(); renderStep1(); renderStep2(); renderStep3(); renderStep4(); renderSteps(); }
+
+function renderBoard(){
+  var c=counts(), has=S.orders.length>0;
+  var m={ '출고중지요청':'b-stop','당일출고필요':'b-today','출고지연':'b-late','장기미배송':'b-long',
+          '결제완료':'b-paid','상품준비중':'b-ready','배송지시':'b-dir','배송중':'b-ship','배송완료':'b-done' };
+  Object.keys(m).forEach(function(k){
+    var el=document.getElementById(m[k]);
+    if(el) el.textContent=has?String(c[k]||0):'—';
+  });
+  $$('.btile').forEach(function(t){
+    t.classList.toggle('on',S.bucket===t.dataset.bucket);
+  });
+}
+function renderSteps(){
+  var c=counts(), vals=[S.orders.length, S.picked.size, pickedOrders().length, S.orders.filter(function(o){return o.invoice&&!o.shipped;}).length];
+  [1,2,3,4].forEach(function(n){
+    var el=$('#b'+n); if(!el) return;
+    el.textContent=String(vals[n-1]||0);
+    el.className='badge'+(vals[n-1]?' show':'')+(n===4&&vals[3]?'':'');
+  });
+  $$('.step').forEach(function(b){
+    var n=+b.dataset.step;
+    b.classList.toggle('on',n===S.step);
+    b.setAttribute('aria-current',n===S.step?'step':'false');
+  });
+}
+
+function filteredOrders(){
+  var q=S.q.trim().toLowerCase(), b=S.bucket;
+  return S.orders.filter(function(o){
+    if(b){
+      if(b==='장기미배송') return false;
+      if(bucketOf(o)!==b) return false;
+    } else if(S.filter!=='전체'){
+      if(bucketOf(o)!==S.filter) return false;
+    }
+    if(!q) return true;
+    return (o.orderNo+' '+o.name+' '+o.addr+' '+o.item+' '+o.phone).toLowerCase().indexOf(q)>=0;
+  });
+}
+function renderFilters(){
+  var ids=['전체','결제완료','상품준비중','당일출고필요','출고지연','출고중지요청','배송중','배송완료'];
+  var cur=S.bucket||S.filter;
+  $('#filters').innerHTML=ids.map(function(k){
+    return '<button class="chip'+(cur===k?' on':'')+'" type="button" data-filter="'+k+'">'+k+'</button>';
+  }).join('');
+}
+
+var emptyHTML=function(title,sub){
+  return '<div class="empty">'+
+    '<svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v9l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v9"/></svg>'+
+    '<b>'+title+'</b><span>'+sub+'</span></div>';
+};
+
+function renderStep1(){
+  renderFilters();
+  var rows=filteredOrders();
+  $('#s1-sub').textContent=S.orders.length
+    ? ('불러온 주문 '+S.orders.length+'건 · 열린 주문 '+S.orders.filter(isOpen).length+'건')
+    : '엑셀을 올리면 표시됩니다';
+
+  var list=$('#list1');
+  if(!S.orders.length){
+    list.innerHTML=emptyHTML('아직 불러온 주문이 없습니다','왼쪽에서 <b>쿠팡윙 주문 엑셀</b>을 올리거나 <b>샘플 12건</b>을 눌러 보세요.');
+  }else if(!rows.length){
+    list.innerHTML=emptyHTML('조건에 맞는 주문이 없습니다','검색어나 상태 칩을 바꿔 보세요.');
+  }else{
+    list.innerHTML=rows.map(function(o){
+      var b=bucketOf(o), on=S.ackSel.has(o.id);
+      return '<div class="row s1" data-id="'+esc(o.id)+'">'+
+        '<div class="c-chk"><input type="checkbox" data-act="sel" data-id="'+esc(o.id)+'"'+(on?' checked':'')+
+          (b==='결제완료'||b==='상품준비중'||b==='당일출고필요'||b==='출고지연'||b==='출고중지요청'?'':' disabled')+' aria-label="선택"></div>'+
+        '<div data-l="주문번호"><span class="v"><b class="mono">'+esc(o.orderNo||'—')+'</b><small>'+(o.orderedAt?esc(o.orderedAt):'')+'</small></span></div>'+
+        '<div data-l="수령인"><span class="v"><b>'+esc(o.name||'—')+'</b><small>'+esc(o.phone||o.phone2||'')+'</small></span></div>'+
+        '<div data-l="배송지"><span class="v"><span class="addr">'+esc((o.zip?'['+o.zip+'] ':'')+(o.addr||'')+(o.addr2?' '+o.addr2:''))+'</span></span></div>'+
+        '<div data-l="상품"><span class="v"><span class="pname">'+esc(o.item||'—')+(o.option?' · '+esc(o.option):'')+'</span><small>수량 '+esc(o.qty||1)+'</small></span></div>'+
+        '<div data-l="배송상태"><span class="v"><span class="pill '+(BUCKET_PILL[b]||'gray')+'">'+esc(b)+'</span></span></div>'+
+        '<div data-l="발주확인"><span class="v"><label class="ack"><input type="checkbox" data-act="acked" data-id="'+esc(o.id)+'"'+(o.acked?' checked':'')+'><span>'+(o.acked?'완료':'대기')+'</span></label></span></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  var selectable=rows.filter(function(o){ var b=bucketOf(o); return b==='결제완료'||b==='상품준비중'||b==='당일출고필요'||b==='출고지연'||b==='출고중지요청'; });
+  $('#ackcount').textContent=S.ackSel.size;
+  var ab=$('#btn-ack'); ab.disabled=S.ackSel.size===0;
+  ab.textContent=S.ackSel.size?('선택 '+S.ackSel.size+'건 발주확인 처리'):'발주확인 처리';
+  var all=$('#ack-all');
+  all.checked=selectable.length>0&&selectable.every(function(o){ return S.ackSel.has(o.id); });
+  all.indeterminate=!all.checked&&selectable.some(function(o){ return S.ackSel.has(o.id); });
+  all.disabled=!selectable.length;
+
+  var mp=$('#wing-map');
+  if(!S.lastMap){
+    mp.innerHTML='아직 불러온 파일이 없습니다. <b>예시 엑셀 받기</b>로 형식을 먼저 볼 수 있습니다.';
+  }
+}
+
+function renderStep2(){
+  var rows=S.orders.filter(isOpen);
+  var list=$('#list2');
+  $('#s2-sub').textContent=rows.length?('출고할 주문 '+rows.length+'건 중 '+S.picked.size+'건 선택'):'발주확인된 주문이 없습니다';
+
+  if(!S.orders.length){
+    list.innerHTML=emptyHTML('아직 주문이 없습니다','1단계에서 쿠팡윙 주문 엑셀을 올려 주세요.');
+  }else if(!rows.length){
+    list.innerHTML=emptyHTML('오늘 출고할 주문이 없습니다','모두 배송중이거나 배송완료입니다.');
+  }else{
+    list.innerHTML=rows.map(function(o){
+      var b=bucketOf(o), can=o.acked&&(b!=='결제완료');
+      return '<div class="row s2" data-id="'+esc(o.id)+'">'+
+        '<div class="c-chk"><input type="checkbox" data-act="pick" data-id="'+esc(o.id)+'"'+(S.picked.has(o.id)?' checked':'')+
+          (can?'':' disabled')+' aria-label="'+esc(o.name)+' 오늘 출고"></div>'+
+        '<div data-l="주문번호"><span class="v"><b class="mono">'+esc(o.orderNo||'—')+'</b><small>'+(o.due?'출고예정 '+esc(toDay(o.due)||o.due):'')+'</small></span></div>'+
+        '<div data-l="수령인"><span class="v"><b>'+esc(o.name||'—')+'</b><small>'+esc(o.phone||o.phone2||'')+'</small></span></div>'+
+        '<div data-l="배송지"><span class="v"><span class="addr">'+esc((o.zip?'['+o.zip+'] ':'')+(o.addr||''))+'</span></span></div>'+
+        '<div data-l="상품"><span class="v"><span class="pname">'+esc(o.item||'—')+'</span><small>수량 '+esc(o.qty||1)+(can?'':' · 발주확인 필요')+'</small></span></div>'+
+        '<div data-l="배송상태"><span class="v"><span class="pill '+(BUCKET_PILL[b]||'gray')+'">'+esc(b)+'</span></span></div>'+
+      '</div>';
+    }).join('');
+  }
+  $('#pickcount').textContent=S.picked.size;
+  $('#btn-to3').disabled=S.picked.size===0;
+  var all=$('#pick-all');
+  var canRows=rows.filter(function(o){ return o.acked&&bucketOf(o)!=='결제완료'; });
+  all.checked=canRows.length>0&&canRows.every(function(o){ return S.picked.has(o.id); });
+  all.indeterminate=!all.checked&&canRows.some(function(o){ return S.picked.has(o.id); });
+  all.disabled=!canRows.length;
+}
+
+function renderStep3(){
+  var list=pickedOrders();
+  if(!list.length){ S.cur=null; }
+  else if(!S.cur||!list.some(function(o){ return o.id===S.cur; })) S.cur=list[0].id;
+
+  var wrap=$('#list3');
+  if(!list.length){
+    wrap.innerHTML=emptyHTML('오늘 보낼 주문이 없습니다','2단계에서 보낼 주문을 체크해 주세요.');
+  }else{
+    wrap.innerHTML=list.map(function(o){
+      return '<div class="pick'+(o.id===S.cur?' on':'')+'" data-act="cur" data-id="'+esc(o.id)+'">'+
+        '<div class="pmain">'+
+          '<div class="ptop"><b>'+esc(o.name||'—')+'</b><span class="pg">'+esc(o.item||'')+' · '+esc(o.qty||1)+'개</span></div>'+
+          '<div class="paddr">['+esc(o.zip||'')+'] '+esc(o.addr||'')+'</div>'+
+          '<div class="pmeta">'+esc(o.phone||o.phone2||'')+' · '+esc(o.orderNo||'')+'</div>'+
+          '<div class="pid">'+
+            '<button class="btn sm" type="button" data-act="copy-one" data-id="'+esc(o.id)+'">정보 복사</button>'+
+            '<span class="pill '+(o.invoice?'green':'gray')+'">'+(o.invoice?esc(o.invoice):'운송장 미등록')+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  $('#sendcount').textContent=list.length;
+  var cur=findOrder(S.cur);
+  $('#p3-sub').textContent=cur?(esc(cur.orderNo)+' · '+list.length+'건'):'선택한 주문이 없습니다';
+  var lb=$('#btn-alps-xlsx'); lb.disabled=list.length===0;
+  var lp=$('#btn-print3'); lp.disabled=list.length===0;
+  $$('.fmtbtn').forEach(function(b){ b.classList.toggle('on',b.dataset.fmt===S.fmt); });
+  $('#label-preview').innerHTML=cur?labelHTML(cur):'<div style="padding:18px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600">주문을 선택하면 송장 모양이 보입니다.</div>';
+}
+
+function renderStep4(){
+  var rows=S.orders.filter(function(o){ return o.invoice; });
+  var waiting=S.orders.filter(function(o){ return !o.invoice&&S.picked.has(o.id); });
+  $('#s4-sub').textContent=rows.length
+    ? ('운송장 '+rows.length+'건 · 미등록 '+waiting.length+'건')
+    : '등록된 운송장이 없습니다';
+
+  var list=$('#list4');
+  if(!rows.length){
+    list.innerHTML=emptyHTML('아직 운송장번호가 없습니다','3단계에서 ALPS에 접수한 뒤 결과 엑셀을 올리거나 번호를 붙여넣으세요.');
+  }else{
+    list.innerHTML=rows.map(function(o){
+      return '<div class="row s4" data-id="'+esc(o.id)+'">'+
+        '<div data-l="주문번호"><span class="v"><b class="mono">'+esc(o.orderNo||'—')+'</b></span></div>'+
+        '<div data-l="수령인"><span class="v"><b>'+esc(o.name||'')+'</b><small>'+esc(o.phone||o.phone2||'')+'</small></span></div>'+
+        '<div data-l="상품"><span class="v"><span class="pname">'+esc(o.item||'')+'</span><small>수량 '+esc(o.qty||1)+'</small></span></div>'+
+        '<div data-l="운송장번호"><span class="v"><input class="inp-inv" data-id="'+esc(o.id)+'" value="'+esc(o.invoice||'')+'" inputmode="numeric" aria-label="운송장번호" style="width:100%;height:28px;border:1px solid var(--line);border-radius:7px;background:#fbfcfb;padding:0 7px;font-size:11px;font-weight:700;font-family:var(--mono)"></span></div>'+
+        '<div data-l="복사"><span class="v"><button class="btn sm" type="button" data-act="copy-inv" data-id="'+esc(o.id)+'">복사</button></span></div>'+
+        '<div data-l="상태"><span class="v"><span class="pill '+(o.shipped?'green':'blue')+'">'+(o.shipped?'발송완료':'등록 대기')+'</span></span></div>'+
+      '</div>';
+    }).join('');
+  }
+  var reg=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
+  $('#btn-wing-xlsx').disabled=reg.length===0;
+  $('#btn-mark').disabled=reg.length===0;
+  $('#btn-print4').disabled=rows.length===0;
+  $('#s4-note').innerHTML=reg.length?('<b>'+reg.length+'건</b>이 엑셀에 담깁니다 · 쿠팡윙 <b>운송장 일괄등록</b>에 올린 뒤 <b>등록 완료 표시</b>를 눌러 주세요.'):'ALPS 결과 엑셀에는 운송장번호와 수령인(또는 주문번호)이 들어 있습니다. 붙여넣기로도 넣을 수 있습니다.';
+}
+
+function renderLog(){
+  var last=S.logs[0];
+  $('#log-latest').textContent=last?(last.t+' · '+last.msg):'아직 기록이 없습니다';
+  $('#log-count').textContent=S.logs.length;
+  $('#loglist').innerHTML=S.logs.map(function(l){
+    return '<div class="logrow '+l.tone+'"><time>'+l.t+'</time><span class="dot"></span><p>'+esc(l.msg)+'</p></div>';
+  }).join('');
+}
+function setStep(n){
+  S.step=n;
+  $$('.panel').forEach(function(p){ p.classList.toggle('on',p.id==='p'+n); });
+  renderAll();
+  saveOrders();
+  window.scrollTo(0,0);
+  var m=$('main'); if(m) m.scrollTop=0;
+}
+
+/* ---------------- excel 읽기 ---------------- */
+var ALIASES={
+  orderNo:['주문번호','주문번호(쿠팡)','주문ID','오더번호','주문No','orderNo','OrderNo'],
+  itemNo:['주문상품번호','상품주문번호','주문상품','itemNo','vendorItemId'],
+  orderedAt:['주문일시','주문일자','주문일','결제일시','결제일','주문시간','주문날짜'],
+  name:['수령인','수령인명','수하인명','받는사람','받는분','수취인','받는분성명'],
+  phone:['수령인전화번호','전화번호','연락처','수령인연락처','전화'],
+  phone2:['수령인휴대폰번호','휴대폰번호','휴대폰','핸드폰','휴대전화','수령인핸드폰번호'],
+  zip:['우편번호','배송지우편번호','우편번호신','zipcode'],
+  addr:['주소','배송지주소','기본주소','수령인주소','도로명주소','배송주소'],
+  addr2:['상세주소','나머지주소'],
+  item:['상품명','상품','품목명','등록상품명','상품이름','상품명옵션'],
+  option:['옵션','상품옵션','옵션명','등록옵션명'],
+  qty:['수량','주문수량','구매수량','개수'],
+  msg:['배송메시지','배송메세지','배송요청사항','요청사항','배송메모'],
+  status:['배송상태','주문상태','상태','배송상태명'],
+  due:['출고예정일','발송기한','출고기한','출고예정'],
+  courier:['택배사','배송업체','택배업체'],
+  invoice:['운송장번호','송장번호','운송장']
+};
+function normHead(v){ return String(v==null?'':v).replace(/[\s()\[\]{}_\-]/g,'').trim().toLowerCase(); }
+var NORM_ALIASES={};
+Object.keys(ALIASES).forEach(function(k){ NORM_ALIASES[k]=ALIASES[k].map(normHead); });
+
+function headerMap(headerRow){
+  var heads=headerRow.map(normHead), map={};
+  Object.keys(NORM_ALIASES).forEach(function(field){
+    var list=NORM_ALIASES[field];
+    for(var i=0;i<heads.length;i++){
+      if(!heads[i]) continue;
+      if(list.indexOf(heads[i])>=0){ map[field]=i; break; }
+    }
+  });
+  return map;
+}
+function scoreMap(map){ return ['orderNo','name','addr','phone','qty','item'].filter(function(k){ return map[k]!=null; }).length; }
+function pickHeaderRow(rows){
+  var best={idx:-1,map:{},score:0};
+  for(var i=0;i<Math.min(rows.length,12);i++){
+    var map=headerMap(rows[i]||[]);
+    var sc=scoreMap(map);
+    if(sc>best.score){ best={idx:i,map:map,score:sc}; }
+  }
+  return best;
+}
+
+function readTable(file){
+  return new Promise(function(resolve,reject){
+    var name=(file.name||'').toLowerCase();
+    var fr=new FileReader();
+    fr.onerror=function(){ reject(new Error('파일을 읽지 못했습니다')); };
+    fr.onload=function(){
+      try{
+        if(/\.csv$/.test(name) || !window.XLSX){
+          var text=String(fr.result||'');
+          if(/\.csv$/.test(name)===false && !window.XLSX){ reject(new Error('엑셀 기능을 불러오지 못했습니다 — 인터넷 연결 후 다시 시도하거나 CSV로 저장해 올려 주세요')); return; }
+          resolve(parseCsv(text));
+          return;
+        }
+        var wb=XLSX.read(new Uint8Array(fr.result),{type:'array',cellDates:true});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+        resolve(rows);
+      }catch(e){ reject(new Error('표를 읽지 못했습니다: '+(e.message||e))); }
+    };
+    if(/\.csv$/.test(name) || !window.XLSX) fr.readAsText(file,'utf-8');
+    else fr.readAsArrayBuffer(file);
+  });
+}
+function parseCsv(text){
+  var rows=[], row=[], cur='', q=false, i, c;
+  text=String(text).replace(/^\uFEFF/,'');
+  for(i=0;i<text.length;i++){
+    c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=c;
+    }else{
+      if(c==='"') q=true;
+      else if(c===','){ row.push(cur); cur=''; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(c==='\r'){ /* skip */ }
+      else cur+=c;
+    }
+  }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+function rowToOrder(rows,map,idx,headerIdx){
+  var r=rows[idx]||[];
+  function v(f){ var i=map[f]; return i==null?'':String(r[i]==null?'':r[i]).trim(); }
+  var orderNo=v('orderNo'), name=v('name');
+  if(!orderNo && !name) return null;
+  var phone=v('phone'), phone2=v('phone2');
+  if(!phone2) phone2=phone;
+  if(!phone) phone=phone2;
+  var item=v('item')||v('option');
+  var o={
+    id:'', orderNo:orderNo, itemNo:v('itemNo'), orderedAt:v('orderedAt'),
+    name:name, phone:phone, phone2:phone2, zip:zipStr(v('zip')),
+    addr:v('addr'), addr2:v('addr2'), item:item, option:v('option'),
+    qty:v('qty')||'1', msg:v('msg'), courier:v('courier'), invoice:digits(v('invoice')),
+    status:normStatus(v('status')), due:toDay(v('due')), shipped:false, acked:false, src:'excel'
+  };
+  o.id=(o.orderNo||('row'+idx))+'-'+(o.itemNo||(''+(idx-headerIdx)));
+  if(!o.status) o.status='결제완료';
+  o.acked=(bucketOf(o)!=='결제완료');
+  return o;
+}
+
+function importTable(rows,fileName){
+  if(!rows||!rows.length) throw new Error('표가 비어 있습니다');
+  var head=pickHeaderRow(rows);
+  if(head.score<2) throw new Error('주문번호·수령인 같은 열 이름을 찾지 못했습니다. 쿠팡윙 주문서 파일인지 확인해 주세요');
+  var map=head.map, added=0, updated=0, skipped=0;
+  for(var i=head.idx+1;i<rows.length;i++){
+    var o;
+    try{ o=rowToOrder(rows,map,i,head.idx); }catch(e){ o=null; }
+    if(!o){ skipped++; continue; }
+    var old=null;
+    for(var j=0;j<S.orders.length;j++) if(S.orders[j].id===o.id){ old=S.orders[j]; break; }
+    if(old){
+      if(!o.invoice && old.invoice) o.invoice=old.invoice;
+      if(o.invoice) o.shipped=old.shipped;
+      if(old.acked) o.acked=true;
+      Object.keys(o).forEach(function(k){ old[k]=o[k]; });
+      updated++;
+    }else{
+      S.orders.push(o); added++;
+    }
+  }
+  S.lastMap={ map:map, file:fileName, added:added, updated:updated, skipped:skipped, headerIdx:head.idx };
+  var missing=Object.keys(map).filter(function(k){ return map[k]==null; });
+  var used=Object.keys(map).filter(function(k){ return map[k]!=null; });
+
+  $('#wing-map').innerHTML='<b>'+esc(fileName||'파일')+'</b> — 새 주문 <b>'+added+'건</b>'+(updated?' · 갱신 '+updated+'건':'')+
+    '<br>읽은 열: '+esc(used.map(function(k){ return labelOf(k); }).join('·'))+
+    (missing.length?'<br><span class="miss">못 찾은 열: '+esc(missing.map(labelOf).join('·'))+'</span>':'');
+  log('엑셀 불러오기 · '+esc(fileName||'')+' → 새 주문 '+added+'건'+(updated?' · 갱신 '+updated+'건':''),'wing');
+  saveOrders();
+  renderBoard(); renderStep1(); renderStep2(); renderSteps();
+  toast(added+updated+'건 읽었습니다'+(skipped?' · '+skipped+'행 건너뜀':''));
+  return {added:added,updated:updated,skipped:skipped};
+}
+function labelOf(k){
+  var m={orderNo:'주문번호',itemNo:'주문상품번호',orderedAt:'주문일시',name:'수령인',phone:'전화번호',phone2:'휴대폰',
+    zip:'우편번호',addr:'주소',addr2:'상세주소',item:'상품명',option:'옵션',qty:'수량',msg:'배송메시지',
+    status:'배송상태',due:'출고예정일',courier:'택배사',invoice:'운송장번호'};
+  return m[k]||k;
+}
+
+/* ---------------- 샘플 / 예시 ---------------- */
+function sampleRows(){
+  var t=todayStr(), y=DAYS(-1), t3=DAYS(3);
+  var list=[
+    ['2026112400112','2026-11-24 08:12','김정숙','010-2345-6789','06236','서울 강남구 테헤란로 123','4층 401호','바다로운 바베큐 오징어 1kg','2','문 앞에 두세요','상품준비중',t],
+    ['2026112400113','2026-11-24 08:31','이광호','010-8811-2244','48058','부산 해운대구 센텀중앙로 79','1203호','구운 양태채 300g','3','','상품준비중',t],
+    ['2026112400114','2026-11-24 09:02','박순자','010-3312-7788','34126','대전 유성구 대학로 99','2층','바다로운 바베큐 오징어 500g','5','경비실에 맡겨 주세요','상품준비중',t],
+    ['2026112400115','2026-11-24 09:15','최영수','010-5540-9012','16879','경기 용인시 수지구 포은대로 435','101동 802호','볶음땅콩 400g','4','','상품준비중',t],
+    ['2026112400116','2026-11-24 09:28','정미경','010-2277-6633','61945','광주 서구 상무중앙로 110','7층','바다로운 바베큐 오징어 1kg','1','부재 시 연락 주세요','당일출고필요',t],
+    ['2026112400117','2026-11-24 09:40','한상우','010-9944-1188','28501','충북 청주시 서원구 사직대로 200','305호','구운 양태채 500g','2','','상품준비중',t],
+    ['2026112400118','2026-11-24 09:52','오세라','010-4471-2093','42701','대구 달서구 달구벌대로 1500','3층','크리스피 콘볼 400g','6','','상품준비중',y],
+    ['2026112400119','2026-11-24 10:03','서정민','010-6620-8834','21442','인천 부평구 부평대로 88','5층 502호','바다로운 바베큐 오징어 500g','3','','상품준비중',t3],
+    ['2026112400120','2026-11-24 10:11','강민수','010-7712-3345','54901','전북 전주시 완산구 백제대로 200','1층','바다로운 바베큐 오징어 1kg','2','','결제완료',t3],
+    ['2026112400121','2026-11-24 10:24','윤혜진','010-8834-5521','31156','충남 천안시 동남구 만남로 20','9층','구운 양태채 300g','1','','상품준비중',t3],
+    ['2026112400122','2026-11-24 10:36','임재현','010-2299-6612','51500','경남 창원시 성산구 중앙대로 100','1201호','크리스피 콘볼 400g','2','','상품준비중',t3],
+    ['2026112400123','2026-11-24 10:44','조은정','010-5567-8823','03055','서울 종로구 사직로 8','3층','바다로운 바베큐 오징어 500g','1','','상품준비중',t3]
+  ];
+  return [['주문번호','주문일시','수령인','수령인전화번호','우편번호','주소','상세주소','상품명','수량','배송메시지','배송상태','출고예정일']].concat(list);
+}
+function DAYS(n){ var d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+function loadSample(){
+  S.orders=[]; S.picked.clear(); S.ackSel.clear();
+  importTable(sampleRows(),'샘플 주문 12건');
+  toast('샘플 주문 12건을 불러왔습니다');
+}
+
+/* ---------------- 내려받기 ---------------- */
+function saveTable(rows,sheet,fileName){
+  if(window.XLSX){
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=rows[0].map(function(_,i){
+      var w=8;
+      rows.forEach(function(r){ w=Math.max(w,String(r[i]==null?'':r[i]).length+2); });
+      return {wch:Math.min(w,44)};
+    });
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,sheet);
+    XLSX.writeFile(wb,fileName,{compression:true});
+    return true;
+  }
+  var csv=rows.map(function(r){
+    return r.map(function(c){
+      var s=String(c==null?'':c);
+      return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+    }).join(',');
+  }).join('\r\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=fileName.replace(/\.xlsx$/,'.csv');
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  toast('엑셀 기능이 없어 CSV로 받았습니다','warn');
+  return false;
+}
+
+function alpsRows(list){
+  var out=[['수하인명','전화번호','휴대폰','우편번호','주소','품목명','수량','배송메시지']];
+  list.forEach(function(o){
+    var tel=o.phone||o.phone2||'', mob=o.phone2||o.phone||'';
+    out.push([o.name||'',tel,mob,zipStr(o.zip),((o.addr||'')+(o.addr2?' '+o.addr2:'')).trim(),
+      (o.item||'')+(o.option?' / '+o.option:''),o.qty||'1',o.msg||'']);
+  });
+  return out;
+}
+function exportAlps(){
+  var list=pickedOrders();
+  if(!list.length){ toast('2단계에서 보낼 주문을 먼저 체크하세요','warn'); return; }
+  var ok=saveTable(alpsRows(list),'일괄주문접수','롯데택배_일괄주문접수_'+stamp()+'.xlsx');
+  log('ALPS 일괄주문접수 엑셀 내려받기 · '+list.length+'건','alps');
+  toast(list.length+'건 접수용 '+(ok?'엑셀':'CSV')+'을 내려받았습니다');
+  window.__cp_lastAlps=alpsRows(list);
+}
+function exportWingInvoices(){
+  var list=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
+  if(!list.length){ toast('등록할 운송장이 없습니다','warn'); return; }
+  var rows=[['주문번호','택배사','운송장번호']];
+  list.forEach(function(o){ rows.push([o.orderNo||'',o.courier||'롯데택배',digits(o.invoice)]); });
+  var ok=saveTable(rows,'운송장등록','쿠팡윙_운송장일괄등록_'+stamp()+'.xlsx');
+  log('쿠팡윙 운송장 일괄등록 엑셀 내려받기 · '+list.length+'건','wing');
+  toast(list.length+'건 '+(ok?'엑셀':'CSV')+'을 내려받았습니다');
+  window.__cp_lastInvoiceRows=rows;
+}
+function exportTemplate(){
+  var rows=[['주문번호','주문일시','수령인','수령인전화번호','수령인휴대폰번호','우편번호','주소','상세주소','상품명','옵션','수량','배송메시지','배송상태','출고예정일'],
+    ['2026112400001','2026-11-24 09:00','홍길동','010-0000-0000','010-0000-0000','06236','서울 강남구 테헤란로 123','4층','바다로운 바베큐 오징어 1kg','1kg','2','문 앞에 두세요','상품준비중',todayStr()]];
+  saveTable(rows,'주문','쿠팡윙_주문_예시양식.xlsx');
+  log('예시 엑셀 양식 내려받기','info');
+}
+
+/* ---------------- 운송장 넣기 ---------------- */
+function matchInvoiceRows(rows){
+  if(!rows||!rows.length) throw new Error('표가 비어 있습니다');
+  var head=pickHeaderRow(rows);
+  var map=head.map;
+  if(map.invoice==null){
+    /* 운송장 열이 없으면 첫 줄을 헤더로 보고 이름으로 다시 찾는다 */
+    throw new Error('운송장번호 열을 찾지 못했습니다');
+  }
+  var pending=S.orders.filter(function(o){ return S.picked.has(o.id) && !o.invoice; });
+  var all=S.orders.filter(function(o){ return !o.invoice; });
+  var pool=pending.length?pending:all;
+  var used={}, added=0, matched=0, unmatched=[];
+  for(var i=head.idx+1;i<rows.length;i++){
+    var r=rows[i]||[];
+    function v(f){ var k=map[f]; return k==null?'':String(r[k]==null?'':r[k]).trim(); }
+    var inv=digits(v('invoice'));
+    if(!inv) continue;
+    var target=null,j;
+    var ono=digits(v('orderNo'));
+    if(ono){ for(j=0;j<S.orders.length;j++){ if(digits(S.orders[j].orderNo)===ono && !used[S.orders[j].id]){ target=S.orders[j]; break; } } }
+    if(!target && v('name')){
+      var nm=v('name').replace(/\s/g,'');
+      for(j=0;j<pool.length;j++){ if(!used[pool[j].id] && String(pool[j].name||'').replace(/\s/g,'')===nm){ target=pool[j]; break; } }
+    }
+    if(!target && !v('name') && !ono){
+      /* 주문번호·이름이 없는 결과 파일(번호만 있는 목록)은 보낸 순서대로 넣는다 */
+      for(j=0;j<pool.length;j++){ if(!used[pool[j].id]){ target=pool[j]; break; } }
+    }
+    if(!target){ unmatched.push([v('orderNo'),v('name'),inv].filter(Boolean).join(' · ')); continue; }
+    used[target.id]=true;
+    target.invoice=inv;
+    if(v('courier')) target.courier=v('courier');
+    added++;
+  }
+  saveOrders(); renderAll();
+  return {added:added,unmatched:unmatched};
+}
+function applyPaste(){
+  var txt=$('#paste-text').value||'';
+  var lines=txt.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!lines.length){ toast('붙여넣은 내용이 없습니다','warn'); return; }
+  var pool=S.orders.filter(function(o){ return S.picked.has(o.id)&&!o.invoice; });
+  if(!pool.length) pool=S.orders.filter(function(o){ return !o.invoice; });
+  var idx=0, added=0, unknown=[];
+  lines.forEach(function(line){
+    var parts=line.split(/[,\t;|]+/).map(function(s){ return s.trim(); });
+    var inv='', ono='';
+    if(parts.length>=2){
+      var a=digits(parts[0]), b=digits(parts[1]);
+      if(a.length>=9){ ono=a; inv=b; } else { inv=b.length>=a.length?b:a; ono=''; }
+    }else{
+      inv=digits(parts[0]);
+    }
+    if(!inv || inv.length<8) return;
+    var target=null;
+    if(ono){
+      for(var i=0;i<S.orders.length;i++){
+        if(digits(S.orders[i].orderNo)===ono && !S.orders[i].invoice){ target=S.orders[i]; break; }
+      }
+    }
+    if(!target && idx<pool.length) target=pool[idx];
+    if(!target){ unknown.push(line); return; }
+    idx++;
+    target.invoice=inv;
+    added++;
+  });
+  saveOrders(); renderAll();
+  log('운송장번호 붙여넣기 적용 · '+added+'건','alps');
+  toast(added+'건 넣었습니다'+(unknown.length?' · '+unknown.length+'줄 확인 필요':''));
+}
+
+/* ---------------- 라벨 / 인쇄 ---------------- */
+function barcodeSVG(code){
+  var d=String(code||'').replace(/\D/g,'');
+  var x=2, bars=[];
+  function bar(w){ bars.push('<rect x="'+x.toFixed(1)+'" y="0" width="'+w+'" height="44" fill="#111"/>'); x+=w; }
+  function gap(w){ x+=w; }
+  bar(5); gap(3);
+  for(var i=0;i<d.length;i++){
+    var n=Number(d[i]);
+    var widths=[1+(n%3),1+((n+1)%2),1+((n+2)%3),1+((n>>1)%2)];
+    for(var j=0;j<widths.length;j++){ bar(widths[j]); gap(j===widths.length-1?3:1.4); }
+  }
+  bar(5); gap(3); bar(2);
+  return '<svg class="bc" viewBox="0 0 '+x.toFixed(1)+' 44" preserveAspectRatio="none" aria-hidden="true">'+bars.join('')+'</svg>';
+}
+function labelHTML(o){
+  var inv=o.invoice?String(o.invoice):'';
+  return '<div class="label">'+
+    '<div class="lb-top">'+
+      '<div class="lb-brand"><b>롯데택배</b><span>LOTTE GLOBAL LOGISTICS</span></div>'+
+      '<div class="lb-code"><span>운송장번호</span><b>'+(inv?esc(inv):'—')+'</b></div>'+
+    '</div>'+
+    (inv?'<div class="lb-barcode">'+barcodeSVG(inv)+'<em>'+esc(inv)+'</em></div>'
+        :'<div class="lb-nonum">운송장번호 없음 · ALPS 접수 후 4단계에서 번호를 넣으면 찍힙니다</div>')+
+    '<div class="lb-to">'+
+      '<div class="lb-row"><span>받는분</span><b>'+esc(o.name||'')+'</b></div>'+
+      '<div class="lb-row"><span>연락처</span><b>'+esc(o.phone||o.phone2||'')+'</b></div>'+
+      '<div class="lb-row"><span>주소</span><b>('+esc(o.zip||'')+') '+esc((o.addr||'')+(o.addr2?' '+o.addr2:''))+'</b></div>'+
+    '</div>'+
+    '<div class="lb-items">'+
+      '<div><span>품목</span><b>'+esc(o.item||'')+(o.option?' / '+esc(o.option):'')+'</b></div>'+
+      '<div><span>수량</span><b>'+esc(o.qty||1)+'개</b></div>'+
+      '<div><span>배송메시지</span><b>'+esc(o.msg||'—')+'</b></div>'+
+    '</div>'+
+    '<div class="lb-from">'+
+      '<div><span>보내는분</span><b>'+esc(SENDER.name)+'</b></div>'+
+      '<div><span>주소</span><b>'+esc(SENDER.addr)+'</b></div>'+
+    '</div>'+
+  '</div>';
+}
+function setPageSize(size){
+  var el=document.getElementById('pageSize');
+  if(!el){ el=document.createElement('style'); el.id='pageSize'; document.head.appendChild(el); }
+  el.textContent='@page{size:'+size+';margin:'+(size==='A4'?'8mm':'0')+'}';
+}
+function preparePrint(list,mode){
+  var area=$('#printArea');
+  if(!list||!list.length){ toast('인쇄할 송장이 없습니다','warn'); return 0; }
+  area.className=mode==='a4'?'a4':'';
+  area.innerHTML=list.map(labelHTML).join('');
+  setPageSize(mode==='a4'?'A4':'100mm auto');
+  return area.children.length;
+}
+function doPrint(list,mode){
+  var n=preparePrint(list,mode);
+  if(!n) return;
+  try{ window.print(); }catch(e){}
+  log('송장 인쇄 · '+n+'장 ('+(mode==='a4'?'A4':'100mm 감열지')+')','alps');
+}
+function openModal(o){
+  $('#modal-body').innerHTML=labelHTML(o);
+  $('#modal-sub').textContent='롯데택배 · '+o.name+(o.invoice?' · '+o.invoice:' · 번호 미등록');
+  $('#modal').classList.add('on');
+  window.__cp_modalOrder=o.id;
+}
+function closeModal(){ $('#modal').classList.remove('on'); }
+
+/* ---------------- 복사 ---------------- */
+function copyText(txt,okMsg){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ toast(okMsg||'복사했습니다'); })
+      .catch(function(){ fallbackCopy(txt,okMsg); });
+  }else fallbackCopy(txt,okMsg);
+}
+function fallbackCopy(txt,msg){
+  var ta=document.createElement('textarea');
+  ta.value=txt; ta.setAttribute('readonly','');
+  ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  var ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+  document.body.removeChild(ta);
+  toast(ok?(msg||'복사했습니다'):'복사가 막혔습니다 — 길게 눌러 직접 복사하세요',ok?'':'warn');
+}
+function orderText(o){
+  return [
+    '수하인명: '+(o.name||''),
+    '전화번호: '+(o.phone||o.phone2||''),
+    '휴대폰: '+(o.phone2||o.phone||''),
+    '우편번호: '+zipStr(o.zip),
+    '주소: '+((o.addr||'')+(o.addr2?' '+o.addr2:'')).trim(),
+    '품목명: '+(o.item||'')+(o.option?' / '+o.option:''),
+    '수량: '+(o.qty||1),
+    '배송메시지: '+(o.msg||'')
+  ].join('\n');
+}
+
+/* ---------------- actions ---------------- */
+function ackSelected(){
+  var ids=Array.from(S.ackSel);
+  if(!ids.length){ toast('발주확인할 주문을 체크하세요','warn'); return; }
+  var n=0;
+  ids.forEach(function(id){
+    var o=findOrder(id); if(!o) return;
+    o.acked=true;
+    if(o.status==='결제완료') o.status='상품준비중';
+    n++;
+  });
+  S.ackSel.clear();
+  saveOrders(); renderAll();
+  log('발주확인 처리 표시 · '+n+'건 (실제 발주확인은 쿠팡윙에서 눌러 주세요)','wing');
+  toast(n+'건 발주확인으로 표시했습니다');
+}
+function togglePickAll(on){
+  S.orders.filter(isOpen).forEach(function(o){
+    if(on && o.acked && bucketOf(o)!=='결제완료') S.picked.add(o.id);
+    if(!on) S.picked.delete(o.id);
+  });
+  saveOrders(); renderAll();
+}
+function markShipped(){
+  var list=S.orders.filter(function(o){ return o.invoice&&!o.shipped; });
+  if(!list.length){ toast('등록할 운송장이 없습니다','warn'); return; }
+  list.forEach(function(o){ o.shipped=true; o.status='배송중'; S.picked.delete(o.id); });
+  saveOrders(); renderAll();
+  log('쿠팡윙 등록 완료 표시 · '+list.length+'건 → 배송중','ok');
+  toast(list.length+'건 발송처리로 표시했습니다');
+}
+
+/* ---------------- events ---------------- */
+function wire(){
+  $('#g-portal').href=portalHome();
+  $('#btn-portal').href=portalHome();
+
+  $('#gate-form').addEventListener('submit',function(e){
+    e.preventDefault();
+    var id=normId($('#g-id').value), pw=$('#g-pw').value;
+    if(!id||!pw){ setGateMsg('아이디와 비밀번호를 넣어 주세요'); return; }
+    trySharedLogin(id,pw);
+  });
+  $('#btn-logout').addEventListener('click',function(){
+    if(!confirm('로그아웃할까요?')) return;
+    jrm(K_SESS); srm(K_TMP); jrm(K_SSO);
+    try{ localStorage.removeItem('kd.portal.session.v1'); sessionStorage.removeItem('kd.portal.session.tmp.v1'); }catch(e){}
+    location.reload();
+  });
+  $('#btn-reset').addEventListener('click',function(){
+    if(!confirm('불러온 주문을 모두 지울까요? (내려받은 엑셀은 그대로 남습니다)')) return;
+    S.orders=[]; S.picked.clear(); S.ackSel.clear(); S.cur=null; S.lastMap=null; S.bucket=null; S.filter='전체'; S.q='';
+    var q=$('#f-q'); if(q) q.value='';
+    srm(K_DATA);
+    $('#wing-map').textContent='아직 불러온 파일이 없습니다.';
+    setStep(1);
+    log('불러온 주문을 비웠습니다','info');
+    toast('주문을 비웠습니다');
+  });
+
+  $$('.step').forEach(function(b){
+    b.addEventListener('click',function(){ setStep(+b.dataset.step); });
+  });
+  $$('.btile').forEach(function(t){
+    t.addEventListener('click',function(){
+      var k=t.dataset.bucket;
+      S.bucket=(S.bucket===k)?null:k;
+      S.filter='전체';
+      if(k==='장기미배송'){ S.bucket='장기미배송'; toast('장기미배송은 쿠팡윙 배송관리에서 확인하세요','warn'); }
+      renderBoard(); renderFilters(); renderStep1();
+      if(S.bucket) setStep(1);
+    });
+  });
+
+  $('#btn-load-sample');
+  $('#btn-sample').addEventListener('click',loadSample);
+  $('#btn-template').addEventListener('click',exportTemplate);
+
+  var fw=$('#file-wing');
+  function takeFile(file){
+    if(!file) return;
+    readTable(file).then(function(rows){
+      try{ importTable(rows,file.name); }
+      catch(err){ toast(err.message,'warn'); log('엑셀 읽기 실패 · '+err.message,'info'); }
+    }).catch(function(err){ toast(err.message,'warn'); log('엑셀 읽기 실패 · '+err.message,'info'); });
+  }
+  fw.addEventListener('change',function(){ if(fw.files&&fw.files[0]) takeFile(fw.files[0]); fw.value=''; });
+  var drop=$('#drop-wing');
+  ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop',function(e){
+    if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]) takeFile(e.dataTransfer.files[0]);
+  });
+
+  $('#f-q').addEventListener('input',function(){ S.q=this.value; renderStep1(); });
+  $('#filters').addEventListener('click',function(e){
+    var c=e.target.closest('[data-filter]'); if(!c) return;
+    S.filter=c.dataset.filter; S.bucket=null;
+    renderFilters(); renderBoard(); renderStep1();
+  });
+
+  $('#ack-all').addEventListener('change',function(){
+    var on=this.checked;
+    var rows=filteredOrders().filter(function(o){
+      var b=bucketOf(o); return b==='결제완료'||b==='상품준비중'||b==='당일출고필요'||b==='출고지연'||b==='출고중지요청';
+    });
+    rows.forEach(function(o){ if(on) S.ackSel.add(o.id); else S.ackSel.delete(o.id); });
+    renderStep1();
+  });
+  $('#btn-ack').addEventListener('click',ackSelected);
+  $('#btn-to2').addEventListener('click',function(){ setStep(2); });
+
+  $('#pick-all').addEventListener('change',function(){ togglePickAll(this.checked); });
+  $('#btn-pickall').addEventListener('click',function(){ togglePickAll(true); });
+  $('#btn-to3').addEventListener('click',function(){ if(!S.picked.size){ toast('보낼 주문을 체크하세요','warn'); return; } setStep(3); });
+
+  $('#btn-alps-xlsx').addEventListener('click',exportAlps);
+  $('#btn-copy-all').addEventListener('click',function(){
+    var list=pickedOrders();
+    if(!list.length){ toast('보낼 주문이 없습니다','warn'); return; }
+    copyText(list.map(orderText).join('\n\n'),list.length+'건 정보를 복사했습니다');
+  });
+  $('#btn-copy-one').addEventListener('click',function(){
+    var o=findOrder(S.cur);
+    if(!o){ toast('주문을 먼저 선택하세요','warn'); return; }
+    copyText(orderText(o),o.name+' 건 정보를 복사했습니다');
+  });
+  $('#btn-print3').addEventListener('click',function(){
+    var list=pickedOrders();
+    if(!list.length){ toast('보낼 주문이 없습니다','warn'); return; }
+    openModal(list[0]);
+  });
+  $('#btn-to4').addEventListener('click',function(){ setStep(4); });
+
+  $('#file-inv').addEventListener('change',function(){
+    var f=this.files&&this.files[0]; this.value='';
+    if(!f) return;
+    readTable(f).then(function(rows){
+      try{
+        var r=matchInvoiceRows(rows);
+        log('ALPS 결과 반영 · 운송장 '+r.added+'건'+(r.unmatched.length?' · 미매칭 '+r.unmatched.length+'건':''),'alps');
+        toast('운송장 '+r.added+'건을 넣었습니다'+(r.unmatched.length?' · 미매칭 '+r.unmatched.length:''));
+      }catch(e){ toast(e.message,'warn'); }
+    }).catch(function(e){ toast(e.message,'warn'); });
+  });
+  $('#btn-paste').addEventListener('click',function(){
+    var b=$('#paste-box'); b.hidden=!b.hidden;
+    if(!b.hidden) $('#paste-text').focus();
+  });
+  $('#btn-paste-apply').addEventListener('click',applyPaste);
+  $('#btn-paste-clear').addEventListener('click',function(){ $('#paste-text').value=''; });
+  $('#btn-wing-xlsx').addEventListener('click',exportWingInvoices);
+  $('#btn-mark').addEventListener('click',markShipped);
+  $('#btn-print4').addEventListener('click',function(){
+    var list=S.orders.filter(function(o){ return o.invoice; });
+    doPrint(list,S.fmt);
+  });
+
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.dataset&&t.dataset.act==='sel'){
+      if(t.checked) S.ackSel.add(t.dataset.id); else S.ackSel.delete(t.dataset.id);
+      renderStep1();
+      return;
+    }
+    if(t.dataset&&t.dataset.act==='acked'){
+      var oa=findOrder(t.dataset.id);
+      if(oa){
+        oa.acked=!!t.checked;
+        if(oa.acked&&oa.status==='결제완료') oa.status='상품준비중';
+        saveOrders(); renderAll();
+      }
+      return;
+    }
+    if(t.dataset&&t.dataset.act==='pick'){
+      if(t.checked) S.picked.add(t.dataset.id); else S.picked.delete(t.dataset.id);
+      saveOrders(); renderStep2(); renderSteps(); renderStep3();
+      return;
+    }
+    if(t.classList&&t.classList.contains('inp-inv')){
+      var o=findOrder(t.dataset.id);
+      if(o){ o.invoice=digits(t.value); saveOrders(); renderStep4(); renderSteps(); }
+    }
+  });
+  document.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.classList&&t.classList.contains('inp-inv')){
+      var o=findOrder(t.dataset.id);
+      if(o) o.invoice=digits(t.value);
+    }
+  });
+  document.addEventListener('click',function(e){
+    var t=e.target.closest?e.target.closest('[data-act]'):null;
+    if(!t) return;
+    var act=t.dataset.act;
+    if(act==='cur'){ S.cur=t.dataset.id; renderStep3(); return; }
+    if(act==='copy-one'){ var o=findOrder(t.dataset.id); if(o) copyText(orderText(o),o.name+' 건 정보를 복사했습니다'); return; }
+    if(act==='copy-inv'){
+      var oo=findOrder(t.dataset.id);
+      if(oo&&oo.invoice) copyText(oo.invoice,'운송장번호를 복사했습니다');
+      else toast('운송장번호가 없습니다','warn');
+      return;
+    }
+  });
+  $$('.fmtbtn').forEach(function(b){
+    b.addEventListener('click',function(){ S.fmt=b.dataset.fmt; renderStep3(); });
+  });
+
+  $('#logbar').addEventListener('click',function(){
+    S.logOpen=!S.logOpen;
+    $('#logdock').classList.toggle('open',S.logOpen);
+    this.setAttribute('aria-expanded',S.logOpen?'true':'false');
+  });
+  $('#modal-x').addEventListener('click',closeModal);
+  $('#modal-close').addEventListener('click',closeModal);
+  $('#modal-print').addEventListener('click',function(){
+    var o=findOrder(window.__cp_modalOrder);
+    closeModal();
+    if(o) doPrint([o],S.fmt);
+  });
+  $('#modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+}
+
+/* ---------------- boot ---------------- */
+function boot(){
+  wire();
+  var sso=portalSSO();
+  if(sso){
+    var u=findUser(sso.userId);
+    if(u){ enter({id:sso.userId,name:u.name||sso.name,role:u.role||sso.role||'user'},'portal'); return; }
+    enter({id:sso.userId,name:sso.name||sso.userId,role:sso.role||'user'},'portal');
+    fetchSharedUsers().then(saveUsersCache).catch(function(){});
+    return;
+  }
+  var s=getSession();
+  if(s){
+    var u2=findUser(s.userId);
+    enter({id:s.userId,name:(u2&&u2.name)||s.name||s.userId,role:(u2&&u2.role)||s.role||'user'},'direct');
+    return;
+  }
+  showGate();
+}
+
+/* 테스트용 손잡이 (화면에는 영향 없음) */
+window.__cp={
+  state:S, preparePrint:preparePrint, importTable:importTable, alpsRows:alpsRows,
+  readTable:readTable, applyPaste:applyPaste, matchInvoiceRows:matchInvoiceRows,
+  bucketOf:bucketOf, counts:counts, enter:enter, sampleRows:sampleRows
+};
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+})();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
  * - localStorage · IndexedDB · 쿠키는 건드리지 않는다(로그인·암호화 열쇠·시트 동기화 그대로).
  * - 주소는 이 파일 위치 기준 상대 경로라, 루트(/)에 올려도 하위 폴더에서 시험해도 같게 동작한다.
  */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = 'kdw-portal-' + VERSION;
 const BASE = new URL('./', self.location.href);          /* 배포: https://hanseong1007.github.io/ */
 const PRECACHE = ['index.html', 'offline.html', 'manifest.webmanifest',
@@ -53,6 +53,7 @@ self.addEventListener('fetch', function (e) {
   if (url.pathname.indexOf(BASE.pathname) !== 0) return;    /* 다른 앱 폴더는 건드리지 않는다 */
   const rel = url.pathname.slice(BASE.pathname.length);
   if (rel.indexOf('parcel-label/') === 0) return;           /* 택배주소출력 앱은 캐시하지 않는다 */
+  if (rel.indexOf('coupang-order/') === 0) return;          /* 쿠팡택배 앱은 캐시하지 않는다 */
 
   /* 화면 이동: 네트워크 우선 */
   if (req.mode === 'navigate') {

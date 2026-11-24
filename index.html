@@ -193,12 +193,12 @@
       <div class="bm">경덕</div>
       <div class="brandtxt">
         <b>(주)경덕농수산</b>
-        <span>통합 로그인 · 발주 · 업무일지 · 근태</span>
+        <span>통합 로그인 · 발주 · 업무일지 · 근태 · 쿠팡택배</span>
       </div>
     </div>
     <form class="authcard" id="login-form" autocomplete="on" novalidate>
       <h1>통합 로그인</h1>
-      <p class="lead">한 번만 로그인하면 발주·업무일지·근태·택배주소출력 화면이 다시 묻지 않고 열립니다.</p>
+      <p class="lead">한 번만 로그인하면 발주·업무일지·근태·택배주소출력·쿠팡택배 화면이 다시 묻지 않고 열립니다.</p>
       <div class="field">
         <label class="lbl" for="login-id">아이디</label>
         <input class="inp" id="login-id" name="username" type="text" autocomplete="username"
@@ -262,13 +262,18 @@
         <span class="tx"><b>택배주소출력</b><span>거래처 택배주소 · A4 인쇄</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
+      <a class="mcard" id="menu-coupang" href="./coupang-order/" data-app="cp">
+        <span class="em" aria-hidden="true">🧾</span>
+        <span class="tx"><b>쿠팡택배</b><span>쿠팡윙 주문 → 롯데택배 송장</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
     </nav>
     <p id="menu-none" hidden>접근 가능한 메뉴가 없습니다.<br>관리자에게 문의하세요.
       <span>관리자가 사용자 관리에서 이 계정의 메뉴를 지정하면 열립니다.</span></p>
 
     <section class="card" id="sec-account">
       <h2>내 계정</h2>
-      <p class="sub">네 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 네 앱에 함께 바뀝니다.</p>
+      <p class="sub">다섯 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 다섯 앱에 함께 바뀝니다.</p>
       <div class="kv"><span class="k">이름</span><span class="v" id="acc-name">-</span></div>
       <div class="kv"><span class="k">아이디</span><span class="v" id="acc-id">-</span></div>
       <div class="kv"><span class="k">메뉴</span><span class="v" id="acc-menus">-</span></div>
@@ -331,6 +336,7 @@
           <label class="mopt"><input type="checkbox" value="worklog"> <span>업무일지</span></label>
           <label class="mopt"><input type="checkbox" value="attendance"> <span>근태·연차</span></label>
           <label class="mopt"><input type="checkbox" value="parcel"> <span>택배주소출력</span></label>
+          <label class="mopt"><input type="checkbox" value="coupang"> <span>쿠팡택배</span></label>
         </div>
         <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
           admin·박한성 계정은 전체 메뉴 고정입니다.</p>
@@ -350,8 +356,8 @@
 
       <div class="divider"></div>
       <div id="users-list"></div>
-      <p class="sub2">앱(발주·업무일지·근태·택배주소출력)의 <b>내 계정 → 사용자 관리</b>에서 만든 계정도 여기로 모입니다.
-        비밀번호 재설정은 네 앱에 함께 적용됩니다.</p>
+      <p class="sub2">앱(발주·업무일지·근태·택배주소출력·쿠팡택배)의 <b>내 계정 → 사용자 관리</b>에서 만든 계정도 여기로 모입니다.
+        비밀번호 재설정은 다섯 앱에 함께 적용됩니다.</p>
     </section>
 
     <p class="foot">이 포털에서 로그인한 상태로 앱을 열면 다시 로그인하지 않습니다.<br>
@@ -503,6 +509,10 @@
     /* 택배주소출력 — 포털 계정(p1) 그대로 쓰고, 앱 안에서 자기 열쇠를 만든다 */
     pl:  { label:'택배주소출력', dir:'parcel-label', users:'pl.users.v1', sess:'pl.session.v1', tmp:'pl.session.tmp.v1',
            noseed:'pl.noadmin.v1', hp:'p1|', mk:'pli1|', pp:'plw1|',
+           wrap:'', wrapPw:'', adminName:'관리자' },
+    /* 쿠팡택배 — 포털 계정(p1)·SSO 세션을 그대로 쓰는 화면(자체 계정 저장소 없음) */
+    cp:  { label:'쿠팡택배', dir:'coupang-order', users:'cp.users.v1', sess:'cp.session.v1', tmp:'cp.session.tmp.v1',
+           noseed:'cp.noadmin.v1', hp:'p1|', mk:'cpi1|', pp:'cpw1|',
            wrap:'', wrapPw:'', adminName:'관리자' }
   };
   var ORDER = ['kd', 'kdw', 'att'];
@@ -554,9 +564,9 @@
      admin · 이름 '박한성' 계정은 전체 메뉴 고정,
      예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
      ============================================================ */
-  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel'];
-  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력' };
-  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl' };
+  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배' };
+  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp' };
   function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
   function normMenus(list){
     if(!Array.isArray(list)) return null;
@@ -1536,6 +1546,7 @@
     $('#menu-worklog').href = appUrl('kdw');
     $('#menu-attendance').href = appUrl('att');
     if($('#menu-parcel')) $('#menu-parcel').href = appUrl('pl');
+    if($('#menu-coupang')) $('#menu-coupang').href = appUrl('cp');
     /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
     var ms = u ? menusOf(u) : MENU_KEYS.slice();
     MENU_KEYS.forEach(function(k){
