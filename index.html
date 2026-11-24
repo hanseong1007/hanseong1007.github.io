@@ -174,6 +174,7 @@
 
   @media(min-width:600px){
     .menu{grid-template-columns:repeat(2,1fr)}
+    .mcard.whole{grid-column:1/-1;min-height:96px}
     .mcard{flex-direction:column;align-items:flex-start;gap:9px;min-height:124px;padding:16px}
     .mcard .tx span{white-space:normal}
     .mcard .ar{display:none}
@@ -262,7 +263,7 @@
         <span class="tx"><b>택배주소출력</b><span>거래처 택배주소 · A4 인쇄</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
-      <a class="mcard" id="menu-coupang" href="./coupang-order/" data-app="cp">
+      <a class="mcard whole" id="menu-coupang" href="./coupang-order/" data-app="cp">
         <span class="em" aria-hidden="true">🧾</span>
         <span class="tx"><b>쿠팡택배</b><span>쿠팡윙 주문 → 롯데택배 송장</span></span>
         <span class="ar" aria-hidden="true">›</span>
