@@ -2634,6 +2634,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     if (!p) return;
     if (!window.confirm('「' + p.name + '」 상품을 쇼핑몰에서 삭제할까요?\n삭제하면 모든 기기에서 사라집니다.')) return;
     state.products = state.products.filter(function(x){ return x.id !== id; });
+    state.products.forEach(function(x, i){ x.sortNo = i; });
     state.cart = state.cart.filter(function(c){ return c.id !== id; });
     writeJSON(LS.cart, state.cart);
     if (pendingDeleted.indexOf(id) < 0) pendingDeleted.push(id);

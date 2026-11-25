@@ -245,5 +245,11 @@ documents/shop/
 ├── screenshot-detail-coupang-pc.png      쿠팡형 상세(PC)
 ├── screenshot-detail-coupang-mobile.png  쿠팡형 상세(모바일)
 ├── screenshot-shop-admin.png             관리자 거래처·회원 관리
+├── screenshot-shop-product-admin.png     관리자 📦 상품 관리(가격·원산지·재고·소비기한)
 └── screenshot-shop-login-mobile.png      모바일 로그인
+
+scripts/
+├── shop_products_seed.py        products.json → 시트 products/settings 채우기
+├── make_shop_product_xlsx.py    downloads/바다로운_상품관리.xlsx 만들기
+└── test_shop_product_admin.py   관리자 상품 관리 E2E(시트 실제 반영·복구)
 ```
