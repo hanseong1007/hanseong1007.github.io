@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f7b63">
+<meta name="format-detection" content="telephone=no">
+<title>경덕농수산 · 상품단가표</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f7b63'/%3E%3Ctext x='32' y='45' font-family='sans-serif' font-size='32' font-weight='700' text-anchor='middle' fill='white'%3E%E2%82%A9%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-view="boot">
+
+<!-- ═══════════ 잠금 (단가표 열기) ═══════════ -->
+<section id="gate">
+  <div class="gatewrap">
+    <div class="brand">
+      <div class="bm">₩</div>
+      <div class="brandtxt"><b>(주)경덕농수산</b><span>상품 단가표 · 가격비교</span></div>
+      <div class="chip" id="gate-who" hidden><span class="av" id="gate-av">관</span><span class="nm" id="gate-nm">-</span></div>
+    </div>
+    <div class="authcard">
+      <h1>단가표 열기</h1>
+      <p class="lead">상품 단가 자료는 암호로 잠겨 있습니다.<br>단가표 비밀번호를 넣으면 바로 열립니다.</p>
+      <div class="field">
+        <label class="lbl" for="gate-pw">단가표 비밀번호</label>
+        <input class="inp" id="gate-pw" type="password" autocomplete="off" enterkeyhint="go" placeholder="비밀번호">
+      </div>
+      <label class="keep"><input type="checkbox" id="gate-keep" checked> 이 기기에서는 다시 묻지 않기</label>
+      <p class="authmsg" id="gate-msg" role="status" aria-live="polite"></p>
+      <button class="authbtn" id="gate-go" type="button">열기</button>
+      <p class="syncnote" id="gate-sync">단가 자료는 암호화되어 내려받습니다.</p>
+      <div class="gatesub">
+        <button class="linkbtn" id="gate-xlsx" type="button">엑셀 단가표로 새로 시작</button>
+        <a class="linkbtn" id="gate-portal" href="../">통합 로그인</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 본문 ═══════════ -->
+<div id="app" hidden>
+<header class="top">
+  <div class="brand sm">
+    <div class="bm sm">₩</div>
+    <div class="brandtxt"><b>상품 단가표</b><span id="top-sub">원물 · 품목 · 가격비교</span></div>
+  </div>
+  <div class="topr">
+    <button class="chip" id="top-who" type="button" title="내 계정"><span class="av" id="top-av">관</span><span class="nm" id="top-nm">-</span></button>
+    <button class="iconbtn" id="top-out" type="button" title="잠그기">🔒</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab on" data-tab="mat"><span class="em">🧺</span><span>원물가격</span></button>
+  <button class="tab" data-tab="all"><span class="em">📋</span><span>전체품목</span></button>
+  <button class="tab" data-tab="cmp"><span class="em">⚖️</span><span>가격비교</span></button>
+  <button class="tab" data-tab="set"><span class="em">⚙️</span><span>설정</span></button>
+</nav>
+
+<main>
+  <!-- ───────── 원물가격 ───────── -->
+  <section class="view" id="v-mat">
+    <div class="toolbar">
+      <div class="searchbox">
+        <span class="mag">🔍</span>
+        <input id="mat-q" type="search" autocomplete="off" placeholder="원물 이름 (예: 멸치, 김, 땅콩)">
+        <button class="clr" id="mat-clr" type="button" hidden>✕</button>
+      </div>
+      <select class="selcat" id="mat-cat"><option value="">전체 구분</option></select>
+    </div>
+    <div class="statline" id="mat-stat"></div>
+    <div class="mlist" id="mat-list"></div>
+    <p class="more" id="mat-more" hidden>검색으로 원물을 좁혀 주세요</p>
+  </section>
+
+  <!-- ───────── 전체품목 ───────── -->
+  <section class="view" id="v-all" hidden>
+    <div class="toolbar">
+      <select class="selch" id="all-ch"></select>
+      <div class="searchbox">
+        <span class="mag">🔍</span>
+        <input id="all-q" type="search" autocomplete="off" placeholder="품명 · 바코드 · 구분">
+        <button class="clr" id="all-clr" type="button" hidden>✕</button>
+      </div>
+    </div>
+    <div class="statline" id="all-stat"></div>
+    <div class="rowbtn">
+      <button class="btn soft" id="all-export" type="button">⬇ 엑셀 내려받기</button>
+      <button class="btn soft" id="all-import" type="button">⬆ 엑셀 단가표 올리기</button>
+    </div>
+    <div class="tblhead" id="all-head"></div>
+    <div class="plist" id="all-list"></div>
+    <p class="more" id="all-more" hidden></p>
+  </section>
+
+  <!-- ───────── 가격비교 ───────── -->
+  <section class="view" id="v-cmp" hidden>
+    <div class="cmpbox">
+      <div class="cmptop">
+        <span class="lbl2">비교할 거래처</span>
+        <div class="chips" id="cmp-ch"></div>
+      </div>
+      <div class="cmpopt">
+        <div class="seg" id="cmp-basis">
+          <button data-b="s" class="on">판매가 기준</button>
+          <button data-b="q">납품가 기준</button>
+        </div>
+        <div class="cust" id="cmp-cust" hidden>
+          <label>이율 <input id="cust-rate" type="number" step="0.01" value="1.35" inputmode="decimal"></label>
+          <label>수수료% <input id="cust-fee" type="number" step="1" value="10" inputmode="numeric"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="addbox">
+      <div class="searchbox">
+        <span class="mag">🔍</span>
+        <input id="cmp-q" type="search" autocomplete="off" placeholder="출고할 상품 검색 (품명)">
+        <button class="clr" id="cmp-clr" type="button" hidden>✕</button>
+      </div>
+      <div class="sug" id="cmp-sug" hidden></div>
+      <div class="rowbtn">
+        <button class="btn soft" id="cmp-import" type="button">⬆ 거래처 단가표 올리기</button>
+        <button class="btn soft" id="cmp-clear" type="button">비우기</button>
+      </div>
+    </div>
+
+    <div class="sum" id="cmp-sum"></div>
+    <div class="clist" id="cmp-list"></div>
+    <div class="rowbtn" id="cmp-actions" hidden>
+      <button class="btn primary" id="cmp-export" type="button">⬇ 비교 결과 엑셀</button>
+    </div>
+  </section>
+
+  <!-- ───────── 설정 ───────── -->
+  <section class="view" id="v-set" hidden>
+    <div class="card">
+      <h2>단가 자료</h2>
+      <div class="kv"><span>품목</span><b id="set-items">-</b></div>
+      <div class="kv"><span>원물</span><b id="set-bases">-</b></div>
+      <div class="kv"><span>불러온 날</span><b id="set-built">-</b></div>
+      <div class="kv"><span>저장</span><b id="set-save">-</b></div>
+      <div class="rowbtn">
+        <button class="btn soft" id="set-export" type="button">⬇ 전체 단가표 엑셀</button>
+        <button class="btn soft" id="set-import" type="button">⬆ 새 단가표 엑셀 올리기</button>
+      </div>
+      <p class="note">엑셀은 이 기기에 저장된 <b>수정된 단가</b> 기준으로 만듭니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>바꾼 내역 <span class="tag gray" id="set-logcnt">0</span></h2>
+      <div id="set-log" class="loglist"></div>
+      <div class="rowbtn">
+        <button class="btn soft" id="set-undo" type="button">↩ 마지막 변경 되돌리기</button>
+        <button class="btn soft danger" id="set-reset" type="button">처음 단가로 되돌리기</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>보안</h2>
+      <div class="rowbtn">
+        <button class="btn soft" id="set-encurl2" type="button">🔐 암호화 파일 만들기</button>
+        <button class="btn soft" id="set-lock" type="button">지금 잠그기</button>
+      </div>
+      <p class="note">암호화 파일은 지금 단가를 새 비밀번호로 잠근 <b>data.enc.json</b> 입니다. 이 파일을 GitHub에 올리면 모든 기기에 같은 단가가 열립니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>포털</h2>
+      <div class="rowbtn">
+        <a class="btn soft" href="../">🏠 통합 로그인으로</a>
+        <a class="btn soft" href="../worklog-app/">📝 업무일지</a>
+      </div>
+      <p class="note">이 화면은 통합 로그인 계정과 같은 사람으로 표시됩니다.</p>
+    </div>
+    <p class="foot">상품 단가표 · 원물 단가를 바꾸면 중량별 품목 가격이 함께 바뀝니다.</p>
+  </section>
+</main>
+</div>
+
+<!-- ═══════════ 원물 상세 시트 ═══════════ -->
+<div class="sheet" id="sheet" hidden aria-modal="true" role="dialog">
+  <header class="shead">
+    <button class="iconbtn" id="sh-back" type="button">←</button>
+    <div class="stitle"><b id="sh-title">-</b><span id="sh-sub"></span></div>
+    <button class="iconbtn" id="sh-add" type="button" title="품목 추가">＋</button>
+  </header>
+  <div class="sbody">
+    <div class="applybox">
+      <div class="aplabel">원물 매입원가 <span class="unit">(원/kg)</span></div>
+      <div class="aprow">
+        <button class="step" id="sh-minus" type="button">−</button>
+        <input id="sh-kg" type="text" inputmode="numeric" autocomplete="off">
+        <button class="step" id="sh-plus" type="button">＋</button>
+      </div>
+      <div class="quick" id="sh-quick">
+        <button data-v="-1000" type="button">−1,000</button>
+        <button data-v="-100" type="button">−100</button>
+        <button data-v="100" type="button">+100</button>
+        <button data-v="1000" type="button">+1,000</button>
+      </div>
+      <label class="chk" id="sh-keepwrap"><input type="checkbox" id="sh-keep"> 단가가 다른 품목(행사 등)은 그대로 두기</label>
+      <button class="btn primary big" id="sh-apply" type="button">이 원물 가격 일괄 적용</button>
+      <div class="chg" id="sh-chg"></div>
+    </div>
+    <div class="slisthead" id="sh-listhead"></div>
+    <div class="ilist" id="sh-items"></div>
+  </div>
+</div>
+
+<!-- ═══════════ 품목 편집 시트 ═══════════ -->
+<div class="sheet" id="esheet" hidden aria-modal="true" role="dialog">
+  <header class="shead">
+    <button class="iconbtn" id="ed-back" type="button">←</button>
+    <div class="stitle"><b id="ed-title">품목 수정</b><span id="ed-sub"></span></div>
+    <button class="iconbtn" id="ed-del" type="button" title="삭제">🗑</button>
+  </header>
+  <div class="sbody">
+    <div class="form2">
+      <label>품명<input id="ed-nm" type="text"></label>
+      <label>원물 이름<input id="ed-base" type="text"><span class="hint">같은 원물끼리 단가가 함께 바뀝니다</span></label>
+      <div class="two">
+        <label>매입원가(원/kg)<input id="ed-kg" type="text" inputmode="numeric" autocomplete="off"></label>
+        <label>중량(kg)<input id="ed-wt" type="text" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <div class="two">
+        <label>포장<select id="ed-pack"><option value="">없음</option><option value="케이스">케이스 500</option><option value="박스">박스 1000</option><option value="팩">팩 500</option></select></label>
+        <label>이율<input id="ed-rate" type="text" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="ed-auto"> 중량에 따라 이율 자동 (1kg↑1.30 · 0.5↑1.40 · 0.3↑1.45 · 0.1↑1.50 · 그 외 1.60)</label>
+      <div class="two">
+        <label>구분<input id="ed-cat" type="text"></label>
+        <label>과/면세<input id="ed-tax" type="text"></label>
+      </div>
+      <label>규격<input id="ed-spec" type="text"></label>
+      <label>바코드<input id="ed-bc" type="text" inputmode="numeric"></label>
+      <label>비고<input id="ed-note" type="text"></label>
+    </div>
+    <div class="calcnow" id="ed-calc"></div>
+    <button class="btn primary big" id="ed-save" type="button">저장</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
+<input type="file" id="filein" accept=".xlsx,.xls,.csv" hidden>
+
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

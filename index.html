@@ -268,6 +268,11 @@
         <span class="tx"><b>쿠팡택배</b><span>쿠팡윙 주문 → 롯데택배 송장</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
+      <a class="mcard" id="menu-price" href="./price-manager/" data-app="pm">
+        <span class="em" aria-hidden="true">💰</span>
+        <span class="tx"><b>상품단가·가격비교</b><span>원물 단가 → 중량별 가격 · 거래처 비교</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
       <a class="mcard" id="menu-shop" href="../shop/" data-app="shop">
         <span class="em" aria-hidden="true">🛒</span>
         <span class="tx"><b>바다로운 쇼핑몰</b><span>건어물·견과류 · 회원 주문</span></span>
@@ -279,7 +284,7 @@
 
     <section class="card" id="sec-account">
       <h2>내 계정</h2>
-      <p class="sub">다섯 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 다섯 앱에 함께 바뀝니다.</p>
+      <p class="sub">여섯 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 여섯 앱에 함께 바뀝니다.</p>
       <div class="kv"><span class="k">이름</span><span class="v" id="acc-name">-</span></div>
       <div class="kv"><span class="k">아이디</span><span class="v" id="acc-id">-</span></div>
       <div class="kv"><span class="k">메뉴</span><span class="v" id="acc-menus">-</span></div>
@@ -343,6 +348,7 @@
           <label class="mopt"><input type="checkbox" value="attendance"> <span>근태·연차</span></label>
           <label class="mopt"><input type="checkbox" value="parcel"> <span>택배주소출력</span></label>
           <label class="mopt"><input type="checkbox" value="coupang"> <span>쿠팡택배</span></label>
+          <label class="mopt"><input type="checkbox" value="price"> <span>상품단가</span></label>
           <label class="mopt"><input type="checkbox" value="shop"> <span>쇼핑몰</span></label>
         </div>
         <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
@@ -364,7 +370,7 @@
       <div class="divider"></div>
       <div id="users-list"></div>
       <p class="sub2">앱(발주·업무일지·근태·택배주소출력·쿠팡택배)의 <b>내 계정 → 사용자 관리</b>에서 만든 계정도 여기로 모입니다.
-        비밀번호 재설정은 다섯 앱에 함께 적용됩니다.</p>
+        비밀번호 재설정은 여섯 앱에 함께 적용됩니다.</p>
     </section>
 
     <p class="foot">이 포털에서 로그인한 상태로 앱을 열면 다시 로그인하지 않습니다.<br>
@@ -520,6 +526,10 @@
     /* 쿠팡택배 — 포털 계정(p1)·SSO 세션을 그대로 쓰는 화면(자체 계정 저장소 없음) */
     cp:  { label:'쿠팡택배', dir:'coupang-order', users:'cp.users.v1', sess:'cp.session.v1', tmp:'cp.session.tmp.v1',
            noseed:'cp.noadmin.v1', hp:'p1|', mk:'cpi1|', pp:'cpw1|',
+           wrap:'', wrapPw:'', adminName:'관리자' },
+    /* 상품단가·가격비교 — 포털 계정(p1)·SSO 세션을 그대로 쓰고, 단가 자료는 따로 암호로 잠근다 */
+    pm:  { label:'상품단가', dir:'price-manager', users:'pm.users.v1', sess:'pm.session.v1', tmp:'pm.session.tmp.v1',
+           noseed:'pm.noadmin.v1', hp:'p1|', mk:'pmi1|', pp:'pmw1|',
            wrap:'', wrapPw:'', adminName:'관리자' }
   };
   var ORDER = ['kd', 'kdw', 'att'];
@@ -571,9 +581,9 @@
      admin · 이름 '박한성' 계정은 전체 메뉴 고정,
      예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
      ============================================================ */
-  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang', 'shop'];
-  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배', shop:'쇼핑몰' };
-  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp' };
+  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang', 'price', 'shop'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배', price:'상품단가', shop:'쇼핑몰' };
+  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp', price:'pm' };
   function menuUrl(k){ return k === 'shop' ? (appBase() + 'shop/') : appUrl(MENU_APP[k]); }
   function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
   function normMenus(list){
@@ -1615,6 +1625,7 @@
     $('#menu-attendance').href = appUrl('att');
     if($('#menu-parcel')) $('#menu-parcel').href = appUrl('pl');
     if($('#menu-coupang')) $('#menu-coupang').href = appUrl('cp');
+    if($('#menu-price')) $('#menu-price').href = appUrl('pm');
     if($('#menu-shop')) $('#menu-shop').href = appBase() + 'shop/';
     /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
     var ms = u ? menusOf(u) : MENU_KEYS.slice();
