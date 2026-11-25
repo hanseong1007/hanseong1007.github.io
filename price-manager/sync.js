@@ -289,6 +289,17 @@
     });
   }
 
+  function hasAnyStamp() {
+    if (!S.stamp) return false;
+    return !!(Object.keys(S.stamp.it || {}).length || Object.keys(S.stamp.row || {}).length ||
+      Object.keys(S.stamp.del || {}).length || Object.keys(S.stamp.add || {}).length);
+  }
+  function hasAnyEdit() {
+    var e = S.edits || {};
+    return !!(Object.keys(e.it || {}).length || Object.keys(e.row || {}).length ||
+      Object.keys(e.del || {}).length || (e.add || []).length);
+  }
+
   function changed() {
     if (!ready()) return;
     if (!S.stamp) S.stamp = { it: {}, row: {}, add: {}, del: {} };
@@ -303,6 +314,8 @@
     var saved = lsGet(K_REV);
     if (saved && typeof saved.rev === 'number') { ST.rev = saved.rev; ST.at = saved.at || 0; }
     if (!S.stamp) S.stamp = { it: {}, row: {}, add: {}, del: {} };
+    /* 이 기능 전에 이 기기에만 있던 수정은 '지금 이 기기에서 바꾼 것'으로 표시해 둔다 */
+    if (!hasAnyStamp() && hasAnyEdit()) touch(Date.now());
     snapshot();
     setStatus(ST.rev ? 'sync' : 'first');
     pull(false).then(function (n) {

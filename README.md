@@ -1,7 +1,7 @@
 # 경덕농수산 통합 로그인 포털
 
-발주 · 업무일지 · 근태·연차 · 택배주소출력 · 쿠팡택배 다섯 앱을 **한 번의 로그인**으로 여는 첫 화면입니다.
-`admin`(또는 이름이 `박한성`)으로 로그인하면 **다섯 앱 메뉴 전부**와 사용자 관리가 나오고,
+발주 · 업무일지 · 근태·연차 · 택배주소출력 · 쿠팡택배 · 바다로운 쇼핑몰 여섯 화면을 한 곳에서 여는 첫 화면입니다.
+`admin`(또는 이름이 `박한성`)으로 로그인하면 **여섯 메뉴 전부**와 사용자 관리가 나오고,
 그 외 직원은 **관리자가 지정한 메뉴만** 보입니다(한 개면 그 앱으로 바로, 두 개 이상이면 포털 메뉴 화면,
 아무것도 없으면 "접근 가능한 메뉴가 없습니다" 안내).
 
@@ -9,7 +9,7 @@
 - 배포 주소: `https://hanseong1007.github.io/` (저장소 `hanseong1007/hanseong1007.github.io`)
 - 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` · `/parcel-label/` · `/coupang-order/` (같은 출처)
 - 쿠팡택배 앱: `coupang-order/index.html` · `coupang-order/xlsx.full.min.js` (SheetJS) — 설명은 `coupang-order/README.md`
-- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (57항목, 사용자별 메뉴) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화) · `scripts/test_portal_parcel.py` (29항목, 포털→택배주소출력 1회 로그인·보안)
+- 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (65항목, 사용자별 메뉴·쇼핑몰 메뉴) · `scripts/test_portal_shop.py` (24항목, 6번째 메뉴→쇼핑몰·쿠팡형 상세) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화) · `scripts/test_portal_parcel.py` (29항목, 포털→택배주소출력 1회 로그인·보안)
 - 배포: `bash scripts/deploy_portal.sh`
 
 ## PC 앱으로 설치 (PWA)
@@ -33,7 +33,7 @@
 | 화면 | 내용 |
 |---|---|
 | 로그인 | 아이디·비밀번호·`로그인 유지`. 로그인 화면에는 초기 계정 안내를 넣지 않았습니다. |
-| 대시보드(관리자) | 📦 발주 · 📝 업무일지 · 📅 근태·연차 · 🚚 택배주소출력 · 🧾 쿠팡택배 메뉴, 내 계정(비밀번호 변경·로그아웃), 👥 사용자 관리(직원 추가·결재 권한·**메뉴 선택**·초대 링크·비밀번호 재설정·삭제·☁️ 이 기기 계정으로 전체 업데이트). |
+| 대시보드(관리자) | 📦 발주 · 📝 업무일지 · 📅 근태·연차 · 🚚 택배주소출력 · 🧾 쿠팡택배 · 🛒 바다로운 쇼핑몰 메뉴, 내 계정(비밀번호 변경·로그아웃), 👥 사용자 관리(직원 추가·결재 권한·**메뉴 선택**·초대 링크·비밀번호 재설정·삭제·☁️ 이 기기 계정으로 전체 업데이트). |
 | 직원(메뉴 2개 이상) | 포털 메뉴 화면에 **허용된 메뉴 카드만** 보입니다. |
 | 직원(메뉴 1개) | `location.replace()`로 그 앱으로 이동. 포털에 머무르려면 `?stay=1`(앱의 `🔐 통합 포털` 버튼이 이 주소로 돌아옵니다). |
 | 직원(메뉴 0개) | 메뉴 카드 없이 "접근 가능한 메뉴가 없습니다. 관리자에게 문의하세요." |
@@ -42,14 +42,15 @@
 
 ## 사용자별 선택 메뉴 (`menus`)
 
-계정마다 볼 메뉴를 정합니다. 값은 `["order", "worklog", "attendance", "parcel", "coupang"]` 중 고른 것만 들어갑니다.
+계정마다 볼 메뉴를 정합니다. 값은 `["order", "worklog", "attendance", "parcel", "coupang", "shop"]` 중 고른 것만 들어갑니다.
 
-- **admin · 이름이 `박한성`인 계정** — 언제나 전체 메뉴 고정(`menus` 값을 저장하지 않고 항상 다섯 개). 목록에는 `전체 메뉴(고정)`으로 표시됩니다.
+- **admin · 이름이 `박한성`인 계정** — 언제나 전체 메뉴 고정(`menus` 값을 저장하지 않고 항상 여섯 개). 목록에는 `전체 메뉴(고정)`으로 표시됩니다.
 - **일반 직원** — 관리자가 `사용자 관리`에서 고른 메뉴만 접근·표시.
 - **`menus` 필드가 없는 예전 계정** — 기본값 `["order"]`. 지금까지처럼 발주만 보이고 발주 화면으로 바로 들어갑니다.
 - **초대 링크**(`#invite=`)에 그 직원의 `menus` 가 함께 들어가, 새 기기에서도 같은 메뉴로 시작합니다.
 - **구글 시트**(`portal_users`)의 `menus` 가 기준입니다. 관리자가 바꾸면 시트에 올라가고 다른 기기·앱이 다음 접속에 맞춥니다.
-  네 앱은 이 값을 모르는 채로 `users_get`/`users_save` 를 하므로, **전체 저장(full)에서도 시트의 `menus` 를 그대로 남기도록** 보존합니다(`syncKeepSheetMenus`). 각 앱의 `SYNC_MENU_KEYS`에도 `parcel`·`coupang`이 들어 있어, 택배주소출력이나 쿠팡택배만 지정된 계정도 다른 앱의 전체 저장에서 사라지지 않습니다(쿠팡택배 앱 자체는 포털 계정을 그대로 쓰고 자체 메뉴 필터가 없습니다).
+  네 앱은 이 값을 모르는 채로 `users_get`/`users_save` 를 하므로, **전체 저장(full)에서도 시트의 `menus` 를 그대로 남기도록** 보존합니다(`syncKeepSheetMenus`). 각 앱의 `SYNC_MENU_KEYS`에도 `parcel`·`coupang`·`shop`이 들어 있어, 택배주소출력이나 쿠팡택배만 지정된 계정도 다른 앱의 전체 저장에서 사라지지 않습니다(쿠팡택배 앱 자체는 포털 계정을 그대로 쓰고 자체 메뉴 필터가 없습니다).
+  **쇼핑몰(`shop`)은 포털 SSO를 쓰지 않는 공개 페이지**라, 카드를 누르면 SSO 세션을 만들지 않고 바로 `/shop/`으로 이동합니다.
 
 
 포털 `사용자 관리`에서 앱 계정을 한 곳에서 관리합니다.
@@ -98,6 +99,21 @@
 - `menus` 에 `parcel` 이 없는 계정에는 토큰을 만들지 않습니다.
 - 앱 카드를 누를 때 발급이 아직 진행 중이면 최대 8초 기다렸다 넘어갑니다(재로그인 없이 열리도록).
 - 포털을 거치지 않고 택배주소출력 주소를 직접 열거나 토큰이 만료되면 그때만 비밀번호를 한 번 묻습니다.
+
+### 상품단가·가격비교도 1회 로그인 (단가표 열쇠 감싸개)
+
+`💰 상품단가·가격비교`(`/price-manager/`)는 단가 자료를 자체 비밀번호(`data.enc.json`, AES-256-GCM)로
+잠그고, 바꾼 내용을 구글 시트에 암호문으로 올립니다. 포털에서 들어갈 때 그 비밀번호를 또 묻지 않도록,
+**포털이 로그인 순간에 로그인 비밀번호에서 PBKDF2-SHA256(310,000회, 계정마다 고정 salt) 열쇠를 만들어
+IndexedDB(`kdw-portal-kek`, `u:<아이디>`)에만 둡니다**(꺼낼 수 없는 CryptoKey).
+
+- 단가표 앱은 그 열쇠로 시트의 **`key:<아이디>`(단가표 열쇠 감싸개)** 를 풀어 단가표 비밀번호를 얻고 바로 엽니다.
+- 감싸개가 없는 계정·기기는 그때 한 번만 단가표 비밀번호를 묻고, 넣는 순간 감싸개를 만들어 시트에 올려
+  그 계정의 모든 기기에서 다시 묻지 않습니다(앱 **설정 → 시트 동기화 → 🔗 포털 한 번 로그인으로 열기 연결**).
+- 열쇠는 **비밀번호에서만** 나옵니다. 시트 `users_get` 에 공개로 보이는 salt·해시만으로는 풀 수 없습니다.
+- `menus` 에 `price` 가 없는 계정에는 열쇠를 만들지 않고, 포털에서 로그아웃하거나 비밀번호를 바꾸면 다시 만듭니다.
+- 포털 세션 없이 `…/price-manager/` 주소를 직접 열면 지금처럼 단가표 비밀번호를 묻습니다.
+- 검사: `python3 scripts/test_price_sync_sso.py` (22항목) · `scripts/test_price_sync_offline.py` (11항목) · `scripts/test_price_sync_conflict.py` (7항목) · `scripts/test_price_live_sync.py` (배포본)
 
 ### 초대 링크
 
