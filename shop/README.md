@@ -200,7 +200,7 @@ GitHub Pages(브랜치 `main` / 루트)가 1~2분 뒤 자동 반영합니다.
 
 ```bash
 python3 scripts/test_shop.py              # 64항목 — 상품·상세·장바구니·주문
-python3 scripts/test_shop_product_admin.py # 49항목 — 관리자 상품 관리·새 상품·공통 안내·엑셀 (시트 실제 반영, 끝나면 복구)
+python3 scripts/test_shop_product_admin.py # 51항목 — 관리자 상품 관리·새 상품·공통 안내·엑셀 (시트 실제 반영, 끝나면 복구)
 python3 scripts/test_shop_sync_e2e.py     # 38항목 — 기기 4대 · 실제 구글 시트 동기화
 python3 scripts/test_shop_members.py      # 37항목 — 회원·거래처·기기 간 동기화(모의 시트)
 python3 scripts/test_portal_shop.py       # 24항목 — 포털 6번째 메뉴 → 쇼핑몰·상세
