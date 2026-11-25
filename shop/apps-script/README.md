@@ -52,12 +52,16 @@
 
 ## 5. 확인
 
+전체 목록은 **관리자 키가 필요**하므로 POST 본문으로 키를 보냅니다. (`GET ?key=` 는 키를 읽지 않아 `unauthorized` 가 됩니다.)
+
 ```bash
-curl -sL '<웹앱 URL>?action=shop_get&key=<ADMIN_KEY>' | head -c 300
+curl -s -L -X POST -H 'Content-Type: text/plain;charset=utf-8' \
+  --data '{"action":"shop_get","key":"<ADMIN_KEY>"}' '<웹앱 URL>'
 ```
 
 - 키가 맞으면 `{"ok":true,"shop":{...}}`
 - 키가 틀리면 `{"ok":false,"error":"unauthorized"}`
+- 공개 호출 확인: `<웹앱 URL>?action=shop_lookup&id=nobody` → `{"ok":true,"found":false}`
 
 ## 6. 문제가 생기면
 

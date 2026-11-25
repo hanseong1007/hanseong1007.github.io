@@ -50,10 +50,21 @@
 
 ---
 
-## 2. 기기 간 동기화 (Google 시트 + Apps Script)
+## 2. 기기 간 동기화 (Google 시트 + Apps Script) — **연결 완료**
 
 회원·거래처·주문을 여러 기기에서 같이 쓰려면 `apps-script/shop-sync.gs` 를 배포해 연결합니다.
 **연결하지 않아도 쇼핑몰은 이 기기에 저장하며 정상 동작합니다.**
+
+| 항목 | 값 |
+|---|---|
+| 시트 | `바다로운 쇼핑몰 운영` — https://docs.google.com/spreadsheets/d/1yfi9ZTpDCUVVfanVcsi-9ipycnLjc5gIhpCIzhe7OlE/edit |
+| 웹 앱(`store.syncUrl`) | `https://script.google.com/macros/s/AKfycbw_XDZTeGEg-Dy3QKYirB62iC-NWsi3M4j5ihwMhzk563D7JsBn6XR1gfgWhvj8SWNiyA/exec` |
+| 실행 계정 / 액세스 | `phs76041@gmail.com` / 모든 사용자(익명 포함) |
+
+위 상태로 이미 배포되어 있으므로, **관리자 화면에서 관리자 키만 한 번 입력하면** 기기 간 동기화가 켜집니다.
+관리자 키는 `shop-sync.gs` 의 `ADMIN_KEY` 와 같은 값이며 **사이트·GitHub에 올리지 않습니다**.
+
+### 처음부터 다시 배포할 때
 
 1. 쇼핑몰 운영용 Google 스프레드시트를 만들고 **확장 프로그램 → Apps Script** 를 엽니다.
 2. `apps-script/shop-sync.gs` 내용을 붙여넣고, 맨 위 `ADMIN_KEY` 를 **길고 무작위한 값**으로 바꿉니다.
@@ -79,9 +90,9 @@
 - Apps Script 는 `LockService` 로 동시 저장을 한 줄로 세웁니다.
 - 관리자 키를 잊으면 Apps Script 의 `ADMIN_KEY` 를 바꾸고, 각 기기의 관리자 화면에서 새 키를 다시 입력하면 됩니다.
 
-> ⚠️ 현재 이 실행 환경에서는 Google Drive 연결이 없어 **시트·Apps Script 를 실제로 배포하지 못했습니다.**
-> 위 절차대로 배포한 뒤 `store.syncUrl` 만 채우면 바로 동작합니다. `scripts/test_shop_members.py` 는 같은 프로토콜을
-> 메모리 시트로 재현해 **회원가입 → 기기 간 로그인 → 거래처 추가 → 새 기기 도매가**까지 검증합니다.
+> ✅ 위 시트·웹 앱으로 실제 동기화까지 검증했습니다. 검증은 쇼핑몰 화면에서 두 개의 독립된 브라우저(기기 A·B)로
+> 진행했고(회원가입 → 다른 기기 로그인 → 거래처 추가·수정·승격 → 주문 → 관리자 목록), 끝난 뒤 테스트 데이터는 지웠습니다.
+> `scripts/test_shop_members.py` 는 같은 프로토콜을 메모리 시트로 재현해 네트워크 없이 확인할 때 씁니다.
 
 ---
 
