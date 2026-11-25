@@ -159,6 +159,8 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:6px 12px}
 .fitem{display:flex;align-items:center;gap:5px;min-width:0}
 .frow .fnote{font-size:11px;line-height:1.45;color:#94a3b8}
+.frow .lpair{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+#lblrow{gap:8px 14px}
 #lblrow.off{opacity:.45}
 #lblrow .lb{margin-right:1px}
 .fitem .fn{font-size:11.5px;font-weight:800;color:#334155;min-width:36px;flex:none;white-space:nowrap}
@@ -338,14 +340,18 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
               <button class="btn ghost sm" id="fmt-reset" type="button">서식 초기화</button>
             </div>
             <div class="frow" id="lblrow">
-              <span class="lb">라벨 위 여백</span>
-              <button class="stp" type="button" data-lb="top" data-d="-1" aria-label="라벨 위 여백 줄이기">−</button>
-              <span class="szv" id="lv-top">15mm</span>
-              <button class="stp" type="button" data-lb="top" data-d="1" aria-label="라벨 위 여백 늘리기">+</button>
-              <span class="lb" style="margin-left:6px">상하 간격</span>
-              <button class="stp" type="button" data-lb="gap" data-d="-1" aria-label="상하 간격 줄이기">−</button>
-              <span class="szv" id="lv-gap">100%</span>
-              <button class="stp" type="button" data-lb="gap" data-d="1" aria-label="상하 간격 늘리기">+</button>
+              <span class="lpair">
+                <span class="lb">라벨 위 여백</span>
+                <button class="stp" type="button" data-lb="top" data-d="-1" aria-label="라벨 위 여백 줄이기">−</button>
+                <span class="szv" id="lv-top">15mm</span>
+                <button class="stp" type="button" data-lb="top" data-d="1" aria-label="라벨 위 여백 늘리기">+</button>
+              </span>
+              <span class="lpair">
+                <span class="lb">상하 간격</span>
+                <button class="stp" type="button" data-lb="gap" data-d="-1" aria-label="상하 간격 줄이기">−</button>
+                <span class="szv" id="lv-gap">100%</span>
+                <button class="stp" type="button" data-lb="gap" data-d="1" aria-label="상하 간격 늘리기">+</button>
+              </span>
             </div>
             <div class="fnote" id="lblnote">라벨지에서만 적용됩니다 · 위 여백은 라벨 위에 인쇄된 회사 로고를 피해 내리는 값, 상하 간격 100%는 라벨 높이에 고르게 채운 간격입니다.</div>
             <div class="fgrid">
