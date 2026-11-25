@@ -1211,7 +1211,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
             <div class="field"><label for="da-biz">사업자등록번호 <em>*</em></label><input id="da-biz" inputmode="numeric" placeholder="000-00-00000"></div>
           </div>
           <div class="f-row">
-            <div class="field"><label for="da-id">아이디 <em>*</em></label><input id="da-id" autocomplete="off" autocapitalize="off" placeholder="거래처 로그인 아이디"></div>
+            <div class="field"><label for="da-id">아이디 <span style="color:var(--muted);font-style:normal">(선택)</span></label><input id="da-id" autocomplete="off" autocapitalize="off" placeholder="비우면 사업자등록번호로 로그인"></div>
             <div class="field"><label for="da-pw">비밀번호 <em>*</em></label><input id="da-pw" type="password" autocomplete="new-password" placeholder="6자 이상"></div>
           </div>
           <div class="f-row">
@@ -1856,7 +1856,8 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     err.textContent = '';
     if (!name){ err.textContent = '거래처명을 입력해 주세요.'; return; }
     if (normDigits(biz).length < 10){ err.textContent = '사업자등록번호 10자리를 입력해 주세요.'; return; }
-    if (!loginId){ err.textContent = '거래처 로그인 아이디를 입력해 주세요.'; return; }
+    /* 아이디를 비우면 사업자등록번호로 로그인한다 (회원을 승격할 때 회원 아이디와 겹치지 않게) */
+    if (!loginId) loginId = normDigits(biz);
     if (pw.length < 6){ err.textContent = '비밀번호는 6자 이상으로 정해 주세요.'; return; }
     if (findDealerByLogin(loginId) || findDealerByLogin(biz)){ err.textContent = '이미 등록된 사업자번호 또는 아이디입니다.'; return; }
     if (findMember(loginId)){ err.textContent = '회원이 쓰는 아이디입니다. 다른 아이디를 써 주세요.'; return; }
@@ -1929,10 +1930,10 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     if (act === 'promote'){
       setAdmTab('dealers');
       $('#da-name').value = m.name || '';
-      $('#da-id').value = m.id;
+      $('#da-id').value = '';
       $('#da-pw').value = '';
       $('#da-biz').focus();
-      toast('사업자등록번호와 비밀번호를 입력하면 거래처로 승격됩니다.');
+      toast('사업자등록번호와 비밀번호를 넣으면 승격됩니다. 아이디를 비우면 사업자등록번호로 로그인합니다.');
       return;
     }
     if (act === 'toggle'){
