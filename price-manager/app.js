@@ -519,51 +519,114 @@
     $('#cust-fee').value = S.cmp.cust.fee;
     $$('#cmp-basis button').forEach(function (b) { b.classList.toggle('on', b.dataset.b === S.cmp.basis); });
   }
+  /* 비교 줄 하나의 계산값 — 우리 상품(id) 또는 미매칭 줄(직접 원가) */
+  function cmpView(r) {
+    var o = r.id ? S.byId[r.id] : null;
+    var v = o ? compareCalc(o, S.cmp.opt, S.cmp.basis) : null;
+    var cost = (r.cost != null && r.cost > 0) ? r.cost : (v ? v.cost : null);
+    var val = v ? v.val : null;
+    var price = r.price == null ? null : r.price;
+    var diff = (price == null || val == null) ? null : price - val;
+    var diffPct = (diff == null || !val) ? null : diff / val * 100;
+    var margin = (price == null || !cost) ? null : (price - cost) / price * 100;
+    return {
+      o: o, v: v, cost: cost, val: val, q: v ? v.q : null, price: price,
+      diff: diff, diffPct: diffPct, margin: margin, st: statusOf(margin)
+    };
+  }
+  function cmpRowHTML(r, idx) {
+    var e = cmpView(r), o = e.o;
+    var IMP = window.PMImport;
+    var nm = o ? o.nm : (r.nm || '이름 없는 품목');
+    var tags = '';
+    if (r.miss) tags += '<span class="tag red">미매칭</span>';
+    else if (r.how === 'fuzzy') tags += '<span class="tag gray">이름 비슷</span>';
+    else if (r.how === 'barcode') tags += '<span class="tag gray">바코드</span>';
+    else if (r.how === 'manual') tags += '<span class="tag gray">직접 연결</span>';
+    if (r.derived) tags += '<span class="tag gray">공급가÷수량</span>';
+    var sub = [];
+    if (o && o.wt != null) sub.push(wfmt(o.wt));
+    if (o && o.pack) sub.push(esc(o.pack));
+    if (r.qty != null) sub.push('수량 ' + nfmt(r.qty));
+    if (r.spec) sub.push('규격 ' + esc(r.spec));
+    if (r.bc) sub.push('바코드 ' + esc(r.bc));
+    if (!o && r.wt != null) sub.push(wfmt(r.wt));
+    var stmt = '';
+    if (r.stmt && (!o || (IMP && IMP.nameKey(r.stmt) !== IMP.nameKey(o.nm)))) {
+      stmt = '<div class="sub stmt">명세 품명: ' + esc(r.stmt) + '</div>';
+    }
+    var near = '';
+    if (r.miss && r.near && r.near.length) {
+      near = '<div class="near">비슷한 상품 ' + r.near.map(function (n2) {
+        var hit = S.items.filter(function (x) { return x.nm === n2; })[0];
+        return hit ? '<button type="button" data-linkto="' + idx + '|' + esc(hit.id) + '">' + esc(n2) + '</button>' : '';
+      }).join('') + '</div>';
+    }
+    var mact = '';
+    if (!o) {
+      mact = '<div class="mact">' +
+        '<button class="btn soft sm" type="button" data-link="' + idx + '">🔗 우리 상품 연결</button>' +
+        '<label class="cst">원가<input type="number" inputmode="numeric" data-cost="' + idx + '" value="' +
+        (r.cost == null ? '' : r.cost) + '" placeholder="직접 입력">원</label></div>' + near;
+    }
+    return '<div class="crow' + (r.miss ? ' miss' : '') + '" data-idx="' + idx + '">' +
+      '<div class="top2"><div><div class="nm">' + esc(nm) + ' ' + tags + '</div>' +
+      '<div class="sub">' + sub.join(' · ') + '</div>' + stmt + '</div>' +
+      '<span class="st ' + e.st.k + '">' + e.st.t + '</span></div>' +
+      '<div class="io"><label>출고가</label>' +
+      '<input type="number" inputmode="numeric" data-price="' + idx + '" value="' + (r.price == null ? '' : r.price) + '" placeholder="' + (e.val == null ? '' : e.val) + '">' +
+      '<span class="sub">원</span><button class="rm" data-rm="' + idx + '">✕</button></div>' +
+      mact +
+      '<div class="calc">' +
+      '<span data-role="val"><i>우리계산</i><b>' + nfmt(e.val) + '</b></span>' +
+      '<span data-role="q"><i>납품가</i>' + nfmt(e.q) + '</span>' +
+      '<span class="diff ' + (e.diff == null ? '' : (e.diff >= 0 ? 'pos' : 'neg')) + '" data-role="diff"><i>차액</i><b>' +
+      (e.diff == null ? '-' : (e.diff > 0 ? '+' : '') + nfmt(e.diff)) + '</b></span>' +
+      '<span data-role="diffpct"><i>차이율</i>' + (e.diffPct == null ? '-' : (e.diffPct > 0 ? '+' : '') + pct(e.diffPct)) + '</span>' +
+      '<span data-role="margin"><i>마진율</i><b>' + pct(e.margin) + '</b></span>' +
+      '</div></div>';
+  }
   function cmpRowsHTML() {
-    var opt = S.cmp.opt, basis = S.cmp.basis, html = '';
-    S.cmp.rows.forEach(function (r, idx) {
-      var o = S.byId[r.id];
-      if (!o) return;
-      var v = compareCalc(o, opt, basis);
-      var price = r.price == null ? null : r.price;
-      var diff = (price == null || v.val == null) ? null : price - v.val;
-      var diffPct = (diff == null || !v.val) ? null : diff / v.val * 100;
-      var margin = (price == null || !v.cost) ? null : (price - v.cost) / price * 100;
-      var st = statusOf(margin);
-      html += '<div class="crow" data-idx="' + idx + '">' +
-        '<div class="top2"><div><div class="nm">' + esc(o.nm) + '</div>' +
-        '<div class="sub">' + (o.wt != null ? wfmt(o.wt) : '') + (o.pack ? ' · ' + esc(o.pack) : '') +
-        ' · 해당원가 ' + nfmt(v.cost) + '원</div></div>' +
-        '<span class="st ' + st.k + '">' + st.t + '</span></div>' +
-        '<div class="io"><label>출고가</label>' +
-        '<input type="number" inputmode="numeric" data-price="' + idx + '" value="' + (price == null ? '' : price) + '" placeholder="' + (v.val == null ? '' : v.val) + '">' +
-        '<span class="sub">원</span><button class="rm" data-rm="' + idx + '">✕</button></div>' +
-        '<div class="calc">' +
-        '<span><i>우리계산</i><b>' + nfmt(v.val) + '</b></span>' +
-        '<span><i>납품가</i>' + nfmt(v.q) + '</span>' +
-        '<span class="diff ' + (diff == null ? '' : (diff >= 0 ? 'pos' : 'neg')) + '"><i>차액</i><b>' +
-        (diff == null ? '-' : (diff > 0 ? '+' : '') + nfmt(diff)) + '</b></span>' +
-        '<span><i>차이율</i>' + (diffPct == null ? '-' : (diffPct > 0 ? '+' : '') + pct(diffPct)) + '</span>' +
-        '<span><i>마진율</i><b>' + pct(margin) + '</b></span>' +
-        '</div></div>';
-    });
+    var html = '';
+    S.cmp.rows.forEach(function (r, idx) { html += cmpRowHTML(r, idx); });
     return html;
+  }
+  /* 입력하는 동안 그 줄만 다시 계산 (포커스 유지) */
+  function refreshCmpRow(box, idx) {
+    var r = S.cmp.rows[idx]; if (!box || !r) return;
+    var e = cmpView(r);
+    var tag = box.querySelector('.st');
+    if (tag) { tag.className = 'st ' + e.st.k; tag.textContent = e.st.t; }
+    function set(role, html) { var el = box.querySelector('[data-role="' + role + '"]'); if (el) el.innerHTML = html; }
+    set('val', '<i>우리계산</i><b>' + nfmt(e.val) + '</b>');
+    set('q', '<i>납품가</i>' + nfmt(e.q));
+    var d = box.querySelector('[data-role="diff"]');
+    if (d) {
+      d.className = 'diff ' + (e.diff == null ? '' : (e.diff >= 0 ? 'pos' : 'neg'));
+      d.innerHTML = '<i>차액</i><b>' + (e.diff == null ? '-' : (e.diff > 0 ? '+' : '') + nfmt(e.diff)) + '</b>';
+    }
+    set('diffpct', '<i>차이율</i>' + (e.diffPct == null ? '-' : (e.diffPct > 0 ? '+' : '') + pct(e.diffPct)));
+    set('margin', '<i>마진율</i><b>' + pct(e.margin) + '</b>');
+    renderCmpSum();
+  }
+  function renderCmpSum() {
+    var n = 0, sum = 0, bad = 0, miss = 0;
+    S.cmp.rows.forEach(function (r) {
+      if (!r.id) miss++;
+      var e = cmpView(r);
+      if (e.price == null || !e.cost) return;
+      n++; sum += e.margin; if (e.margin < 7) bad++;
+    });
+    $('#cmp-sum').innerHTML = '<div>비교 <b>' + S.cmp.rows.length + '</b>건</div>' +
+      '<div>입력 <b>' + n + '</b>건</div>' +
+      (miss ? '<div class="bad">미매칭 <b>' + miss + '</b>건</div>' : '') +
+      '<div>평균 마진 <b>' + (n ? pct(sum / n) : '-') + '</b></div>' +
+      '<div class="' + (bad ? 'bad' : '') + '">위험·적자 <b>' + bad + '</b>건</div>';
   }
   function renderCompare() {
     renderCmpChannels();
     $('#cmp-list').innerHTML = cmpRowsHTML() || '<p class="more">검색해서 출고할 상품을 담으면, 우리 계산가와 나란히 비교해 드립니다.</p>';
-    var n = 0, sum = 0, bad = 0;
-    S.cmp.rows.forEach(function (r) {
-      var o = S.byId[r.id]; if (!o || r.price == null) return;
-      var v = compareCalc(o, S.cmp.opt, S.cmp.basis);
-      if (!v.cost) return;
-      var m = (r.price - v.cost) / r.price * 100;
-      n++; sum += m; if (m < 7) bad++;
-    });
-    $('#cmp-sum').innerHTML = '<div>비교 <b>' + S.cmp.rows.length + '</b>건</div>' +
-      '<div>입력 <b>' + n + '</b>건</div>' +
-      '<div>평균 마진 <b>' + (n ? pct(sum / n) : '-') + '</b></div>' +
-      '<div class="' + (bad ? 'bad' : '') + '">위험·적자 <b>' + bad + '</b>건</div>';
+    renderCmpSum();
     $('#cmp-actions').hidden = !S.cmp.rows.length;
   }
   function addCmp(id) {
@@ -572,6 +635,48 @@
     var v = compareCalc(o, S.cmp.opt, S.cmp.basis);
     S.cmp.rows.push({ id: id, price: v.val == null ? null : Math.round(v.val) });
     persistLocal(); renderCompare();
+  }
+  /* 미매칭 줄에 우리 상품 연결 */
+  function linkCmpRow(idx, id) {
+    var r = S.cmp.rows[idx], o = S.byId[id];
+    if (!r || !o) return;
+    var dup = false;
+    S.cmp.rows.forEach(function (x, i) { if (i !== idx && x.id === id) dup = true; });
+    r.id = id; r.miss = false; r.how = 'manual'; r.cost = null; r.near = null;
+    if (!r.stmt && r.nm) r.stmt = r.nm;
+    persistLocal(); renderCompare();
+    toast((dup ? '이미 담긴 상품이지만 이 줄에 연결했습니다 · ' : '연결했습니다 · ') + o.nm);
+  }
+  function linkItemPrompt(idx) {
+    var r = S.cmp.rows[idx]; if (!r) return;
+    var m = $('#modal'), b = $('#mbox');
+    b.innerHTML = '<h3>우리 상품 연결</h3><p><b>' + esc(r.nm || '') + '</b> 줄에 우리 단가표의 어느 상품을 쓸까요?</p>' +
+      '<input id="lk-q" type="search" autocomplete="off" placeholder="품명으로 찾기">' +
+      '<div class="lklist" id="lk-list"></div>' +
+      '<div class="acts"><button class="btn soft" data-a="0">취소</button></div>';
+    m.hidden = false;
+    var box = $('#lk-list');
+    var base = (r.nm || '').replace(/[\s_]/g, '').slice(0, 4);
+    $('#lk-q').value = base;
+    function paint() {
+      var q = ($('#lk-q').value || '').trim().toLowerCase().replace(/[\s_]/g, '');
+      var hits = S.items.filter(function (o) {
+        if (!q) return true;
+        return String(o.nm).toLowerCase().replace(/[\s_]/g, '').indexOf(q) >= 0;
+      }).slice(0, 60);
+      box.innerHTML = hits.map(function (o) {
+        var v = compareCalc(o, S.cmp.opt, S.cmp.basis);
+        return '<button type="button" class="lkrow" data-pick="' + esc(o.id) + '"><b>' + esc(o.nm) + '</b><span>' +
+          (o.wt != null ? wfmt(o.wt) : '') + (o.pack ? ' · ' + esc(o.pack) : '') + ' · 우리 ' + nfmt(v.val) + '원</span></button>';
+      }).join('') || '<p class="note">찾는 상품이 없습니다 · 전체품목에서 먼저 넣어 주세요</p>';
+    }
+    paint();
+    $('#lk-q').oninput = C.debounce(paint, 120);
+    b.querySelector('[data-a="0"]').onclick = function () { m.hidden = true; };
+    box.onclick = function (ev) {
+      var p = ev.target.closest('[data-pick]'); if (!p) return;
+      m.hidden = true; linkCmpRow(idx, p.dataset.pick);
+    };
   }
   function renderSuggest(q) {
     var box = $('#cmp-sug');
@@ -670,19 +775,20 @@
   function exportCompare() {
     if (!S.cmp.rows.length) return toast('비교할 상품을 먼저 담아 주세요', true);
     loadXLSX().then(function (XLSX) {
-      var head = ['품명', '중량', '포장', '해당원가', '우리 납품가', '우리 계산가', '출고가', '차액', '차이율(%)', '예상 마진율(%)', '상태', '거래처'];
+      var head = ['품명', '중량', '포장', '해당원가', '우리 납품가', '우리 계산가', '출고가', '차액', '차이율(%)', '예상 마진율(%)', '상태', '거래처', '연결', '명세 품명'];
       var aoa = [head];
       var optLabel = (OPTS.filter(function (o) { return o.id === S.cmp.opt; })[0] || {}).label || '';
       S.cmp.rows.forEach(function (r) {
-        var o = S.byId[r.id]; if (!o) return;
-        var v = compareCalc(o, S.cmp.opt, S.cmp.basis);
-        var price = r.price;
-        var diff = (price == null || v.val == null) ? null : price - v.val;
-        var margin = (price == null || !v.cost) ? null : (price - v.cost) / price * 100;
-        aoa.push([o.nm, o.wt == null ? '' : o.wt, o.pack || '', Math.round(v.cost || 0), Math.round(v.q || 0),
-          Math.round(v.val || 0), price == null ? '' : price, diff == null ? '' : Math.round(diff),
-          diff == null || !v.val ? '' : Math.round(diff / v.val * 1000) / 10,
-          margin == null ? '' : Math.round(margin * 10) / 10, statusOf(margin).t, optLabel]);
+        var e = cmpView(r), o = e.o;
+        var wt = o ? o.wt : r.wt;
+        aoa.push([o ? o.nm : (r.nm || ''),
+          wt == null ? '' : Math.round(wt * 1000) / 1000, o ? (o.pack || '') : '',
+          e.cost == null ? '' : Math.round(e.cost), e.q == null ? '' : Math.round(e.q), e.val == null ? '' : Math.round(e.val),
+          e.price == null ? '' : e.price, e.diff == null ? '' : Math.round(e.diff),
+          e.diffPct == null ? '' : Math.round(e.diffPct * 10) / 10,
+          e.margin == null ? '' : Math.round(e.margin * 10) / 10, e.st.t, optLabel,
+          r.miss ? '미매칭' : (r.how === 'manual' ? '직접 연결' : (r.how === 'barcode' ? '바코드' : (r.how === 'fuzzy' ? '이름 비슷' : '품명'))),
+          r.stmt || '']);
       });
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), '가격비교');
@@ -703,34 +809,25 @@
         var wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
         var out = [];
         wb.SheetNames.forEach(function (n) {
-          var rows = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, blankrows: false, raw: true });
+          /* blankrows:true — 빈 줄을 남겨 두어야 엑셀의 행 번호와 안내가 맞는다 */
+          var rows = XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, blankrows: true, raw: true, defval: null });
           out.push({ name: n, grid: rows });
         });
         return out;
       });
     });
   }
-  /* 헤더 이름으로 열 찾기 */
+  /* 머리글 이름으로 열 찾기 — 1~60행을 훑어 공백·괄호를 무시하고 찾는다 */
   function findCols(grid) {
-    for (var i = 0; i < Math.min(grid.length, 8); i++) {
-      var row = grid[i] || [];
-      var map = {};
-      row.forEach(function (v, idx) {
-        var s = String(v == null ? '' : v).replace(/\s/g, '');
-        if (!s) return;
-        if (/^(품명|품목|상품명|제품명)$/.test(s) && map.nm == null) map.nm = idx;
-        else if (/^바코드$/.test(s)) map.bc = idx;
-        else if (/^(매입원가|원가|구매원가|매입가)/.test(s)) map.kg = idx;
-        else if (/^(중량|용량|제품용량)/.test(s)) map.wt = idx;
-        else if (/^(포장|포장재질)$/.test(s)) map.pack = idx;
-        else if (/^(이율|배율)$/.test(s)) map.rate = idx;
-        else if (/^(출고가|제출가|제시가|거래처가|단가|가격|판매가|납품가|공급가|공급단가|이벤트가|행사가)(\(원\))?$/.test(s)) map.price = idx;
-        else if (/^(구분|카테고리)$/.test(s)) map.cat = idx;
-        else if (/^(규격)$/.test(s)) map.spec = idx;
-      });
-      if (map.nm != null) { map._row = i; return map; }
-    }
-    return null;
+    var IMP = window.PMImport;
+    var t = IMP && IMP.detectTable(grid);
+    if (!t) return null;
+    var c = t.cols;
+    return {
+      nm: c.nm, bc: c.bc, kg: c.kg, wt: c.wt, pack: c.pack, rate: c.rate,
+      price: c.price, cat: c.cat, spec: c.spec, qty: c.qty, unit: c.unit, amount: c.amount,
+      _row: t.row, _table: t
+    };
   }
   function importMaster(file) {
     readSheet(file).then(function (sheets) {
@@ -769,29 +866,109 @@
     }).catch(function (e) { toast(e.message || '엑셀을 읽지 못했습니다', true); });
   }
   function importCompare(file) {
+    var IMP = window.PMImport;
+    if (!IMP) { toast('엑셀 읽기 도구를 불러오지 못했습니다 · 화면을 새로 고쳐 주세요', true); return; }
     readSheet(file).then(function (sheets) {
-      var s = sheets[0], m = findCols(s.grid);
-      if (!m) { toast('엑셀에서 품명 열을 찾지 못했습니다', true); return; }
-      if (m.price == null) { toast('엑셀에서 가격(출고가·제시가) 열을 찾지 못했습니다', true); return; }
-      var added = 0, miss = 0;
-      s.grid.slice(m._row + 1).forEach(function (row) {
-        var nm = row[m.nm]; if (!nm) return;
-        var price = num(row[m.price]);
-        var wt = m.wt != null ? num(row[m.wt]) : null;
-        var key = String(nm).trim().toLowerCase();
-        var hit = S.items.filter(function (o) {
-          if (String(o.nm).trim().toLowerCase() !== key) return false;
-          if (wt != null && o.wt != null && Math.abs(o.wt - wt) > 0.001) return false;
-          return true;
-        })[0];
-        if (!hit) { miss++; return; }
-        if (S.cmp.rows.some(function (r) { return r.id === hit.id; })) return;
-        S.cmp.rows.push({ id: hit.id, price: price });
-        added++;
+      var best = null, any = null;
+      sheets.forEach(function (s) {
+        var t = IMP.detectTable(s.grid);
+        if (!t) return;
+        if (!any) any = { sheet: s, t: t };
+        if (IMP.hasPriceCol(t.cols) && (!best || t.score > best.t.score)) best = { sheet: s, t: t };
       });
+      if (!best) {
+        var msg = any
+          ? '<b>' + esc(any.sheet.name) + '</b> 시트 ' + (any.t.row + 1) + '행을 머리글로 봤지만 <b>단가</b> 열이 없습니다.' +
+            '<br><span class="note">단가·출고가·공급가·납품가 열이 있는 거래명세서·단가표인지 확인해 주세요.</span>'
+          : '엑셀 1~60행에서 <b>품명</b>·<b>단가</b>가 있는 머리글 줄을 찾지 못했습니다.' +
+            '<br><span class="note">거래명세서·단가표의 품명·단가 열이 있는 파일인지, 첫 시트인지 확인해 주세요.</span>';
+        cmpNote(msg, true);
+        toast(any ? '단가 열을 찾지 못했습니다' : '품명·단가 열을 찾지 못했습니다', true);
+        return;
+      }
+      var res, idx, stat, err = null;
+      var before = S.cmp.rows.length;
+      try {
+        res = IMP.parseStatement(best.sheet.grid, best.t);
+        if (!res.rows.length) {
+          var why = res.skipped.length
+            ? '품목으로 볼 줄 ' + res.skipped.length + '줄이 있었지만 단가가 비어 있었습니다'
+            : '단가가 있는 품목 줄이 없습니다';
+          cmpNote('<b>' + esc(best.sheet.name) + '</b> 시트 ' + (best.t.row + 1) + '행을 머리글로 보고 읽었지만 담을 품목이 없습니다.' +
+            '<br><span class="note">' + why + ' · 단가 열 위치와 숫자 서식을 확인해 주세요.</span>', true);
+          toast('담을 품목이 없습니다 · 원인을 위에 표시했습니다', true);
+          return;
+        }
+        idx = IMP.buildIndex(S.items);
+        stat = { read: res.rows.length, name: 0, bc: 0, fuzzy: 0, miss: 0, dup: 0, derived: 0, fail: 0 };
+        var byId = {};
+        S.cmp.rows.forEach(function (r) { if (r.id) byId[r.id] = r; });
+        res.rows.forEach(function (row) {
+          var m;
+          try { m = IMP.matchRow(row, idx); } catch (e) { m = { item: null, how: '', near: [] }; stat.fail++; }
+          if (row.derived) stat.derived++;
+          if (m.item) {
+            if (m.how === 'barcode') stat.bc++;
+            else if (m.how === 'fuzzy') stat.fuzzy++;
+            else stat.name++;
+            var ex = byId[m.item.id];
+            if (ex) {
+              ex.price = row.price; ex.stmt = row.nm; ex.spec = row.spec; ex.bc = row.bc;
+              ex.qty = row.qty; ex.how = m.how; ex.miss = false; ex.derived = !!row.derived;
+              stat.dup++;
+            } else {
+              var nr = {
+                id: m.item.id, price: row.price, stmt: row.nm, spec: row.spec, bc: row.bc,
+                qty: row.qty, wt: row.wt, how: m.how, derived: !!row.derived
+              };
+              byId[m.item.id] = nr; S.cmp.rows.push(nr);
+            }
+          } else {
+            stat.miss++;
+            S.cmp.rows.push({
+              id: null, miss: true, nm: row.nm, key: row.key, spec: row.spec, bc: row.bc,
+              price: row.price, qty: row.qty, wt: row.wt, unit: row.unit, derived: !!row.derived,
+              near: (m.near || []).slice(0, 3).map(function (o) { return o.nm; })
+            });
+          }
+        });
+      } catch (e) {
+        err = e;
+      }
       persistLocal(); renderCompare();
-      toast(added + '개 담았습니다' + (miss ? ' · 못 찾은 품목 ' + miss + '개' : ''));
-    }).catch(function (e) { toast(e.message || '엑셀을 읽지 못했습니다', true); });
+      if (stat) {
+        var parts = ['거래명세 <b>' + stat.read + '</b>건 읽음',
+          '우리 상품 <b>' + (stat.name + stat.bc + stat.fuzzy) + '</b>건 연결'];
+        if (stat.bc) parts.push('바코드 ' + stat.bc + '건');
+        if (stat.fuzzy) parts.push('이름 비슷 ' + stat.fuzzy + '건');
+        if (stat.dup) parts.push('이미 담긴 ' + stat.dup + '건은 출고가만 갱신');
+        if (stat.miss) parts.push('<b class="red">미매칭 ' + stat.miss + '건</b>');
+        if (res.skipped.length) parts.push('건너뜀 ' + res.skipped.length + '줄');
+        if (stat.derived) parts.push('공급가액÷수량으로 단가 계산 ' + stat.derived + '건');
+        cmpNote(parts.join(' · ') +
+          '<br><span class="note">미매칭 줄은 <b>우리 상품 연결</b>을 누르거나 원가를 직접 넣으면 마진이 계산됩니다.</span>', false);
+      }
+      if (err) {
+        cmpNote('엑셀을 읽다가 멈췄습니다 · ' + esc(err && err.message ? err.message : '알 수 없는 오류') +
+          '<br><span class="note">' + (S.cmp.rows.length > before ? '읽힌 ' + (S.cmp.rows.length - before) + '건은 위 목록에 그대로 담았습니다.' : '담긴 품목이 없습니다.') + '</span>', true);
+        toast('엑셀을 끝까지 읽지 못했습니다 · 원인을 위에 표시했습니다', true);
+        return;
+      }
+      toast((stat ? stat.read : 0) + '건 담았습니다' + (stat && stat.miss ? ' · 미매칭 ' + stat.miss + '건' : ''));
+    }).catch(function (e) {
+      cmpNote('엑셀 파일을 읽지 못했습니다 · ' + esc(e && e.message ? e.message : '알 수 없는 오류') +
+        '<br><span class="note">xlsx·xls·csv 파일인지, 암호가 걸려 있지 않은지 확인해 주세요.</span>', true);
+      toast('엑셀을 읽지 못했습니다 · 원인을 위에 표시했습니다', true);
+    });
+  }
+  /* 올린 엑셀 결과 안내 (오류는 빨간 상자) */
+  function cmpNote(html, isErr) {
+    var el = $('#cmp-note');
+    if (!el) return;
+    if (!html) { el.hidden = true; el.innerHTML = ''; return; }
+    el.innerHTML = html;
+    el.className = 'impnote' + (isErr ? ' err' : '');
+    el.hidden = false;
   }
 
   /* ═════════════ 암호화 파일 만들기 ═════════════ */
@@ -1193,52 +1370,39 @@
       if (!e.target.closest('#cmp-sug') && !e.target.closest('#cmp-q')) $('#cmp-sug').hidden = true;
     });
     $('#cmp-list').oninput = function (e) {
-      var inp = e.target.closest('input[data-price]'); if (!inp) return;
-      var i = +inp.dataset.price;
-      if (S.cmp.rows[i]) S.cmp.rows[i].price = num(inp.value);
-      persistLocal();
-      var box = inp.closest('.crow');
-      var o = S.byId[S.cmp.rows[i].id];
-      var v = compareCalc(o, S.cmp.opt, S.cmp.basis);
-      var price = S.cmp.rows[i].price;
-      var diff = (price == null || v.val == null) ? null : price - v.val;
-      var margin = (price == null || !v.cost) ? null : (price - v.cost) / price * 100;
-      if (box) {
-        var st = statusOf(margin);
-        var tag = box.querySelector('.st');
-        tag.className = 'st ' + st.k; tag.textContent = st.t;
-        var cells = box.querySelectorAll('.calc .diff');
-        if (cells[0]) {
-          cells[0].className = 'diff ' + (diff == null ? '' : (diff >= 0 ? 'pos' : 'neg'));
-          cells[0].innerHTML = '<i>차액</i><b>' + (diff == null ? '-' : (diff > 0 ? '+' : '') + nfmt(diff)) + '</b>';
-        }
-        var spans = box.querySelectorAll('.calc span');
-        if (spans[3]) spans[3].innerHTML = '<i>차이율</i>' + (diff == null || !v.val ? '-' : (diff > 0 ? '+' : '') + pct(diff / v.val * 100));
-        if (spans[4]) spans[4].innerHTML = '<i>마진율</i><b>' + pct(margin) + '</b>';
+      var inp = e.target.closest('input[data-price]');
+      if (inp) {
+        var i = +inp.dataset.price;
+        if (S.cmp.rows[i]) S.cmp.rows[i].price = num(inp.value);
+        persistLocal();
+        refreshCmpRow(inp.closest('.crow'), i);
+        return;
       }
-      var sum = $('#cmp-sum');
-      var n = 0, s = 0, bad = 0;
-      S.cmp.rows.forEach(function (r) {
-        var o2 = S.byId[r.id]; if (!o2 || r.price == null) return;
-        var v2 = compareCalc(o2, S.cmp.opt, S.cmp.basis);
-        if (!v2.cost) return;
-        var m = (r.price - v2.cost) / r.price * 100;
-        n++; s += m; if (m < 7) bad++;
-      });
-      sum.innerHTML = '<div>비교 <b>' + S.cmp.rows.length + '</b>건</div><div>입력 <b>' + n + '</b>건</div>' +
-        '<div>평균 마진 <b>' + (n ? pct(s / n) : '-') + '</b></div>' +
-        '<div class="' + (bad ? 'bad' : '') + '">위험·적자 <b>' + bad + '</b>건</div>';
+      var cst = e.target.closest('input[data-cost]');
+      if (cst) {
+        var j = +cst.dataset.cost;
+        if (S.cmp.rows[j]) S.cmp.rows[j].cost = num(cst.value);
+        persistLocal();
+        refreshCmpRow(cst.closest('.crow'), j);
+      }
     };
     $('#cmp-list').onclick = function (e) {
-      var b = e.target.closest('button[data-rm]'); if (!b) return;
-      S.cmp.rows.splice(+b.dataset.rm, 1); persistLocal(); renderCompare();
+      var b = e.target.closest('button[data-rm]');
+      if (b) { S.cmp.rows.splice(+b.dataset.rm, 1); persistLocal(); renderCompare(); return; }
+      var lk = e.target.closest('button[data-link]');
+      if (lk) { linkItemPrompt(+lk.dataset.link); return; }
+      var to = e.target.closest('button[data-linkto]');
+      if (to) {
+        var p = String(to.dataset.linkto).split('|');
+        linkCmpRow(+p[0], p[1]);
+      }
     };
     $('#cmp-import').onclick = function () { pickFile('.xlsx,.xls,.csv', importCompare); };
     $('#cmp-clear').onclick = function () {
       if (!S.cmp.rows.length) return;
       ask('비교 목록 비우기', '담아 둔 비교 목록을 모두 지울까요?', '비우기', true).then(function (ok) {
         if (!ok) return;
-        S.cmp.rows = []; persistLocal(); renderCompare();
+        S.cmp.rows = []; persistLocal(); cmpNote(''); renderCompare();
       });
     };
     $('#cmp-export').onclick = exportCompare;
