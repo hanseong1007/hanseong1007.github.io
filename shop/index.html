@@ -2014,6 +2014,19 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
   function shopDoc(){
     return { v:1, updatedAt:new Date().toISOString(), members:state.members, dealers:state.dealers, orders:state.orders.slice(0, 300) };
   }
+  /* 시트에서는 주문이 customerName/itemsJson/shippingJson 형태로 온다 — 화면 형태로 맞춘다 */
+  function orderRowToView(o){
+    if (!o) return o;
+    if (o.customer && o.items) return o;
+    var items = [];
+    try{ items = JSON.parse(o.itemsJson || '[]'); }catch(e){ items = []; }
+    var shipping = {};
+    try{ shipping = JSON.parse(o.shippingJson || '{}'); }catch(e){ shipping = {}; }
+    return { no:o.no, at:o.at, memberId:o.memberId || '',
+             customer:{ name:o.customerName || '', phone:o.phone || '', email:o.email || '' },
+             items:items, total:Number(o.total) || 0, pay:o.pay, status:o.status,
+             mode:o.mode, dealer:o.dealer, shipping:shipping, createdAt:Number(o.createdAt) || 0 };
+  }
 
   function remoteLookup(id){
     if (!syncUrl()) return Promise.resolve(null);
@@ -2077,7 +2090,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
       if (doc && typeof doc === 'object'){
         state.members = mergeList(state.members, doc.members || [], 'id');
         state.dealers = mergeList(state.dealers, doc.dealers || [], 'id');
-        state.orders = mergeList(state.orders, doc.orders || [], 'no');
+        state.orders = mergeList(state.orders, (doc.orders || []).map(orderRowToView), 'no');
         savePeople();
         if (state.member){
           var live = findMember(state.member.id);
@@ -2126,7 +2139,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
       if (doc && typeof doc === 'object'){
         state.members = mergeList(state.members, doc.members || [], 'id');
         state.dealers = mergeList(state.dealers, doc.dealers || [], 'id');
-        state.orders = mergeList(state.orders, doc.orders || [], 'no');
+        state.orders = mergeList(state.orders, (doc.orders || []).map(orderRowToView), 'no');
         savePeople();
       }
       state.sync.state = 'ok'; state.sync.at = nowMs();
