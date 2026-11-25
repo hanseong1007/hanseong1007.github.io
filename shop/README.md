@@ -90,9 +90,10 @@
 - Apps Script 는 `LockService` 로 동시 저장을 한 줄로 세웁니다.
 - 관리자 키를 잊으면 Apps Script 의 `ADMIN_KEY` 를 바꾸고, 각 기기의 관리자 화면에서 새 키를 다시 입력하면 됩니다.
 
-> ✅ 위 시트·웹 앱으로 실제 동기화까지 검증했습니다. 검증은 쇼핑몰 화면에서 두 개의 독립된 브라우저(기기 A·B)로
-> 진행했고(회원가입 → 다른 기기 로그인 → 거래처 추가·수정·승격 → 주문 → 관리자 목록), 끝난 뒤 테스트 데이터는 지웠습니다.
-> `scripts/test_shop_members.py` 는 같은 프로토콜을 메모리 시트로 재현해 네트워크 없이 확인할 때 씁니다.
+> ✅ 위 시트·웹 앱으로 실제 동기화까지 검증했습니다. 쇼핑몰 화면에서 서로 다른 브라우저 4개(기기 A~D)로
+> 회원가입 → 다른 기기 로그인 → 주문 → 관리자 거래처 추가·비밀번호 변경·회원 승격 → 새 기기 거래처 도매가 →
+> 또 다른 기기의 주문내역까지 확인했고(`scripts/test_shop_sync_e2e.py`), 끝난 뒤 테스트 데이터는 지웠습니다.
+> 네트워크 없이 같은 프로토콜만 확인할 때는 `scripts/test_shop_members.py`(모의 시트)를 씁니다.
 
 ---
 
@@ -135,8 +136,8 @@
 ## 5. 배포
 
 ```bash
-cd deploy/portal-repo        # hanseong1007/hanseong1007.github.io 클론
-rsync -a --delete /workspace/documents/shop/ shop/
+cd /workspace/.repo-portal        # hanseong1007/hanseong1007.github.io 클론
+cp -r /workspace/documents/shop/. shop/
 git add shop && git commit -m "쇼핑몰(/shop): 쿠팡형 상세페이지 + 회원·거래처 관리"
 git push origin main
 ```
@@ -148,6 +149,7 @@ GitHub Pages(브랜치 `main` / 루트)가 1~2분 뒤 자동 반영합니다.
 
 ```bash
 python3 scripts/test_shop.py              # 64항목 — 상품·상세·장바구니·주문
+python3 scripts/test_shop_sync_e2e.py     # 38항목 — 기기 4대 · 실제 구글 시트 동기화
 python3 scripts/test_shop_members.py      # 37항목 — 회원·거래처·기기 간 동기화(모의 시트)
 python3 scripts/test_portal_shop.py       # 24항목 — 포털 6번째 메뉴 → 쇼핑몰·상세
 python3 scripts/test_portal_menus.py      # 65항목 — 사용자별 메뉴(쇼핑몰 포함)
