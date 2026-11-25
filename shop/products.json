@@ -47,6 +47,10 @@
       "image": "images/pack-500g.jpg",
       "summary": "달콤 짭조름, 숯불 향 가득한 국민 안주",
       "origin": "중국산 (원료: 페루산 오징어)",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 0,
       "storage": "수령 즉시 냉동(-18℃ 이하) 보관, 개봉 후 냉장 보관"
     },
     {
@@ -63,6 +67,10 @@
       "image": "images/pack-1kg.jpg",
       "summary": "쫄깃한 식감을 넉넉하게, 가정·업소 공용",
       "origin": "중국산 (원료: 페루산 오징어)",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 1,
       "storage": "수령 즉시 냉동(-18℃ 이하) 보관, 개봉 후 냉장 보관"
     },
     {
@@ -79,6 +87,10 @@
       "image": "images/svg-bulk.svg",
       "summary": "술집·식당 안주용 대용량 벌크 포장",
       "origin": "중국산 (원료: 페루산 오징어)",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 2,
       "storage": "냉동(-18℃ 이하) 벌크 보관, 해동 후 재냉동 금지"
     },
     {
@@ -95,6 +107,10 @@
       "image": "images/svg-squidchae.svg",
       "summary": "매콤달콤 밥도둑, 진미 오징어채",
       "origin": "상품 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 3,
       "storage": "직사광선을 피해 서늘한 곳 보관, 개봉 후 냉장"
     },
     {
@@ -111,6 +127,10 @@
       "image": "images/svg-yangtae.svg",
       "summary": "겉은 바삭 속은 촉촉, 숯불에 구운 양태채",
       "origin": "상품 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 4,
       "storage": "직사광선을 피해 서늘한 곳 보관, 개봉 후 냉장"
     },
     {
@@ -127,6 +147,10 @@
       "image": "images/svg-hwangtae.svg",
       "summary": "국물 요리부터 무침까지, 담백한 황태채",
       "origin": "상품 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": true,
+      "sortNo": 5,
       "storage": "직사광선을 피해 서늘한 곳 보관, 개봉 후 냉장"
     },
     {
@@ -143,6 +167,10 @@
       "image": "images/svg-peanut-400.svg",
       "summary": "고소함 가득, 매일 볶아 보내는 땅콩",
       "origin": "상품 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 6,
       "storage": "서늘하고 건조한 곳 보관, 개봉 후 밀봉 냉장"
     },
     {
@@ -159,6 +187,10 @@
       "image": "images/svg-peanut-1kg.svg",
       "summary": "넉넉한 1kg, 가족 간식·업소용",
       "origin": "상품 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 7,
       "storage": "서늘하고 건조한 곳 보관, 개봉 후 밀봉 냉장"
     },
     {
@@ -175,6 +207,10 @@
       "image": "images/pack-set.jpg",
       "summary": "두 가지 중량을 한 번에, 선물 포장 무료",
       "origin": "중국산 (원료: 페루산 오징어)",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 8,
       "storage": "수령 즉시 냉동(-18℃ 이하) 보관"
     },
     {
@@ -191,6 +227,10 @@
       "image": "images/svg-gift.svg",
       "summary": "감사의 마음을 담은 프리미엄 구성",
       "origin": "구성품별 표시사항 참조",
+      "stock": null,
+      "expiryDate": "",
+      "soldOut": false,
+      "sortNo": 9,
       "storage": "서늘하고 건조한 곳 보관, 개봉 후 냉장"
     }
   ]

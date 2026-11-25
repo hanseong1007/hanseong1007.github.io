@@ -24,8 +24,15 @@ var ADMIN_KEY = 'PUT-A-LONG-RANDOM-KEY-HERE';   // ★ 배포 전에 반드시 �
 var HEAD = {
   members: ['id','name','phone','zip','addr','addr2','email','salt','hash','iter','role','active','deleted','createdAt','updatedAt'],
   dealers: ['id','loginId','name','salt','hash','iter','grade','discount','active','deleted','createdAt','updatedAt'],
-  orders:  ['no','at','memberId','customerName','phone','email','itemsJson','total','pay','status','mode','dealer','shippingJson','createdAt']
+  orders:  ['no','at','memberId','customerName','phone','email','itemsJson','total','pay','status','mode','dealer','shippingJson','createdAt'],
+  /* 상품 — 관리자 「상품 관리」에서 고친 값이 모든 기기의 쇼핑몰에 바로 반영된다 */
+  products: ['id','name','category','weight','summary','retailPrice','salePrice','wholesalePrice','wholesaleMinQty',
+             'origin','stock','expiryDate','storage','soldOut','badge','image','sortNo','updatedAt'],
+  /* 공통 안내 — 모든 상품 상세페이지에 같이 들어가는 문구 */
+  settings: ['key','value','updatedAt']
 };
+
+var PRODUCT_NUM = ['retailPrice','salePrice','wholesalePrice','wholesaleMinQty','sortNo'];  /* 숫자로 내보낼 열 */
 
 function doGet(e){ return handle_(e); }
 function doPost(e){ return handle_(e); }
@@ -55,6 +62,10 @@ function handle_(e){
 
 function route_(action, body, params){
   switch(action){
+    case 'shop_products_get':  return shopProductsGet_(body);
+    case 'shop_products_save': return shopProductsSave_(body);
+    case 'shop_settings_get':  return shopSettingsGet_(body);
+    case 'shop_settings_save': return shopSettingsSave_(body);
     case 'shop_get':      return shopGet_(body);
     case 'shop_save':     return shopSave_(body);
     case 'shop_lookup':   return shopLookup_(body);
@@ -161,6 +172,110 @@ function shopSave_(body){
     orders:  upsert_('orders', doc.orders || [])
   };
   return { ok:true, updatedAt:new Date().toISOString(), counts:counts };
+}
+
+/* ---------------- 상품 (쇼핑몰 화면·관리자 상품 관리) ----------------
+ *  shop_products_get  — 누구나(관리자 키 없이) 상품 목록을 읽는다. 쇼핑몰 화면이 접속할 때마다 부른다.
+ *  shop_products_save — 관리자 키가 있어야 저장된다. id 기준으로 덮어쓰고, deletedIds 는 지운다.
+ *  재고는 주문이 들어올 때 서버에서도 차감한다(shopOrder_ → adjustStock_).
+ */
+function productsOut_(){
+  return readTable_('products').map(function(r){
+    var p = {};
+    HEAD.products.forEach(function(k){ p[k] = r[k] == null ? '' : r[k]; });
+    PRODUCT_NUM.forEach(function(k){ p[k] = Number(p[k]) || 0; });
+    p.stock = (p.stock === '' || p.stock == null) ? null : Math.max(0, Number(p.stock) || 0);
+    var so = String(p.soldOut).toLowerCase();
+    p.soldOut = (so === 'true' || so === 'y' || so === 'yes' || so === 'o' || p.soldOut === true);
+    p.updatedAt = Number(p.updatedAt) || 0;
+    return p;
+  }).sort(function(a, b){ return (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0); });
+}
+
+function shopProductsGet_(body){
+  var rows = productsOut_();
+  return { ok:true, products:rows, count:rows.length, updatedAt:new Date().toISOString() };
+}
+
+function shopProductsSave_(body){
+  if (!authed_(body)) return { ok:false, error:'unauthorized' };
+  var list = body.products || [];
+  if (!list.length && !(body.deletedIds || []).length) return { ok:false, error:'no_products' };
+  var now = Date.now();
+  var cur = readTable_('products');
+  var map = {};
+  cur.forEach(function(r){ if (r.id) map[String(r.id)] = r; });
+  list.forEach(function(p){
+    if (!p || !p.id) return;
+    var rec = map[String(p.id)] || {};
+    HEAD.products.forEach(function(k){
+      if (k === 'updatedAt') return;
+      if (p[k] !== undefined && p[k] !== null) rec[k] = p[k];
+    });
+    rec.id = String(p.id);
+    if (p.stock === '' || p.stock === null || p.stock === undefined) rec.stock = '';
+    rec.updatedAt = Number(p.updatedAt) || now;
+    map[String(p.id)] = rec;
+  });
+  (body.deletedIds || []).forEach(function(id){ delete map[String(id)]; });
+  var rows = Object.keys(map).map(function(k){ return map[k]; });
+  writeTable_('products', rows);
+  return { ok:true, count:rows.length, updatedAt:new Date().toISOString() };
+}
+
+/* 주문 상품만큼 재고를 깎는다. 재고가 비어 있는 상품(재고 관리 안 함)은 건드리지 않는다. */
+function adjustStock_(items){
+  var list = readTable_('products');
+  if (!list.length) return {};
+  var map = {}, out = {}, touched = false;
+  list.forEach(function(r){ if (r.id) map[String(r.id)] = r; });
+  (items || []).forEach(function(it){
+    var id = String((it && it.id) || '');
+    var qty = Math.max(1, Number(it && it.qty) || 1);
+    var r = map[id];
+    if (!r) return;
+    if (r.stock === '' || r.stock == null) return;      /* 재고 관리 안 함 */
+    var st = Math.max(0, Number(r.stock) || 0);
+    if (st <= 0) return;
+    st = Math.max(0, st - qty);
+    r.stock = st;
+    if (st === 0) r.soldOut = true;
+    r.updatedAt = Date.now();
+    out[id] = st;
+    touched = true;
+  });
+  if (touched) writeTable_('products', list);
+  return out;
+}
+
+/* ---------------- 공통 안내 (배송·교환·판매자·보관 주의) ----------------
+ *  shop_settings_get  — 누구나 읽는다(상품 상세페이지에 표시).
+ *  shop_settings_save — 관리자 키가 있어야 저장된다. { settings: { shipping:'…', returns:'…', … } }
+ */
+function shopSettingsGet_(body){
+  var out = {}, at = 0, rows = readTable_('settings');
+  rows.forEach(function(r){
+    if (!r || !r.key) return;
+    out[String(r.key)] = String(r.value == null ? '' : r.value);
+    at = Math.max(at, Number(r.updatedAt) || 0);
+  });
+  return { ok:true, settings:out, updatedAt:at };
+}
+
+function shopSettingsSave_(body){
+  if (!authed_(body)) return { ok:false, error:'unauthorized' };
+  var inc = body.settings || {};
+  var keys = Object.keys(inc);
+  if (!keys.length) return { ok:false, error:'no_settings' };
+  var now = Date.now();
+  var cur = readTable_('settings');
+  var map = {};
+  cur.forEach(function(r){ if (r.key) map[String(r.key)] = r; });
+  keys.forEach(function(k){
+    map[k] = { key:String(k), value:String(inc[k] == null ? '' : inc[k]), updatedAt:now };
+  });
+  writeTable_('settings', Object.keys(map).map(function(k){ return map[k]; }));
+  return { ok:true, count:keys.length, updatedAt:now };
 }
 
 /* ---------------- 로그인 ---------------- */
@@ -271,5 +386,7 @@ function shopOrder_(body){
     mode:String(o.mode || 'general'), dealer:String(o.dealer || ''),
     shippingJson:JSON.stringify(o.shipping || {}), createdAt:now
   }]);
-  return { ok:true, no:String(o.no) };
+  var stocks = {};
+  try{ stocks = adjustStock_(o.items || []); }catch(err){ stocks = {}; }   /* 재고 차감 실패해도 주문은 남긴다 */
+  return { ok:true, no:String(o.no), stocks:stocks };
 }
