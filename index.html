@@ -956,6 +956,7 @@
       if(u && keys[a]) writeMat(a, u, keys[a]);
     });
     setSessions(cur, keepOf());
+    seedPriceKek(cur, newPw);          /* 단가표 열쇠도 새 비밀번호로 다시 연결 */
     syncUnifyUser(me.id, newPw);
     pushUsersToSheet({ id:me.id });
     return { ok:true, msg:'비밀번호를 바꿨습니다' };
@@ -1028,6 +1029,61 @@
       setTimeout(fin, ms || 8000);
       PL_SEED.then(fin, fin);
     });
+  }
+
+  /* ============================================================
+     상품단가표 1회 로그인 열쇠 (2026-11-25)
+       - 로그인 비밀번호에서 PBKDF2-SHA256(310,000회, 계정마다 고정된 salt) 열쇠를 만들어
+         IndexedDB 에만 둔다(CryptoKey, 꺼내 쓸 수 없음).
+       - 같은 출처의 상품단가 앱이 이 열쇠로 '단가표 열쇠 감싸개'를 풀어
+         단가표 비밀번호를 묻지 않고 바로 연다.
+       - 포털 비밀번호를 바꾸거나 로그아웃하면 이 기기의 열쇠는 지운다.
+     ============================================================ */
+  var KEK_DB = 'kdw-portal-kek', KEK_STORE = 'kek';
+  function kekDb(){
+    return new Promise(function(res, rej){
+      var rq = indexedDB.open(KEK_DB, 1);
+      rq.onupgradeneeded = function(){ if(!rq.result.objectStoreNames.contains(KEK_STORE)) rq.result.createObjectStore(KEK_STORE); };
+      rq.onsuccess = function(){ res(rq.result); };
+      rq.onerror = function(){ rej(rq.error); };
+    });
+  }
+  function kekPut(id, key, salt){
+    return kekDb().then(function(db){
+      return new Promise(function(res){
+        var tx = db.transaction(KEK_STORE, 'readwrite');
+        tx.objectStore(KEK_STORE).put({ key:key, salt:String(salt || ''), at:Date.now() }, 'u:' + normId(id));
+        tx.oncomplete = function(){ res(true); };
+        tx.onerror = function(){ res(false); };
+      });
+    }).catch(function(){ return false; });
+  }
+  function kekDel(id){
+    if(!id) return Promise.resolve(false);
+    return kekDb().then(function(db){
+      return new Promise(function(res){
+        var tx = db.transaction(KEK_STORE, 'readwrite');
+        tx.objectStore(KEK_STORE).delete('u:' + normId(id));
+        tx.oncomplete = function(){ res(true); };
+        tx.onerror = function(){ res(false); };
+      });
+    }).catch(function(){ return false; });
+  }
+  function seedPriceKek(u, pw){
+    try{
+      if(!u || !pw || !window.crypto || !crypto.subtle || !window.indexedDB) return;
+      var enc = new TextEncoder();
+      /* salt 는 계정마다 고정(아이디 기반). 포털 salt 가 앱 통일에 따라 바뀌어도
+         같은 비밀번호면 어느 기기에서나 같은 열쇠가 나오게 하기 위해서다. */
+      var salt = enc.encode('kdwpm-kek|' + normId(u.id));
+      crypto.subtle.importKey('raw', enc.encode(String(pw)), 'PBKDF2', false, ['deriveKey']).then(function(km){
+        return crypto.subtle.deriveKey(
+          { name:'PBKDF2', salt:salt, iterations:310000, hash:'SHA-256' },
+          km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+      }).then(function(key){
+        return kekPut(u.id, key, 'kdwpm');
+      }).catch(function(){});
+    }catch(e){}
   }
   var SYNC_AT_KEY = 'kd.portal.sheet.syncat.v1';   /* 포털은 자기 차례를 따로 적는다 (같은 출처의 발주 앱과 섞이지 않게) */
   var SYNC_KCAT_KEY = 'kd.sheet.kcat.v1';
@@ -1457,6 +1513,8 @@
     return false;
   }
   function clearAll(){
+    var ss = jget(P_SSO, null);
+    if(ss && ss.userId) kekDel(ss.userId);   /* 단가표를 열던 포털 열쇠도 함께 지운다 */
     ORDER.forEach(function(a){
       jrm(APPS[a].sess); srm(APPS[a].tmp);
     });
@@ -1777,6 +1835,8 @@
       setSessions(rec, keep);
       /* 택배주소출력 메뉴가 있으면 그 앱의 시트 토큰을 지금 받아 둔다 (앱에서 재로그인 없이) */
       seedParcelToken(rec, pw);
+      /* 상품단가 메뉴가 있으면 단가표 열쇠를 풀 열쇠를 이 기기에 둔다 (앱에서 비밀번호 없이 입장) */
+      if(menusOf(rec).indexOf('price') >= 0) seedPriceKek(rec, pw);
       if(roleOf(rec.id, rec.name) === 'admin'){
         openDash();
         var bad = [];

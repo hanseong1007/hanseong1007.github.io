@@ -4,6 +4,7 @@
   var C = window.PMCore;
   var $ = C.$, $$ = C.$$, esc = C.esc, nfmt = C.nfmt, wfmt = C.wfmt, pct = C.pct;
   var calc = C.calc, calcHana = C.calcHana;
+  var SYNC = window.PMSync;
 
   var DATA_URL = 'data.enc.json';
   var K_META = 'pm.keymeta.v1', K_STATE = 'pm.state.v1', K_BASE = 'pm.base.v1';
@@ -35,6 +36,7 @@
     edits: { it: {}, row: {}, add: [], del: {}, log: [] },
     cmp: { opt: 'mart', basis: 's', rows: [], cust: { rate: 1.35, fee: 10 } },
     cur: { base: null, item: null, ch: 'kd' },
+    stamp: { it: {}, row: {}, add: {}, del: {} }, wipe: 0,
     key: null, header: null, demo: false, dirty: false, allLimit: 160
   };
 
@@ -159,7 +161,7 @@
   }
   var saveState = C.debounce(function () {
     if (!S.key || S.demo) return;
-    var box = { v: 1, built: (S.header && S.header.built) || '', edits: S.edits, cmp: S.cmp };
+    var box = { v: 1, built: (S.header && S.header.built) || '', edits: S.edits, cmp: S.cmp, stamp: S.stamp, wipe: S.wipe };
     C.sealJSON(S.key, box, true).then(function (blob) {
       if (lsSet(K_STATE, blob)) { paintSave('저장됨'); } else { paintSave('저장 공간 부족'); }
     }).catch(function () { paintSave('저장 실패'); });
@@ -168,7 +170,7 @@
     var el = $('#set-save');
     if (el) el.textContent = t + ' · ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   }
-  function persistLocal() { S.dirty = true; saveState(); }
+  function persistLocal() { S.dirty = true; saveState(); if (SYNC) SYNC.changed(); }
   /* 엑셀에서 새로 올린 단가표는 이 기기에 따로 잠가 둔다 */
   function saveBase() {
     if (!S.key || S.demo) return;
@@ -603,6 +605,7 @@
         '원/kg · ' + l.n + '개 <span>' + d.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) + '</span></div>';
     }).join('') || '<p class="note">아직 바꾼 내역이 없습니다.</p>';
     $('#set-undo').disabled = !log.length;
+    paintSync(); paintPortalWrap();
   }
 
   /* ═════════════ 엑셀 ═════════════ */
@@ -855,8 +858,24 @@
     $('#app').hidden = false;
     paintWho();
     renderMat(); renderAll(); renderCompare(); renderSet();
+    paintSync();
+    if (SYNC) SYNC.start();
+    portalWrapNudge();
+  }
+  /* 포털 로그인은 되어 있는데 이 계정의 열쇠가 아직 연결되지 않은 기기에서 한 번만 안내 */
+  function portalWrapNudge() {
+    if (!SYNC || S.demo) return;
+    var s = SYNC.ssoSession();
+    if (!s) return;
+    try { if (sessionStorage.getItem('pm.wrapnudge.v1')) return; } catch (e) {}
+    if (SYNC.hasLocalWrap(s.userId)) return;
+    try { sessionStorage.setItem('pm.wrapnudge.v1', '1'); } catch (e) {}
+    setTimeout(function () {
+      toast('설정 → 시트 동기화에서 열쇠를 연결하면 다음부터 포털 로그인만으로 열립니다');
+    }, 2200);
   }
   function lockNow() {
+    if (SYNC) SYNC.stop();
     S.key = null;
     C.idbDel('dk');
     lsDel(K_META);
@@ -893,6 +912,8 @@
       if (st && st.edits) {
         S.edits = Object.assign({ it: {}, row: {}, add: [], del: {}, log: [] }, st.edits);
         if (st.cmp && Array.isArray(st.cmp.rows)) S.cmp = Object.assign(S.cmp, st.cmp);
+        if (st.stamp) S.stamp = Object.assign({ it: {}, row: {}, add: {}, del: {} }, st.stamp);
+        S.wipe = Number(st.wipe) || 0;
         rebuild();
       }
     }).catch(function () { /* 이전 열쇠로 잠근 기록이면 그냥 새로 시작 */ });
@@ -932,6 +953,89 @@
     };
   }
 
+  /* ═════ろ════ 시트 동기화 · 포털 1회 로그인 ═════ろ════ */
+  function dt(ts) {
+    if (!ts) return '-';
+    return new Date(ts).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+  function paintSync() {
+    if (!SYNC) return;
+    var st = SYNC.state(), txt = SYNC.statusText();
+    var chip = $('#sync-chip');
+    if ($('#sync-txt')) $('#sync-txt').textContent = txt;
+    if (chip) {
+      var cls = 'chip syncchip';
+      if (st.status === 'ok') cls += ' ok';
+      else if (st.status === 'error') cls += ' bad';
+      else if (st.status === 'saving' || st.status === 'sync' || st.status === 'first') cls += ' busy';
+      chip.className = cls;
+      chip.title = (st.status === 'error' ? (st.lastErr || '동기화 실패') : '구글 시트와 동기화') + (st.ok || st.at ? ' · ' + dt(st.ok || st.at) : '');
+    }
+    var dot = $('#sync-dot');
+    if (dot) dot.className = 'sdot ' + (st.status || '');
+    var b = $('#set-sync-badge');
+    if (b) {
+      b.textContent = st.status === 'error' ? '오류' : (st.status === 'ok' ? '연결됨' : (st.status === 'off' ? '꺼짐' : '진행'));
+      b.className = 'tag' + (st.status === 'error' ? ' red' : (st.status === 'ok' ? '' : ' gray'));
+    }
+    if ($('#set-sync-state')) $('#set-sync-state').textContent = txt;
+    if ($('#set-sync-at')) $('#set-sync-at').textContent = st.ok ? dt(st.ok) : (st.at ? dt(st.at) : '-');
+    if ($('#set-sync-rev')) $('#set-sync-rev').textContent = 'rev ' + (st.rev || 0);
+  }
+  function paintGateSso() {
+    var el = $('#gate-sso');
+    if (!el) return;
+    var s = SYNC && SYNC.ssoSession();
+    if (!s) { el.textContent = '통합 로그인으로 들어오면 단가표 비밀번호 없이 바로 열립니다.'; return; }
+    el.textContent = (s.name || s.userId) + '님으로 포털에 로그인되어 있습니다 · 이 비밀번호를 한 번 넣으면 다음부터 포털만으로 열립니다.';
+  }
+  function paintPortalWrap() {
+    var wrap = $('#set-portal-wrapwrap');
+    if (!wrap || !SYNC) return;
+    var s = SYNC.ssoSession();
+    wrap.hidden = !s;
+    var btn = $('#set-portal-wrap');
+    if (!s || !btn) return;
+    SYNC.hasKek(s.userId).then(function (has) {
+      if (!has) { btn.textContent = '🔑 포털에서 한 번 더 로그인하면 자동 연결됩니다'; btn.disabled = true; return; }
+      btn.disabled = false;
+      btn.textContent = '🔗 포털 한 번 로그인으로 열기 연결';
+    });
+  }
+  function afterMerge(n) {
+    rebuild();
+    saveState();
+    renderMat(); renderAll(); renderCompare(); renderSet();
+    if (S.cur.base && !$('#sheet').hidden) openSheet(S.cur.base);
+    if (n) toast('다른 기기의 변경 ' + n + '건을 불러왔습니다');
+  }
+  function applyRemoteBase(base) {
+    if (!base || !base.items || !base.items.length) return;
+    setDoc({ v: 1, built: base.built, chs: base.chs, items: base.items, chRows: base.chRows || {}, hana: base.hana || [] });
+    S.custom = true;
+    saveBase();
+  }
+  /* 포털 로그인 상태면 단가표 비밀번호를 묻지 않고 열기 */
+  function tryPortalUnlock() {
+    if (!SYNC) return Promise.resolve(false);
+    var s = SYNC.ssoSession();
+    if (!s) return Promise.resolve(false);
+    return SYNC.unwrap(s.userId).then(function (pw) {
+      if (!pw) return false;
+      return unlock(pw, true).then(function () {
+        showApp();
+        toast('통합 로그인으로 열었습니다');
+        return true;
+      }).catch(function () { return false; });
+    });
+  }
+  function mintPortalWrap(pw) {
+    if (!SYNC || !pw) return Promise.resolve(false);
+    var s = SYNC.ssoSession();
+    if (!s) return Promise.resolve(false);
+    return SYNC.wrapMint(pw, s.userId).then(function (ok) { paintPortalWrap(); return ok; });
+  }
+
   function boot() {
     paintWho();
     $('#gate-portal').href = '../';
@@ -959,8 +1063,12 @@
       }).catch(function () { return null; });
     }).then(function (done) {
       if (done) return;
-      document.body.dataset.view = 'gate';
-      $('#gate').hidden = false;
+      return tryPortalUnlock().then(function (ok) {
+        if (ok) return;
+        document.body.dataset.view = 'gate';
+        $('#gate').hidden = false;
+        paintGateSso();
+      });
     });
   }
 
@@ -985,6 +1093,9 @@
       unlock(pw, $('#gate-keep').checked).then(function () {
         $('#gate-msg').textContent = '';
         showApp();
+        mintPortalWrap(pw).then(function (ok) {
+          if (ok) toast('포털 계정에 열쇠를 연결했습니다 · 이 계정의 다른 기기에서는 비밀번호를 묻지 않습니다');
+        });
       }).catch(function (e) {
         var msg = (e && e.name === 'OperationError') ? '비밀번호가 맞지 않습니다' : (e.message || '열지 못했습니다');
         $('#gate-msg').textContent = msg;
@@ -1133,6 +1244,32 @@
     $('#cmp-export').onclick = exportCompare;
 
     /* 설정 */
+    $('#set-sync-now').onclick = function () {
+      toast('시트와 동기화합니다…');
+      SYNC.pull(false).then(function (n) { if (!n) SYNC.push(); });
+    };
+    $('#set-sync-pull').onclick = function () {
+      SYNC.pull(true).then(function (n) {
+        toast(n ? '다른 기기 변경 ' + n + '건을 받았습니다' : '시트에 새 변경이 없습니다');
+      });
+    };
+    $('#sync-chip').onclick = function () {
+      var st = SYNC.state();
+      if (st.status === 'error') { toast('다시 시도합니다…'); SYNC.push(); return; }
+      SYNC.pull(false).then(function (n) { if (!n) SYNC.push(); toast('시트와 맞쳤습니다'); });
+    };
+    $('#set-portal-wrap').onclick = function () {
+      var s = SYNC.ssoSession();
+      if (!s) return toast('통합포털에서 로그인한 뒤 다시 시도해 주세요', true);
+      promptBox('포털에 열쇠 연결',
+        '단가표 비밀번호를 <b>한 번만</b> 넣으면, 이 포털 계정(' + esc(s.name || s.userId) + ')으로는 어느 기기에서든 비밀번호를 묻지 않고 열립니다.<br>열쇠는 포털 로그인 비밀번호로만 풀리는 암호문으로 보관됩니다.',
+        { type: 'password', placeholder: '단가표 비밀번호', ok: '연결' }).then(function (pw) {
+        if (!pw) return;
+        mintPortalWrap(pw).then(function (ok) {
+          toast(ok ? '포털 계정에 열쇠를 연결했습니다' : '연결하지 못했습니다 · 포털에서 다시 로그인한 뒤 시도해 주세요', !ok);
+        });
+      });
+    };
     $('#set-export').onclick = exportEnriched;
     $('#set-import').onclick = function () { pickFile('.xlsx,.xls,.csv', importMaster); };
     $('#set-encurl2').onclick = makeEncFile;
@@ -1142,6 +1279,8 @@
         lsDel(K_BASE); S.custom = false;
         setDoc(S.origin || S.payload);
         S.edits = { it: {}, row: {}, add: [], del: {}, log: [] };
+        S.stamp = { it: {}, row: {}, add: {}, del: {} };
+        S.wipe = Date.now();
         rebuild(); persistLocal();
         renderMat(); renderAll(); renderCompare(); renderSet();
         toast('원래 단가표로 돌아갔습니다');
@@ -1156,6 +1295,8 @@
       ask('처음 단가로 되돌리기', '이 기기에서 바꾼 <b>모든 단가 수정</b>을 지우고 처음 받은 단가표로 돌아갑니다.', '되돌리기', true).then(function (ok) {
         if (!ok) return;
         S.edits = { it: {}, row: {}, add: [], del: {}, log: [] };
+        S.stamp = { it: {}, row: {}, add: {}, del: {} };
+        S.wipe = Date.now();
         rebuild(); persistLocal();
         renderMat(); renderAll(); renderCompare(); renderSet();
         toast('처음 단가로 돌아갔습니다');
@@ -1168,6 +1309,8 @@
       if (!$('#sheet').hidden) { closeSheet(); }
     });
   }
+
+  if (SYNC) SYNC.init(S, { paint: function () { paintSync(); }, afterMerge: afterMerge, applyBase: applyRemoteBase });
 
   document.addEventListener('DOMContentLoaded', function () { wire(); boot(); });
 
