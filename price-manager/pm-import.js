@@ -235,18 +235,19 @@
     }
     return out;
   }
-  /* → {item, how:'name'|'barcode'|'fuzzy'|'', near:[…]} */
+  /* → {item, how:'barcode'|'name'|'fuzzy'|'', near:[…]} */
   function matchRow(row, idx) {
     var k = row.key || nameKey(row.nm);
+    /* ① 바코드 먼저 — 단 무게가 다른 후보뿐이면 품명으로 넘어긴다 (바코드 한 줄을 여러 중량이 나눠 쓰는 자료가 있다) */
+    var b = row.bc || '';
+    var bHit = (b && idx.byBc[b]) ? idx.byBc[b] : null;
+    if (bHit) {
+      var bw = bHit.filter(function (o) { return sameWt(o.wt, row.wt); });
+      if (bw.length) return { item: pickByWeight(bw, row.wt), how: 'barcode', near: bHit.slice(0, 5) };
+    }
+    /* ② 품명이 같으면 연결 */
     var list = idx.byKey[k];
     if (list && list.length) return { item: pickByWeight(list, row.wt), how: 'name', near: list.slice(0, 5) };
-    var b = row.bc || '';
-    if (b && idx.byBc[b]) {
-      var bl = idx.byBc[b];
-      var bw = bl.filter(function (o) { return sameWt(o.wt, row.wt); });
-      if (bw.length) return { item: pickByWeight(bw, row.wt), how: 'barcode', near: bl.slice(0, 5) };
-      return { item: null, how: '', near: bl.slice(0, 5), conflict: 'barcode-weight' };
-    }
     var bk = baseKey(k);
     if (bk && bk.length > 1 && idx.byBase[bk]) {
       var cl = idx.byBase[bk];
@@ -254,6 +255,7 @@
       if (cw.length === 1) return { item: cw[0], how: 'fuzzy', near: cl.slice(0, 5) };
       return { item: null, how: '', near: cl.slice(0, 5) };
     }
+    if (bHit) return { item: null, how: '', near: bHit.slice(0, 5), conflict: 'barcode-weight' };
     return { item: null, how: '', near: suggest(row.nm, idx) };
   }
 
