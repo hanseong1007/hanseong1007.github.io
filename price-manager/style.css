@@ -56,6 +56,20 @@ h1,h2,h3{margin:0}
 .syncchip.ok .nm{color:var(--brand-dark)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .ssohint{font-size:11.5px;color:var(--brand-dark);font-weight:700;text-align:center;margin-top:6px;line-height:1.45}
+@media (max-width:520px){
+  .top{padding:8px 10px 6px;gap:6px}
+  .top .brandtxt span{display:none}
+  .top .brandtxt b{font-size:14px}
+  .top .bm.sm{width:32px;height:32px;border-radius:10px;font-size:14px}
+  .top #top-who{padding:3px 8px 3px 4px}
+  .top #top-who .nm{max-width:66px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .syncchip{max-width:146px;padding-left:7px}
+  .syncchip .nm{font-size:11px}
+}
+@media (max-width:430px){
+  .top #top-who .nm{display:none}
+  .top #top-who{padding:3px 3px}
+}
 .itemlist .syncrow{display:flex;justify-content:space-between;font-size:12.5px}
 .note{font-size:12px;color:var(--muted);line-height:1.45;margin:8px 0 0}
 .foot{text-align:center;font-size:11.5px;color:#9aa8a1;margin:22px 0 30px}
