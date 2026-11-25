@@ -186,11 +186,31 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
   padding:11px 16px;border-radius:11px;font-size:13px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.3);
   max-width:92vw;text-align:center}
 
-/* ---- 인쇄: A4 가로 1장, 4줄만 ---- */
+/* ---- 라벨지(73×90mm 세로) 용지 ---- */
+#page.paper-label{
+  width:73mm;height:90mm;padding:3mm 3.5mm;
+  justify-content:space-between;gap:1.2mm;
+}
+#page.paper-label .ln{
+  white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:anywhere;
+  line-height:1.12;
+}
+#page.paper-label .ln-item{flex-wrap:wrap;justify-content:center;align-items:baseline;
+  gap:.6mm 2mm;text-align:center}
+#page.paper-label .ln-item .it{white-space:normal;overflow:visible;flex:1 1 auto;min-width:0}
+#page.paper-label .ln-item .fr{white-space:nowrap}
+.paper-seg{margin-left:2px;flex:none}
+.paper-seg label{padding:5px 9px}
+#labelPane > .ph{flex-wrap:wrap}
+.paphint{padding:8px 13px;font-size:11.5px;line-height:1.55;color:#92400e;
+  background:#fffbeb;border-bottom:1px solid #fde68a}
+.paphint b{color:#7c2d12}
+
+/* ---- 인쇄: 선택한 용지 1장, 4줄만 ---- */
 @media print{
   @page{size:A4 landscape;margin:0}
   html,body{background:#fff;margin:0;padding:0;width:297mm;height:210mm;overflow:hidden}
-  #gate,header,.syncbar,#listPane,.modal,.toast,#labelPane > .ph,#labelPane > .ctrl,.pv-foot{display:none !important}
+  #gate,header,.syncbar,#listPane,.modal,.toast,#labelPane > .ph,#labelPane > .ctrl,.paphint,.pv-foot{display:none !important}
   main{display:block !important;padding:0 !important;margin:0 !important}
   .panel{border:0 !important;box-shadow:none !important;border-radius:0 !important;overflow:visible !important;background:#fff !important}
   .previewWrap{padding:0 !important;background:#fff !important;display:block !important}
@@ -199,6 +219,8 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
     page-break-after:avoid;break-after:avoid;page-break-inside:avoid;break-inside:avoid}
 }
 </style>
+<!-- 선택한 용지(A4 가로 / 라벨지 73×90mm)에 맞춰 인쇄 @page 크기를 바꾼다 -->
+<style id="pageSizeStyle">@media print{@page{size:A4 landscape;margin:0}html,body{width:297mm;height:210mm;overflow:hidden}#page{width:297mm !important;height:210mm !important}}</style>
 </head>
 <body>
 
@@ -244,8 +266,16 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
 
     <!-- 미리보기 -->
     <section class="panel" id="labelPane">
-      <div class="ph"><h2>택배주소 미리보기</h2><span class="cnt">A4 가로 1장</span><span class="sp"></span>
+      <div class="ph"><h2>택배주소 미리보기</h2>
+        <div class="seg paper-seg" id="seg-paper" role="radiogroup" aria-label="출력 용지 선택">
+          <label for="pp-a4" title="A4 가로 297×210mm"><input type="radio" name="paper" id="pp-a4" value="a4"><span>A4 가로</span></label>
+          <label for="pp-label" title="라벨지 73×90mm 세로"><input type="radio" name="paper" id="pp-label" value="label"><span>라벨지 73×90</span></label>
+        </div>
+        <span class="sp"></span>
+        <span class="cnt" id="paper-name">A4 가로 1장</span>
         <span class="cnt" id="sel-name"></span></div>
+
+      <div class="paphint" id="paper-hint" hidden>🖨 <b>라벨지 인쇄</b> — 프린터 설정에서 용지 <b>73×90mm</b> · 여백 <b>없음</b> · 배율 <b>100%</b>로 맞추세요. 실제 인쇄 영역(70.5×90mm) 안쪽에 맞춰 찍힙니다.</div>
 
       <div class="ctrl">
         <div class="line">
@@ -548,6 +578,41 @@ function ensureFontLoaded(key, cb){
   Promise.all(jobs).then(function(){ if(cb) cb(); }).catch(function(){ if(cb) cb(); });
 }
 
+/* ---------- 출력 용지 (A4 가로 / 라벨지 73×90mm 세로) ---------- */
+/* 용지 선택값만 저장한다 — 고객 정보는 들어가지 않는다. */
+var K_PAPER='pl.paper.v1';
+var PAPER={mode:'a4'};
+function loadPaper(){
+  try{
+    var raw=LS.get(K_PAPER,null);
+    if(raw==='label'||(raw&&raw.mode==='label')) return 'label';
+  }catch(e){}
+  return 'a4';
+}
+function savePaper(){ try{ LS.set(K_PAPER,{v:1,mode:PAPER.mode}); }catch(e){} }
+function paperPrintCss(mode){
+  if(mode==='label'){
+    return '@media print{@page{size:73mm 90mm;margin:0}html,body{width:73mm;height:90mm;overflow:hidden}'
+      +'#page{width:73mm !important;height:90mm !important}}';
+  }
+  return '@media print{@page{size:A4 landscape;margin:0}html,body{width:297mm;height:210mm;overflow:hidden}'
+    +'#page{width:297mm !important;height:210mm !important}}';
+}
+function applyPaper(mode,save){
+  PAPER.mode=(mode==='label')?'label':'a4';
+  if(save!==false) savePaper();
+  var pg=$('#page'); if(pg) pg.className=(PAPER.mode==='label')?'paper-label':'';
+  var st=$('#pageSizeStyle'); if(st) st.textContent=paperPrintCss(PAPER.mode);
+}
+function applyPaperUI(){
+  var a4=$('#pp-a4'), lb=$('#pp-label');
+  if(a4) a4.checked=(PAPER.mode!=='label');
+  if(lb) lb.checked=(PAPER.mode==='label');
+  var nm=$('#paper-name');
+  if(nm) nm.textContent=(PAPER.mode==='label')?'라벨지 73×90 1장':'A4 가로 1장';
+  var hint=$('#paper-hint'); if(hint) hint.hidden=(PAPER.mode!=='label');
+}
+
 /* ---------- 시트 통신 ---------- */
 function api(payload,timeoutMs){
   var ms=timeoutMs||25000;
@@ -830,6 +895,7 @@ function renderPreview(){
 
   /* 크기: 사용자가 정한 배율을 '최대 크기'로 삼는다.
      짧은 글씨는 그 크기 그대로, 한 줄을 넘는 긴 글씨만 그 안에서 줄여 맞춘다. */
+  if(PAPER.mode==='label'){ fitLabelPreview(); return; }   /* 73×90mm 세로 라벨 */
   var pa=fmtPct('addr')/100, pn=fmtPct('name')/100, pt=fmtPct('tel')/100, pi=fmtPct('item')/100;
   if(!addr) a.style.fontSize=(10*pa).toFixed(2)+'mm'; else fitLine(a,FMT_BASE.addr*pa,6);
   if(!name) n.style.fontSize=(10*pn).toFixed(2)+'mm'; else fitLine(n,FMT_BASE.name*pn,8);
@@ -858,13 +924,14 @@ function renderPreview(){
 
 /* 한 장에 담으려고 줄였을 때는 아래 안내를 바꿔 준다 */
 var PV_FOOT_DEF='긴 주소·상호도 한 장을 넘지 않게 자동으로 맞춥니다 · <b>🔤 서식 조절</b>에서 글꼴·크기·굵기를 바꿀 수 있습니다';
+var PV_FOOT_LABEL='라벨지 73×90mm 세로 · 인쇄할 때 프린터에서 <b>용지 73×90mm · 여백 없음 · 배율 100%</b>로 놓으세요';
 var PV_FOOT_FIT='한 장에 담으려고 글자를 조금 줄였습니다 · 서식 조절에서 크기를 낮춰 보세요';
 function setPvFoot(fit){
   var el=$('#pv-foot'); if(!el) return;
-  var key=fit?'1':'0';
+  var key=(PAPER.mode==='label'?'L':'A')+(fit?'1':'0');
   if(el.getAttribute('data-fit')===key) return;
   el.setAttribute('data-fit',key);
-  el.innerHTML=fit?PV_FOOT_FIT:PV_FOOT_DEF;
+  el.innerHTML=fit?PV_FOOT_FIT:((PAPER.mode==='label')?PV_FOOT_LABEL:PV_FOOT_DEF);
 }
 
 /* 네 줄이 A4 한 장(297×210mm) 높이를 넘을 때만 전체를 같은 비율로 줄인다. */
@@ -894,6 +961,56 @@ function scaleFont(el,f){
   if(v>0) el.style.fontSize=(v*f).toFixed(2)+'mm';
 }
 
+/* ---------- 라벨지(73×90mm 세로) 맞춤 ----------
+   73×90mm 종이에 좌우 3.5mm·위아래 3mm 여백을 두면 실제 글자 영역은 66×84mm.
+   폭이 좁아 긴 주소를 한 줄에 밀어 넣으면 글씨가 너무 작아지므로,
+   줄을 자연스럽게 바꾸고 항목별 높이 한도 안에서 가장 큰 크기를 찾는다.
+   그래도 넘치면 네 항목을 같은 비율로 줄여 종이 밖으로 나가지 않게 한다. */
+var LABEL_BASE={addr:4.6, name:6.4, tel:4.8, item:4.2, fr:3.8};
+var LABEL_MAXH={addr:30, name:18, tel:12, item:16, fr:12};   /* mm */
+var PX_PER_MM=96/25.4;
+function fitWrapped(el,maxMm,minMm,maxH){   /* maxH 는 mm */
+  var lo=Math.max(1.2,minMm||1.8), hi=Math.max(lo,maxMm||4), mid, best=lo, i;
+  var maxPx=(maxH||0)*PX_PER_MM;
+  el.style.fontSize=hi.toFixed(2)+'mm';
+  if((el.offsetHeight||0)<=maxPx) return hi;
+  for(i=0;i<18;i++){
+    mid=(lo+hi)/2;
+    el.style.fontSize=mid.toFixed(2)+'mm';
+    if((el.offsetHeight||0)<=maxPx){ best=mid; lo=mid; } else { hi=mid; }
+  }
+  el.style.fontSize=best.toFixed(2)+'mm';
+  return best;
+}
+function fitLabelPreview(){
+  var page=$('#page'), a=$('#ln-addr'), n=$('#ln-name'), t=$('#ln-tel'),
+      it=$('#ln-item'), fr=$('#ln-freight');
+  if(!page||!a||!n||!t||!it||!fr) return false;
+  var pa=fmtPct('addr')/100, pn=fmtPct('name')/100, pt=fmtPct('tel')/100, pi=fmtPct('item')/100;
+  fitWrapped(a, LABEL_BASE.addr*pa, 1.8, LABEL_MAXH.addr);
+  fitWrapped(n, LABEL_BASE.name*pn, 2.2, LABEL_MAXH.name);
+  fitWrapped(t, LABEL_BASE.tel*pt, 2.2, LABEL_MAXH.tel);
+  fr.style.fontSize=(LABEL_BASE.fr*pi).toFixed(2)+'mm';
+  if(!fr.hidden) fitWrapped(fr, LABEL_BASE.fr*pi, 1.8, LABEL_MAXH.fr);
+  fitWrapped(it, LABEL_BASE.item*pi, 1.8, LABEL_MAXH.item);
+
+  var cs=getComputedStyle(page);
+  var padT=parseFloat(cs.paddingTop)||0, padB=parseFloat(cs.paddingBottom)||0;
+  var gap=parseFloat(cs.rowGap)||0;
+  var avail=(page.clientHeight||0)-padT-padB;
+  var parts=[a,n,t,it], shrunk=false, guard=0, i, total;
+  while(avail>0 && guard++<28){
+    total=gap*(parts.length-1);
+    for(i=0;i<parts.length;i++) total+=(parts[i].offsetHeight||0);
+    if(total<=avail+0.5) break;
+    shrunk=true;
+    for(i=0;i<parts.length;i++) scaleFont(parts[i],0.93);
+    scaleFont(fr,0.93);
+  }
+  setPvFoot(shrunk);
+  return shrunk;
+}
+
 /* ---------- 화면 맞춤 ---------- */
 function fitPreview(){
   var wrap=$('#previewWrap'), sc=$('#scaler'), page=$('#page');
@@ -901,7 +1018,10 @@ function fitPreview(){
   var top=wrap.getBoundingClientRect().top;
   var availH=window.innerHeight-top-70;
   var w=page.offsetWidth||1122, h=page.offsetHeight||794;   /* 297×210mm @ 96dpi */
-  var k=Math.min(1, availW/w, Math.max(0.25, availH/h));
+  var maxK=(PAPER.mode==='label')?1.7:1;   /* 라벨은 작아서 화면에서 조금 키워 보여 준다 */
+  var k=Math.min(maxK, availW/w);
+  /* 세로 공간이 너무 좁으면(휴대폰에서 조절판이 긴 경우) 폭에 맞춰 보여 주고 화면을 내려 보게 한다 */
+  if(availH>200) k=Math.min(k, Math.max(0.32, availH/h));
   sc.style.width=(w*k)+'px';
   sc.style.height=(h*k)+'px';
   page.style.transform='scale('+k+')';
@@ -1129,6 +1249,17 @@ function wire(){
   $('#lg-id').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#lg-pw').focus(); });
 
   $('#q').addEventListener('input',applyFilter);
+  /* ---- 출력 용지: A4 가로 / 라벨지 73×90mm ---- */
+  ['pp-a4','pp-label'].forEach(function(id){
+    var el=$('#'+id); if(!el) return;
+    el.addEventListener('change',function(){
+      if(!this.checked) return;
+      applyPaper(this.value);
+      applyPaperUI();
+      fitPreview();
+      toast(PAPER.mode==='label'?'라벨지 73×90mm 세로로 바꿨습니다':'A4 가로로 바꿨습니다');
+    });
+  });
   $('#q').addEventListener('keydown',function(e){
     if(e.key==='Enter'&&S.view.length){ selectRow(S.view[0].code); }
     else if(e.key==='ArrowDown'&&S.view.length){ selectRow(S.view[0].code); $('#list').focus(); }
@@ -1229,6 +1360,8 @@ function wire(){
 /* ---------- 시작 ---------- */
 function boot(){
   loadFmtInto();
+  applyPaper(loadPaper(),false);
+  applyPaperUI();
   wire();
   if(trySSO()) return;
   var sso=portalSSO();
