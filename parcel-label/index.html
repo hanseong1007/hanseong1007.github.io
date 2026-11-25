@@ -158,6 +158,9 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
 .fmtbar .frow select{flex:1;min-width:130px}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:6px 12px}
 .fitem{display:flex;align-items:center;gap:5px;min-width:0}
+.frow .fnote{font-size:11px;line-height:1.45;color:#94a3b8}
+#lblrow.off{opacity:.45}
+#lblrow .lb{margin-right:1px}
 .fitem .fn{font-size:11.5px;font-weight:800;color:#334155;min-width:36px;flex:none;white-space:nowrap}
 .stp{width:25px;height:25px;flex:none;padding:0;border:1.5px solid var(--line);border-radius:7px;
   background:#fff;color:#334155;font-size:14px;font-weight:900;line-height:1;cursor:pointer}
@@ -187,10 +190,19 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
   max-width:92vw;text-align:center}
 
 /* ---- 라벨지(73×90mm 세로) 용지 ---- */
+/* --lp-top: 위 여백(mm) — 라벨지에 미리 인쇄된 회사 로고 아래에서 글자가 시작하게 한다
+   --lp-gap: 줄 사이 간격(mm) — 화면 스크립트가 '상하 간격' 설정에 맞춰 계산해 넣는다 */
 #page.paper-label{
-  width:73mm;height:90mm;padding:3mm 3.5mm;
-  justify-content:space-between;gap:1.2mm;
+  width:73mm;height:90mm;
+  padding:var(--lp-top,15mm) 3.5mm 3mm;
+  justify-content:flex-start;gap:var(--lp-gap,4mm);
 }
+/* 화면에서만 보이는 안내선 — 이 선 위쪽이 라벨지에 인쇄된 회사 로고 자리 (인쇄물에는 안 나온다) */
+.lp-guide{display:none;position:absolute;left:1.2mm;right:1.2mm;top:var(--lp-top,15mm);
+  border-top:1px dashed rgba(220,38,38,.8);pointer-events:none;z-index:4}
+.lp-guide span{position:absolute;right:0;top:-3.4mm;padding:0 1mm;background:#fff;line-height:1.15;
+  font-size:2.5mm;font-weight:800;color:#dc2626;white-space:nowrap;letter-spacing:-.02em}
+#page.paper-label .lp-guide{display:block}
 #page.paper-label .ln{
   white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:anywhere;
   line-height:1.12;
@@ -210,7 +222,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
 @media print{
   @page{size:A4 landscape;margin:0}
   html,body{background:#fff;margin:0;padding:0;width:297mm;height:210mm;overflow:hidden}
-  #gate,header,.syncbar,#listPane,.modal,.toast,#labelPane > .ph,#labelPane > .ctrl,.paphint,.pv-foot{display:none !important}
+  #gate,header,.syncbar,#listPane,.modal,.toast,#labelPane > .ph,#labelPane > .ctrl,.paphint,.pv-foot,.lp-guide{display:none !important}
   main{display:block !important;padding:0 !important;margin:0 !important}
   .panel{border:0 !important;box-shadow:none !important;border-radius:0 !important;overflow:visible !important;background:#fff !important}
   .previewWrap{padding:0 !important;background:#fff !important;display:block !important}
@@ -275,7 +287,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
         <span class="cnt" id="paper-name">A4 가로 1장</span>
         <span class="cnt" id="sel-name"></span></div>
 
-      <div class="paphint" id="paper-hint" hidden>🖨 <b>라벨지 인쇄</b> — 프린터 설정에서 용지 <b>73×90mm</b> · 여백 <b>없음</b> · 배율 <b>100%</b>로 맞추세요. 실제 인쇄 영역(70.5×90mm) 안쪽에 맞춰 찍힙니다.</div>
+      <div class="paphint" id="paper-hint" hidden>🖨 <b>라벨지 인쇄</b> — 프린터 설정에서 용지 <b>73×90mm</b> · 여백 <b>없음</b> · 배율 <b>100%</b>로 맞추세요. 실제 인쇄 영역(70.5×90mm) 안쪽에 맞춰 찍힙니다. 글자가 위쪽 회사 로고에 겹치면 <b>🔤 서식 조절</b>의 <b>라벨 위 여백</b>을 올리세요.</div>
 
       <div class="ctrl">
         <div class="line">
@@ -325,6 +337,17 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
               </select>
               <button class="btn ghost sm" id="fmt-reset" type="button">서식 초기화</button>
             </div>
+            <div class="frow" id="lblrow">
+              <span class="lb">라벨 위 여백</span>
+              <button class="stp" type="button" data-lb="top" data-d="-1" aria-label="라벨 위 여백 줄이기">−</button>
+              <span class="szv" id="lv-top">15mm</span>
+              <button class="stp" type="button" data-lb="top" data-d="1" aria-label="라벨 위 여백 늘리기">+</button>
+              <span class="lb" style="margin-left:6px">상하 간격</span>
+              <button class="stp" type="button" data-lb="gap" data-d="-1" aria-label="상하 간격 줄이기">−</button>
+              <span class="szv" id="lv-gap">100%</span>
+              <button class="stp" type="button" data-lb="gap" data-d="1" aria-label="상하 간격 늘리기">+</button>
+            </div>
+            <div class="fnote" id="lblnote">라벨지에서만 적용됩니다 · 위 여백은 라벨 위에 인쇄된 회사 로고를 피해 내리는 값, 상하 간격 100%는 라벨 높이에 고르게 채운 간격입니다.</div>
             <div class="fgrid">
               <div class="fitem"><span class="fn">주소</span>
                 <button class="stp" type="button" data-k="addr" data-d="-1" aria-label="주소 글자 작게">−</button>
@@ -364,6 +387,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
       <div class="previewWrap" id="previewWrap">
         <div class="scaler" id="scaler">
           <div id="page">
+            <div class="lp-guide" id="lp-guide" aria-hidden="true"><span>회사 로고 자리</span></div>
             <div class="ln ln-addr" id="ln-addr"><span class="ph-empty">거래처를 선택하세요</span></div>
             <div class="ln ln-name" id="ln-name"></div>
             <div class="ln ln-tel" id="ln-tel"></div>
@@ -516,13 +540,19 @@ var FMT_KEYS=['addr','name','tel','item'];
 /* 항목별 기본 최대 크기(mm) — 실제로는 한 줄 폭에 맞춰 이 값 안에서 자동으로 줄어든다 */
 var FMT_BASE={addr:24, name:30, tel:26, item:24};
 var FMT_MIN=60, FMT_MAX=160, FMT_STEP=10;
+/* 라벨지(73×90mm) 전용 — 위 여백(mm)과 상하 간격(%, 100%=라벨 높이에 고르게 채운 간격) */
+var LBL_DEF={top:15, gap:100};
+var LBL_TOP_MIN=0, LBL_TOP_MAX=35, LBL_TOP_STEP=1;
+var LBL_GAP_MIN=40, LBL_GAP_MAX=150, LBL_GAP_STEP=10;
 var FMT_DEF={font:'gothic', sizes:{addr:100,name:100,tel:100,item:100},
-             bold:{addr:true,name:true,tel:true,item:true}, open:true};
+             bold:{addr:true,name:true,tel:true,item:true},
+             lbl:{top:LBL_DEF.top,gap:LBL_DEF.gap}, open:true};
 var FMT=loadFmt();
 
 function freshFmt(open){
   return {font:FMT_DEF.font, sizes:{addr:100,name:100,tel:100,item:100},
-          bold:{addr:true,name:true,tel:true,item:true}, open:open!==false};
+          bold:{addr:true,name:true,tel:true,item:true},
+          lbl:{top:LBL_DEF.top,gap:LBL_DEF.gap}, open:open!==false};
 }
 function loadFmt(){
   var o=freshFmt(true), raw=null;
@@ -535,11 +565,35 @@ function loadFmt(){
       if(v>=FMT_MIN&&v<=FMT_MAX) o.sizes[k]=Math.round(v/FMT_STEP)*FMT_STEP;
       if(raw.bold&&typeof raw.bold[k]==='boolean') o.bold[k]=raw.bold[k];
     }
+    if(raw.lbl&&typeof raw.lbl==='object'){
+      var t=Number(raw.lbl.top), g=Number(raw.lbl.gap);
+      if(t>=LBL_TOP_MIN&&t<=LBL_TOP_MAX) o.lbl.top=Math.round(t/LBL_TOP_STEP)*LBL_TOP_STEP;
+      if(g>=LBL_GAP_MIN&&g<=LBL_GAP_MAX) o.lbl.gap=Math.round(g/LBL_GAP_STEP)*LBL_GAP_STEP;
+    }
     if(typeof raw.open==='boolean') o.open=raw.open;
   }
   return o;
 }
 function saveFmt(){ try{ LS.set(K_FMT,FMT); }catch(e){} }
+function labelTop(){
+  var v=FMT.lbl?Number(FMT.lbl.top):NaN;
+  if(!(v>=LBL_TOP_MIN&&v<=LBL_TOP_MAX)) v=LBL_DEF.top;
+  return Math.round(v/LBL_TOP_STEP)*LBL_TOP_STEP;
+}
+function labelGapPct(){
+  var v=FMT.lbl?Number(FMT.lbl.gap):NaN;
+  if(!(v>=LBL_GAP_MIN&&v<=LBL_GAP_MAX)) v=LBL_DEF.gap;
+  return Math.round(v/LBL_GAP_STEP)*LBL_GAP_STEP;
+}
+function setLabelTop(mm){ if(!FMT.lbl) FMT.lbl={top:LBL_DEF.top,gap:LBL_DEF.gap};
+  FMT.lbl.top=Math.max(LBL_TOP_MIN,Math.min(LBL_TOP_MAX,mm)); }
+function setLabelGap(pct){ if(!FMT.lbl) FMT.lbl={top:LBL_DEF.top,gap:LBL_DEF.gap};
+  FMT.lbl.gap=Math.max(LBL_GAP_MIN,Math.min(LBL_GAP_MAX,pct)); }
+/* 위 여백은 CSS 변수(--lp-top)로, 상하 간격은 미리보기 맞춤 계산에서 --lp-gap 으로 넣는다 */
+function applyLabelCss(){
+  var pg=$('#page'); if(!pg) return;
+  pg.style.setProperty('--lp-top', labelTop().toFixed(2)+'mm');
+}
 function fmtPct(k){ var v=Number(FMT.sizes[k]); return (v>=FMT_MIN&&v<=FMT_MAX)?v:100; }
 function fmtWeight(k){ if(!FMT.bold[k]) return '400'; return k==='name'?'900':'800'; }
 
@@ -560,6 +614,22 @@ function applyFmtUI(){
   var body=$('#fmt-body'); if(body) body.hidden=!FMT.open;
   var tg=$('#fmt-toggle'); if(tg) tg.setAttribute('aria-expanded',FMT.open?'true':'false');
   var car=$('#fmt-caret'); if(car) car.textContent=FMT.open?'▾':'▸';
+  /* 라벨지 위 여백 · 상하 간격 */
+  var lvT=$('#lv-top'), lvG=$('#lv-gap');
+  if(lvT) lvT.textContent=labelTop()+'mm';
+  if(lvG) lvG.textContent=labelGapPct()+'%';
+  var lrow=$('#lblrow');
+  if(lrow){
+    var onLbl=(PAPER.mode==='label');
+    lrow.classList.toggle('off',!onLbl);
+    var t0=labelTop(), g0=labelGapPct();
+    $$('.stp[data-lb]').forEach(function(btn){
+      var k=btn.dataset.lb, d=parseInt(btn.dataset.d,10)||0, dis=!onLbl;
+      if(k==='top'&&((d<0&&t0<=LBL_TOP_MIN)||(d>0&&t0>=LBL_TOP_MAX))) dis=true;
+      if(k==='gap'&&((d<0&&g0<=LBL_GAP_MIN)||(d>0&&g0>=LBL_GAP_MAX))) dis=true;
+      btn.disabled=dis;
+    });
+  }
   var sum=$('#fmt-sum');
   if(sum){
     var changed=[], short=(FONTS[FMT.font]||FONTS.gothic).label.replace(/\s*\(.*\)$/,'');
@@ -603,6 +673,7 @@ function applyPaper(mode,save){
   if(save!==false) savePaper();
   var pg=$('#page'); if(pg) pg.className=(PAPER.mode==='label')?'paper-label':'';
   var st=$('#pageSizeStyle'); if(st) st.textContent=paperPrintCss(PAPER.mode);
+  applyLabelCss();
 }
 function applyPaperUI(){
   var a4=$('#pp-a4'), lb=$('#pp-label');
@@ -982,6 +1053,14 @@ function fitWrapped(el,maxMm,minMm,maxH){   /* maxH 는 mm */
   el.style.fontSize=best.toFixed(2)+'mm';
   return best;
 }
+/* 요소와 그 안의 글자(인라인 크기를 가진 자식)를 같은 비율로 줄인다 */
+function shrinkBox(el,f){
+  scaleFont(el,f);
+  var kids=el.children;
+  for(var j=0;j<kids.length;j++){
+    if(kids[j].style&&kids[j].style.fontSize) scaleFont(kids[j],f);
+  }
+}
 function fitLabelPreview(){
   var page=$('#page'), a=$('#ln-addr'), n=$('#ln-name'), t=$('#ln-tel'),
       it=$('#ln-item'), fr=$('#ln-freight');
@@ -996,16 +1075,27 @@ function fitLabelPreview(){
 
   var cs=getComputedStyle(page);
   var padT=parseFloat(cs.paddingTop)||0, padB=parseFloat(cs.paddingBottom)||0;
-  var gap=parseFloat(cs.rowGap)||0;
   var avail=(page.clientHeight||0)-padT-padB;
-  var parts=[a,n,t,it], shrunk=false, guard=0, i, total;
-  while(avail>0 && guard++<28){
-    total=gap*(parts.length-1);
-    for(i=0;i<parts.length;i++) total+=(parts[i].offsetHeight||0);
-    if(total<=avail+0.5) break;
+  var boxes=[a,n,t,(it.parentNode||it)];   /* 라벨 안에서 실제로 세로로 쌓이는 네 덩어리 */
+  var shrunk=false, guard=0, i, total;
+  /* 줄 사이 간격: 라벨 높이에 고르게 채운 간격(자동)을 100%로 두고, 상하 간격 설정만큼 늘리거나 줄인다.
+     100%면 예전처럼 라벨을 고르게 채우고, 줄이면 위에서부터 촘촘히 모인다. */
+  var pct=labelGapPct()/100;
+  var gapNow=0;
+  function applyGap(){
+    var content=0;
+    for(i=0;i<boxes.length;i++) content+=(boxes[i].offsetHeight||0);
+    var autoPx=(avail-content)/Math.max(1,boxes.length-1);   /* px */
+    var gapPx=Math.max(0, autoPx*pct);                        /* px */
+    gapNow=gapPx/PX_PER_MM;                                   /* mm — CSS 변수에 넣을 값 */
+    page.style.setProperty('--lp-gap', gapNow.toFixed(2)+'mm');
+    return content+gapPx*(boxes.length-1);
+  }
+  total=applyGap();
+  while(avail>0 && total>avail+0.5 && guard++<28){
     shrunk=true;
-    for(i=0;i<parts.length;i++) scaleFont(parts[i],0.93);
-    scaleFont(fr,0.93);
+    for(i=0;i<boxes.length;i++) shrinkBox(boxes[i],0.93);
+    total=applyGap();
   }
   setPvFoot(shrunk);
   return shrunk;
@@ -1256,6 +1346,7 @@ function wire(){
       if(!this.checked) return;
       applyPaper(this.value);
       applyPaperUI();
+      applyFmtUI();
       fitPreview();
       toast(PAPER.mode==='label'?'라벨지 73×90mm 세로로 바꿨습니다':'A4 가로로 바꿨습니다');
     });
@@ -1322,8 +1413,17 @@ function wire(){
     });
   });
   $('#fmt-reset').addEventListener('click',function(){
-    FMT=freshFmt(FMT.open); saveFmt(); applyFmtUI(); renderPreview();
+    FMT=freshFmt(FMT.open); saveFmt(); applyFmtUI(); applyLabelCss(); renderPreview();
     toast('서식을 기본값으로 되돌렸습니다');
+  });
+  /* ---- 라벨지 위 여백 · 상하 간격 (73×90mm 전용) ---- */
+  $$('.stp[data-lb]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var k=btn.dataset.lb, d=parseInt(btn.dataset.d,10)||0;
+      if(k==='top') setLabelTop(labelTop()+d*LBL_TOP_STEP);
+      else setLabelGap(labelGapPct()+d*LBL_GAP_STEP);
+      saveFmt(); applyLabelCss(); applyFmtUI(); renderPreview();
+    });
   });
 
   $('#btn-print').onclick=function(){
@@ -1362,6 +1462,7 @@ function boot(){
   loadFmtInto();
   applyPaper(loadPaper(),false);
   applyPaperUI();
+  applyFmtUI();
   wire();
   if(trySSO()) return;
   var sso=portalSSO();
@@ -1393,6 +1494,7 @@ function boot(){
 function loadFmtInto(){
   try{ FMT=loadFmt(); }catch(e){ FMT=freshFmt(true); }
   applyFmtUI();
+  applyLabelCss();
   ensureFontLoaded(FMT.font,function(){ try{ renderPreview(); }catch(e){} });
 }
 function showGate(){
