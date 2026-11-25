@@ -6,7 +6,7 @@
   var calc = C.calc, calcHana = C.calcHana;
 
   var DATA_URL = 'data.enc.json';
-  var K_META = 'pm.keymeta.v1', K_STATE = 'pm.state.v1';
+  var K_META = 'pm.keymeta.v1', K_STATE = 'pm.state.v1', K_BASE = 'pm.base.v1';
 
   var CHCOLS = {
     kd:   { q: '납품가', r: '농협판매가', s: '광양동부농협' },
@@ -116,8 +116,9 @@
       });
     });
   }
-  function setDoc(payload) {
+  function setDoc(payload, isOrigin) {
     S.payload = payload;
+    if (isOrigin) S.origin = payload;
     S.base = payload.items || [];
     S.rowsBase = payload.chRows || {};
     S.hanaBase = payload.hana || [];
@@ -168,6 +169,19 @@
     if (el) el.textContent = t + ' · ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   }
   function persistLocal() { S.dirty = true; saveState(); }
+  /* 엑셀에서 새로 올린 단가표는 이 기기에 따로 잠가 둔다 */
+  function saveBase() {
+    if (!S.key || S.demo) return;
+    var payload = { v: 1, built: S.payload.built, chs: S.payload.chs, items: S.base, chRows: S.rowsBase, hana: S.hanaBase };
+    C.sealJSON(S.key, payload, true).then(function (box) {
+      if (!lsSet(K_BASE, box)) toast('이 기기 저장 공간이 부족해 다음에 열면 원래 단가표로 돌아갑니다', true);
+    }).catch(function () {});
+  }
+  function loadBase() {
+    var box = lsGet(K_BASE);
+    if (!box || !S.key) return Promise.resolve(null);
+    return C.unsealJSON(S.key, box).catch(function () { return null; });
+  }
 
   /* ═════════════ 계산 도우미 ═════════════ */
   function rowOf(o, ch) {
@@ -579,6 +593,8 @@
     $('#set-items').textContent = nfmt(S.items.length) + '개';
     $('#set-bases').textContent = nfmt(g.length) + '개';
     $('#set-built').textContent = (S.payload && S.payload.built) || '-';
+    $('#set-src').textContent = S.custom ? '올린 엑셀' : '암호화 단가표';
+    $('#set-baseoffwrap').hidden = !S.custom;
     var log = S.edits.log || [];
     $('#set-logcnt').textContent = log.length + '건';
     $('#set-log').innerHTML = log.slice(0, 12).map(function (l) {
@@ -742,6 +758,7 @@
         setDoc({ v: 1, built: new Date().toISOString().slice(0, 10), chs: [{ id: 'kd', label: '경덕(기본)' }], items: items, chRows: {}, hana: [] });
         S.edits = { it: {}, row: {}, add: [], del: {}, log: [] };
         S.rowsBase = {}; S.hanaBase = [];
+        S.custom = true; saveBase();
         persistLocal();
         renderMat(); renderAll(); renderCompare(); renderSet();
         toast(items.length + '개 품목으로 바꿨습니다');
@@ -807,6 +824,7 @@
             S.key = key;
             lsSet(K_META, { salt: header.salt, it: header.it });
             C.idbPut('dk', key);
+            saveState();
             toast('data.enc.json 을 내려받았습니다 · GitHub에 올리면 모든 기기에 적용됩니다');
           });
         });
@@ -854,14 +872,17 @@
     return fetchHeader().then(function (header) {
       return C.openBundle(header, pw).then(function (r) {
         S.header = header; S.key = r.key;
-        setDoc(r.payload);
+        setDoc(r.payload, true);
         if (keep) {
           C.idbPut('dk', r.key);
           lsSet(K_META, { salt: header.salt, it: header.it });
         }
         return C.sealJSON(r.key, r.payload, true).then(function (blob) {
           C.idbPut('payload', { built: header.built, blob: blob });
-        }).then(function () { return restoreState(r.key); });
+        }).then(function () { return loadBase(); }).then(function (b) {
+          if (b && b.items && b.items.length) { setDoc(b); S.custom = true; }
+          return restoreState(S.key);
+        });
       });
     });
   }
@@ -929,8 +950,11 @@
         if (header.salt !== meta.salt) return null;
         S.header = header;
         return loadPayload(header, key).then(function (payload) {
-          S.key = key; setDoc(payload);
-          return restoreState(key).then(showApp);
+          S.key = key; setDoc(payload, true);
+          return loadBase().then(function (b) {
+            if (b && b.items && b.items.length) { setDoc(b); S.custom = true; }
+            return restoreState(key);
+          }).then(showApp);
         });
       }).catch(function () { return null; });
     }).then(function (done) {
@@ -1112,6 +1136,17 @@
     $('#set-export').onclick = exportEnriched;
     $('#set-import').onclick = function () { pickFile('.xlsx,.xls,.csv', importMaster); };
     $('#set-encurl2').onclick = makeEncFile;
+    $('#set-baseoff').onclick = function () {
+      ask('원래 단가표로', '올린 엑셀 대신 처음 받은 암호화 단가표로 돌아갑니다.<br>이 기기에서 바꾼 단가 수정도 함께 지워집니다.', '되돌리기', true).then(function (ok) {
+        if (!ok) return;
+        lsDel(K_BASE); S.custom = false;
+        setDoc(S.origin || S.payload);
+        S.edits = { it: {}, row: {}, add: [], del: {}, log: [] };
+        rebuild(); persistLocal();
+        renderMat(); renderAll(); renderCompare(); renderSet();
+        toast('원래 단가표로 돌아갔습니다');
+      });
+    };
     $('#set-undo').onclick = undoLast;
     $('#set-lock').onclick = function () {
       ask('잠글까요?', '이 기기에 저장된 단가표 열쇠를 지웁니다.<br>다시 열려면 단가표 비밀번호가 필요합니다.', '잠그기', true)

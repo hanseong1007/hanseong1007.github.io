@@ -87,8 +87,8 @@
     </div>
     <div class="statline" id="all-stat"></div>
     <div class="rowbtn">
-      <button class="btn soft" id="all-export" type="button">⬇ 엑셀 내려받기</button>
-      <button class="btn soft" id="all-import" type="button">⬆ 엑셀 단가표 올리기</button>
+      <button class="btn soft" id="all-export" type="button">⬇ 엑셀 받기</button>
+      <button class="btn soft" id="all-import" type="button">⬆ 단가표 올리기</button>
     </div>
     <div class="tblhead" id="all-head"></div>
     <div class="plist" id="all-list"></div>
@@ -122,7 +122,7 @@
       </div>
       <div class="sug" id="cmp-sug" hidden></div>
       <div class="rowbtn">
-        <button class="btn soft" id="cmp-import" type="button">⬆ 거래처 단가표 올리기</button>
+        <button class="btn soft" id="cmp-import" type="button">⬆ 단가표 올리기</button>
         <button class="btn soft" id="cmp-clear" type="button">비우기</button>
       </div>
     </div>
@@ -141,10 +141,14 @@
       <div class="kv"><span>품목</span><b id="set-items">-</b></div>
       <div class="kv"><span>원물</span><b id="set-bases">-</b></div>
       <div class="kv"><span>불러온 날</span><b id="set-built">-</b></div>
+      <div class="kv"><span>자료</span><b id="set-src">암호화 단가표</b></div>
       <div class="kv"><span>저장</span><b id="set-save">-</b></div>
       <div class="rowbtn">
         <button class="btn soft" id="set-export" type="button">⬇ 전체 단가표 엑셀</button>
         <button class="btn soft" id="set-import" type="button">⬆ 새 단가표 엑셀 올리기</button>
+      </div>
+      <div class="rowbtn" id="set-baseoffwrap" hidden>
+        <button class="btn soft" id="set-baseoff" type="button">↺ 원래 암호화 단가표로 되돌리기</button>
       </div>
       <p class="note">엑셀은 이 기기에 저장된 <b>수정된 단가</b> 기준으로 만듭니다.</p>
     </div>

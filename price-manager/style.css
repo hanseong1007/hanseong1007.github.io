@@ -155,7 +155,7 @@ main{max-width:920px;margin:0 auto;padding:12px 12px calc(24px + var(--safe-b))}
 .sug b{font-size:13.5px}
 .sug span{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
 .sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.sum div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;
+.sum div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:11.5px;
   color:var(--muted);font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
 .sum div b{display:inline-block;font-size:17px;color:var(--ink);letter-spacing:-.4px;margin:0 1px}
 .sum div.bad b{color:var(--danger)}
