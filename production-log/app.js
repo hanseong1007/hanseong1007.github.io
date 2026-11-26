@@ -478,11 +478,20 @@
     return '오전';
   }
   function applyRow(row) {
-    if (pickTarget >= 0 && log.rows[pickTarget]) log.rows[pickTarget] = row;
-    else { log.rows = log.rows || []; log.rows.push(row); }
+    var target = -1;
+    if (pickTarget >= 0 && log.rows[pickTarget]) { log.rows[pickTarget] = row; target = pickTarget; }
+    else {
+      /* 빈 줄이 있으면 그 줄을 채운다 (새 일지는 빈 줄 1개로 시작) */
+      for (var i = 0; i < (log.rows || []).length; i++) {
+        var r = log.rows[i];
+        if (!String(r.name || '').trim() && !String(r.qty || '').trim()) { target = i; break; }
+      }
+      if (target >= 0) log.rows[target] = row;
+      else { log.rows = log.rows || []; log.rows.push(row); target = log.rows.length - 1; }
+    }
     renderRows();
-    var inputs = $$('#rows-body input[data-f="qty"]');
-    if (inputs.length) inputs[inputs.length - 1].focus();
+    var q = document.querySelector('#rows-body tr[data-row="' + target + '"] [data-f="qty"]');
+    if (q) q.focus();
   }
 
   /* 바코드 */
