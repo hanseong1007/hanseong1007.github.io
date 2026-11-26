@@ -115,7 +115,7 @@ textarea.inp{height:auto;min-height:64px;padding:9px 11px;line-height:1.5;resize
        font-size:12px;font-weight:800;color:var(--ink2);white-space:nowrap}
 .fchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
 .fchip .n{font-weight:800;opacity:.75;margin-left:3px}
-.fsort{display:flex;align-items:center;gap:6px;margin:2px 0 0}
+.fsort{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:2px 0 0}
 .fsort select{height:32px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:12.5px;font-weight:700;padding:0 6px}
 .item .tx b .tagm{display:inline-block;font-size:10.5px;font-weight:800;color:var(--brand-dark);background:var(--brand-soft);
             border:1px solid var(--brand-line);border-radius:6px;padding:0 5px;margin-left:5px;vertical-align:1px}
