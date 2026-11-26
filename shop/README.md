@@ -84,6 +84,32 @@
 
 ---
 
+### ⑥ 쿠팡 경덕농수산 전체 상품 141개 등록 (2026-11-26)
+쿠팡 스토어 `주식회사 경덕농수산`(shop.coupang.com/A00252567, **전체 141개**)에 올라와 있는 상품을
+빠짐없이 쇼핑몰에 등록했습니다. 기존 바다로운 10개 상품은 그대로 두고 뒤에 붙였습니다 — **합계 151개**.
+
+- **수집** — 쿠팡 스토어 목록을 끝까지 스크롤해 상품ID·옵션ID·상품명·판매가·품절 여부·썸네일을 받아
+  `tools/build_coupang_products.py` 의 원본 표로 정리했습니다(141줄).
+- **이미지** — 쿠팡 썸네일을 내려받아 `images/coupang/{상품ID}.webp` 로 저장(492px WebP, 평균 40KB, 합계 2.7MB).
+  같은 상품의 옵션(예: 황태채 150g/300g/500g/1kg)은 상품ID가 같아 사진 한 장을 함께 씁니다 — 파일 64개.
+- **분류** — 쿠팡 스토어의 분류를 쇼핑몰 분류 8개로 묶었습니다.
+  `땅콩·호두 21 · 견과·씨앗 21 · 쥐포·어포 28 · 황태·진미채 20 · 김·미역·해조류 18 · 건과일·건채소 14 · 건새우·다시팩 13 · 조미료·건강재료 6`
+  (기존 상품의 `오징어 4 · 건어물 2 · 견과류 2 · 선물세트 2` 는 그대로)
+- **상품명** — 쿠팡 상품명의 홍보성 키워드(대용량·업소용·식자재용·볶음용 등)를 덜어 내고 규격을 뒤에 붙였습니다.
+  같은 상품이 두 번 나오지 않도록 「황태부채포 350g (중)/(왕)」처럼 옵션명을 붙인 경우가 있습니다.
+  원래 쿠팡 상품명은 `products.json` 의 `coupangName` 에, 상품 주소는 `coupangUrl` 에 남겨 두었습니다.
+- **가격** — 쿠팡 판매가를 소비자가·판매가에 같이 넣었습니다(할인 전 가격이 목록에 없어 할인율은 표시되지 않습니다).
+- **도매가는 0원(비어 있음)** — 쿠팡 상품은 도매가를 정하지 않았습니다. 관리자 화면이나 엑셀에서 채우면 거래처에 표시됩니다.
+- **원산지** — 상품명에 `[중국산]`, `국산/국내산`, `남해안·고흥·완도·삼천포` 가 있는 것만 적고 나머지는 `상품 표시사항 참조`.
+- **품절 7개** — 쿠팡에서 품절인 상품(반건조 무화과 3종, 황태속살채 10kg, 살옆채 3종)은 **품절**로 등록했습니다.
+
+### ⑦ 관리자 📦 상품 관리 — 상품 검색 + 분류 필터 (151개 규모)
+- 상품 목록 위에 **검색창 · 분류 선택 · 초기화** 를 두었습니다. 상품명·상품ID·분류·규격·원산지·한 줄 설명으로 찾습니다.
+- **한 번에 40개씩** 보여 주고 「N개 상품 더 보기」로 이어서 봅니다(휴대폰에서도 느려지지 않게).
+- 오른쪽에 `18개 찾음 / 전체 151개` 처럼 몇 개가 걸렸는지 표시합니다.
+- 쇼핑몰 검색창도 **상품명·규격·분류**를 함께 찾습니다(예: `500g`, `땅콩·호두`).
+- 분류 탭은 **상품이 많은 분류부터** 나열합니다.
+
 ## 2. 기기 간 동기화 (Google 시트 + Apps Script) — **연결 완료**
 
 회원·거래처·주문을 여러 기기에서 같이 쓰려면 `apps-script/shop-sync.gs` 를 배포해 연결합니다.
@@ -232,7 +258,11 @@ documents/shop/
 ├── products.json                 상품·가격·가게 정보·기본 거래처
 ├── details.json                  상품별 상세페이지 문구·이미지
 ├── fonts/PretendardVariable.woff2
+├── tools/
+│   ├── build_coupang_products.py  쿠팡 141개 원본 표 → products.json + images/coupang/*.webp
+│   └── build_xlsx.py              products.json → downloads/바다로운_상품관리.xlsx
 ├── images/
+│   ├── coupang/                   쿠팡 상품 썸네일 64장(webp, 141개 상품이 나눠 씀)
 │   ├── pack-500g.jpg / pack-1kg.jpg / pack-set.jpg    실제 제품컷
 │   ├── cut-01~04.jpg             요리·브랜드 컷
 │   ├── logo-blue.png / logo-white.png
@@ -246,7 +276,12 @@ documents/shop/
 ├── screenshot-detail-coupang-mobile.png  쿠팡형 상세(모바일)
 ├── screenshot-shop-admin.png             관리자 거래처·회원 관리
 ├── screenshot-shop-product-admin.png     관리자 📦 상품 관리(가격·원산지·재고·소비기한)
-└── screenshot-shop-login-mobile.png      모바일 로그인
+├── screenshot-shop-login-mobile.png      모바일 로그인
+├── screenshot-shop-151-grid-pc.png       전체 상품 151개(PC, 분류 탭 13개)
+├── screenshot-shop-151-admin.png         관리자 📦 상품 관리(검색·분류 필터·40개씩 보기)
+├── screenshot-shop-151-admin-filter.png  관리자 상품 검색("미역" 18개)
+├── screenshot-shop-151-mobile-grid.png   전체 상품 151개(모바일)
+└── screenshot-detail-coupang-151-pc.png  쿠팡에서 가져온 상품의 상세페이지
 
 scripts/
 ├── shop_products_seed.py        products.json → 시트 products/settings 채우기
