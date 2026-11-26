@@ -76,6 +76,7 @@
       rawStore.start();
     }).catch(function () { rawItems = []; });
   }
+  $('#btn-set').onclick = function () { if (store) openSet(); };
   $('#btn-gate-portal').onclick = K.goPortal;
   $('#btn-portal').onclick = K.goPortal;
   $('#sync-chip').onclick = function () { store.push().then(function (ok) { if (ok) toast('시트에 저장했습니다'); }); };

@@ -56,6 +56,7 @@
     render();
   }
 
+  $('#btn-set').onclick = function () { if (store) openSet(); };
   $('#btn-gate-portal').onclick = K.goPortal;
   $('#btn-portal').onclick = K.goPortal;
   $('#sync-chip').onclick = function () {
