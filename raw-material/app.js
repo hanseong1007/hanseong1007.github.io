@@ -147,6 +147,7 @@
     });
   }
   $('#q').addEventListener('input', render);
+  $('#btn-new-item').onclick = function () { openEdit(null); };
   $('#list').addEventListener('click', function (e) {
     var b = e.target.closest('[data-open]');
     if (b) openView(b.getAttribute('data-open'));
