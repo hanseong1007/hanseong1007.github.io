@@ -62,4 +62,6 @@
 
 ## 검사
 
-- `python3 scripts/test_raw_prod_apps.py` — 포털 로그인 → 원물 7개 등록 → 라벨 → 생산일지 자동 채움 → 결재 → 인쇄 → 다른 기기 동기화 → 계정별 메뉴·잠금 (27항목)
+- `python3 scripts/test_raw_prod_apps.py` — 포털 로그인 → 원물 등록 → 라벨 → 생산일지 자동 채움 → 결재 → 인쇄 → 다른 기기 동기화 → 계정별 메뉴·잠금 (27항목, 로컬 · 실제 시트)
+- `python3 scripts/test_raw_prod_mock.py` — 사진 첨부·암호화 업로드, 유통기한 자동계산, 바코드 입력 (9항목, 가짜 시트)
+- `python3 scripts/test_raw_prod_live.py` — 배포본 포털 9메뉴·열기·라벨·자동채움·오류 0건 (9항목, PC·모바일)
