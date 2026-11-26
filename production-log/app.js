@@ -62,7 +62,14 @@
   }
   function loadRaw() {
     rawStore = new K.Store('raw');
-    rawStore.hooks = { paint: function () {}, afterPull: function () { rawItems = rawStore.list(); } };
+    rawStore.hooks = {
+      paint: function () {},
+      afterPull: function () {
+        rawItems = rawStore.list();
+        if (!$('#modal-pick').hidden) renderPickList();
+        if (log && !$('#modal-edit').hidden) renderRows();
+      }
+    };
     rawStore.unlock().then(function (r) {
       if (!r.ok) { rawItems = []; return; }
       rawItems = rawStore.list();
@@ -395,6 +402,9 @@
   var pickTarget = -1, pickTab = 'search', scanTimer = null, scanStream = null;
   function openPicker(tab) {
     renderPickList();
+    if (!rawItems.length && rawStore && rawStore.ready && rawStore.ready()) {
+      rawStore.pull(true).then(function () { rawItems = rawStore.list(); renderPickList(); }).catch(function () {});
+    }
     $('#p-q').value = '';
     $('#p-code').value = '';
     $('#p-photo-list').innerHTML = '';
@@ -418,7 +428,7 @@
     var hit = (rawItems || []).filter(function (it) { return K.matchQuery(it.name, q) || K.matchQuery(it.aliases, q) || K.matchQuery(it.barcode, q); })
       .sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ko'); });
     $('#p-list').innerHTML = hit.length ? hit.slice(0, 60).map(pickRowHtml).join('') :
-      '<div class="empty">' + (rawItems.length ? '검색 결과가 없습니다.' : '원물 정보에 등록된 품목이 없습니다.<br>원물 정보 앱에서 먼저 등록해 주세요.') + '</div>';
+      '<div class="empty">' + (rawItems.length ? '검색 결과가 없습니다.' : '원물 정보를 불러오는 중입니다…<br>잠시 뒤 다시 열어 주세요. 처음이면 원물 정보 앱에서 품목을 먼저 등록해 주세요.') + '</div>';
   }
   function pickRowHtml(it) {
     return '<div class="pickrow"><div><b>' + esc(it.name) + '</b><span>' +
