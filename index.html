@@ -278,13 +278,23 @@
         <span class="tx"><b>바다로운 쇼핑몰</b><span>건어물·견과류 · 회원 주문</span></span>
         <span class="ar" aria-hidden="true">›</span>
       </a>
+      <a class="mcard" id="menu-raw" href="./raw-material/" data-app="rm">
+        <span class="em" aria-hidden="true">🏷️</span>
+        <span class="tx"><b>원물정보</b><span>품목·원산지·유통기한·표시사항 라벨</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
+      <a class="mcard" id="menu-prod" href="./production-log/" data-app="prod">
+        <span class="em" aria-hidden="true">🗒️</span>
+        <span class="tx"><b>생산일지</b><span>날짜별 생산 기록 · 전자결재 · A4 인쇄</span></span>
+        <span class="ar" aria-hidden="true">›</span>
+      </a>
     </nav>
     <p id="menu-none" hidden>접근 가능한 메뉴가 없습니다.<br>관리자에게 문의하세요.
       <span>관리자가 사용자 관리에서 이 계정의 메뉴를 지정하면 열립니다.</span></p>
 
     <section class="card" id="sec-account">
       <h2>내 계정</h2>
-      <p class="sub">여섯 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 여섯 앱에 함께 바뀝니다.</p>
+      <p class="sub">모든 앱이 같은 아이디·비밀번호를 씁니다. 여기서 바꾸면 모든 앱에 함께 바뀝니다.</p>
       <div class="kv"><span class="k">이름</span><span class="v" id="acc-name">-</span></div>
       <div class="kv"><span class="k">아이디</span><span class="v" id="acc-id">-</span></div>
       <div class="kv"><span class="k">메뉴</span><span class="v" id="acc-menus">-</span></div>
@@ -350,6 +360,8 @@
           <label class="mopt"><input type="checkbox" value="coupang"> <span>쿠팡택배</span></label>
           <label class="mopt"><input type="checkbox" value="price"> <span>상품단가</span></label>
           <label class="mopt"><input type="checkbox" value="shop"> <span>쇼핑몰</span></label>
+          <label class="mopt"><input type="checkbox" value="raw"> <span>원물정보</span></label>
+          <label class="mopt"><input type="checkbox" value="prod"> <span>생산일지</span></label>
         </div>
         <p class="note" style="margin-top:6px">고른 메뉴만 그 직원에게 보입니다. 한 개만 고르면 로그인하자마자 그 화면으로 들어갑니다.
           admin·박한성 계정은 전체 메뉴 고정입니다.</p>
@@ -370,7 +382,7 @@
       <div class="divider"></div>
       <div id="users-list"></div>
       <p class="sub2">앱(발주·업무일지·근태·택배주소출력·쿠팡택배·상품단가)의 <b>내 계정 → 사용자 관리</b>에서 만든 계정도 여기로 모입니다.
-        비밀번호 재설정은 여섯 앱에 함께 적용됩니다.</p>
+        비밀번호 재설정은 모든 앱에 함께 적용됩니다.</p>
     </section>
 
     <p class="foot">이 포털에서 로그인한 상태로 앱을 열면 다시 로그인하지 않습니다.<br>
@@ -530,7 +542,12 @@
     /* 상품단가·가격비교 — 포털 계정(p1)·SSO 세션을 그대로 쓰고, 단가 자료는 따로 암호로 잠근다 */
     pm:  { label:'상품단가', dir:'price-manager', users:'pm.users.v1', sess:'pm.session.v1', tmp:'pm.session.tmp.v1',
            noseed:'pm.noadmin.v1', hp:'p1|', mk:'pmi1|', pp:'pmw1|',
-           wrap:'', wrapPw:'', adminName:'관리자' }
+           wrap:'', wrapPw:'', adminName:'관리자' },
+    /* 원물정보 · 생산일지 — 포털 계정(p1)·SSO 세션을 그대로 쓰는 화면(자체 계정 저장소 없음) */
+    rm:  { label:'원물정보', dir:'raw-material', users:'rm.users.v1', sess:'rm.session.v1', tmp:'rm.session.tmp.v1',
+           noseed:'rm.noadmin.v1', hp:'p1|', mk:'rmi1|', pp:'rmw1|', wrap:'', wrapPw:'', adminName:'관리자' },
+    prod:{ label:'생산일지', dir:'production-log', users:'prod.users.v1', sess:'prod.session.v1', tmp:'prod.session.tmp.v1',
+           noseed:'prod.noadmin.v1', hp:'p1|', mk:'prodi1|', pp:'prodw1|', wrap:'', wrapPw:'', adminName:'관리자' }
   };
   var ORDER = ['kd', 'kdw', 'att'];
   var P_USERS = 'kd.portal.users.v1';
@@ -581,10 +598,11 @@
      admin · 이름 '박한성' 계정은 전체 메뉴 고정,
      예전 계정(menus 없음)은 발주만 (지금까지 동작 그대로).
      ============================================================ */
-  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang', 'price', 'shop'];
-  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배', price:'상품단가', shop:'쇼핑몰' };
-  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp', price:'pm' };
+  var MENU_KEYS = ['order', 'worklog', 'attendance', 'parcel', 'coupang', 'price', 'shop', 'raw', 'prod'];
+  var MENU_LABEL = { order:'발주화면', worklog:'업무일지', attendance:'근태·연차', parcel:'택배주소출력', coupang:'쿠팡택배', price:'상품단가', shop:'쇼핑몰', raw:'원물정보', prod:'생산일지' };
+  var MENU_APP = { order:'kd', worklog:'kdw', attendance:'att', parcel:'pl', coupang:'cp', price:'pm', raw:'rm', prod:'prod' };
   function menuUrl(k){ return k === 'shop' ? (appBase() + 'shop/') : appUrl(MENU_APP[k]); }
+  var MENU_DIRECT = { shop:'shop/', raw:'raw-material/', prod:'production-log/' };
   function isAdminUser(u){ return !!u && roleOf(u.id, u.name) === 'admin'; }
   function normMenus(list){
     if(!Array.isArray(list)) return null;
@@ -1685,6 +1703,8 @@
     if($('#menu-coupang')) $('#menu-coupang').href = appUrl('cp');
     if($('#menu-price')) $('#menu-price').href = appUrl('pm');
     if($('#menu-shop')) $('#menu-shop').href = appBase() + 'shop/';
+    if($('#menu-raw')) $('#menu-raw').href = appBase() + 'raw-material/';
+    if($('#menu-prod')) $('#menu-prod').href = appBase() + 'production-log/';
     /* 이 사람에게 허용된 메뉴 카드만 남긴다 */
     var ms = u ? menusOf(u) : MENU_KEYS.slice();
     MENU_KEYS.forEach(function(k){
@@ -1728,6 +1748,8 @@
     if(!admin && ms.length === 1 && !stayRequested()){
       var only = MENU_APP[ms[0]];
       if(ms[0] === 'shop'){ location.replace(menuUrl('shop')); return; }
+      if(ms[0] === 'raw'){ location.replace(appBase() + 'raw-material/'); return; }
+      if(ms[0] === 'prod'){ location.replace(appBase() + 'production-log/'); return; }
       if(only === 'pl' && PL_SEED){ waitParcelSeed().then(function(){ location.replace(appUrl(only)); }); return; }
       location.replace(appUrl(only));
       return;

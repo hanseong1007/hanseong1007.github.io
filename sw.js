@@ -55,6 +55,8 @@ self.addEventListener('fetch', function (e) {
   if (rel.indexOf('parcel-label/') === 0) return;           /* 택배주소출력 앱은 캐시하지 않는다 */
   if (rel.indexOf('coupang-order/') === 0) return;          /* 쿠팡택배 앱은 캐시하지 않는다 */
   if (rel.indexOf('price-manager/') === 0) return;          /* 상품단가 앱은 캐시하지 않는다(암호화 자료) */
+  if (rel.indexOf('raw-material/') === 0) return;           /* 원물정보 앱은 캐시하지 않는다(암호화 자료) */
+  if (rel.indexOf('production-log/') === 0) return;         /* 생산일지 앱은 캐시하지 않는다(암호화 자료) */
 
   /* 화면 이동: 네트워크 우선 */
   if (req.mode === 'navigate') {

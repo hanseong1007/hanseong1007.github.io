@@ -1,13 +1,13 @@
 # 경덕농수산 통합 로그인 포털
 
-발주 · 업무일지 · 근태·연차 · 택배주소출력 · 쿠팡택배 · 바다로운 쇼핑몰 여섯 화면을 한 곳에서 여는 첫 화면입니다.
-`admin`(또는 이름이 `박한성`)으로 로그인하면 **여섯 메뉴 전부**와 사용자 관리가 나오고,
+발주 · 업무일지 · 근태·연차 · 택배주소출력 · 쿠팡택배 · 상품단가 · 바다로운 쇼핑몰 · 원물정보 · 생산일지 **아홉 화면**을 한 곳에서 여는 첫 화면입니다.
+`admin`(또는 이름이 `박한성`)으로 로그인하면 **아홉 메뉴 전부**와 사용자 관리가 나오고,
 그 외 직원은 **관리자가 지정한 메뉴만** 보입니다(한 개면 그 앱으로 바로, 두 개 이상이면 포털 메뉴 화면,
 아무것도 없으면 "접근 가능한 메뉴가 없습니다" 안내).
 
 - 앱 파일: `documents/portal/index.html` (단일 HTML · 외부 라이브러리·서버 없음)
 - 배포 주소: `https://hanseong1007.github.io/` (저장소 `hanseong1007/hanseong1007.github.io`)
-- 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` · `/parcel-label/` · `/coupang-order/` (같은 출처)
+- 앱 주소: `/order-app/` · `/worklog-app/` · `/attendance-app/` · `/parcel-label/` · `/coupang-order/` · `/price-manager/` · `/shop/` · `/raw-material/` · `/production-log/` (같은 출처)
 - 쿠팡택배 앱: `coupang-order/index.html` · `coupang-order/xlsx.full.min.js` (SheetJS) — 설명은 `coupang-order/README.md`
 - 검증: `scripts/test_portal_coupang.py` (20항목, 포털 다섯 번째 메뉴·SSO 이어받기, 로컬/배포본) · `scripts/test_coupang_order_app.py` (37항목) · `scripts/test_coupang_upload.py` (15항목) · `scripts/test_coupang_edge.py` (12항목) · `scripts/test_portal.py` (95항목, 로컬) · `scripts/test_portal_menus.py` (65항목, 사용자별 메뉴·쇼핑몰 메뉴) · `scripts/test_portal_shop.py` (24항목, 6번째 메뉴→쇼핑몰·쿠팡형 상세) · `scripts/test_portal_pwa.py` (53항목, PC 앱 설치·서비스워커·오프라인) · `scripts/test_portal_pwa_live.py` (43항목, 배포본 PWA·설치성 검사) · `scripts/test_portal_live.py` (28항목, 배포본) · `scripts/test_sheet_users_session_sync.py` (41항목, 로그인된 세션 자동 동기화) · `scripts/test_portal_parcel.py` (29항목, 포털→택배주소출력 1회 로그인·보안)
 - 배포: `bash scripts/deploy_portal.sh`
@@ -33,7 +33,7 @@
 | 화면 | 내용 |
 |---|---|
 | 로그인 | 아이디·비밀번호·`로그인 유지`. 로그인 화면에는 초기 계정 안내를 넣지 않았습니다. |
-| 대시보드(관리자) | 📦 발주 · 📝 업무일지 · 📅 근태·연차 · 🚚 택배주소출력 · 🧾 쿠팡택배 · 🛒 바다로운 쇼핑몰 메뉴, 내 계정(비밀번호 변경·로그아웃), 👥 사용자 관리(직원 추가·결재 권한·**메뉴 선택**·초대 링크·비밀번호 재설정·삭제·☁️ 이 기기 계정으로 전체 업데이트). |
+| 대시보드(관리자) | 📦 발주 · 📝 업무일지 · 📅 근태·연차 · 🚚 택배주소출력 · 🧾 쿠팡택배 · 💰 상품단가 · 🛒 바다로운 쇼핑몰 · 🏷️ 원물정보 · 🗒️ 생산일지 메뉴, 내 계정(비밀번호 변경·로그아웃), 👥 사용자 관리(직원 추가·결재 권한·**메뉴 선택**·초대 링크·비밀번호 재설정·삭제·☁️ 이 기기 계정으로 전체 업데이트). |
 | 직원(메뉴 2개 이상) | 포털 메뉴 화면에 **허용된 메뉴 카드만** 보입니다. |
 | 직원(메뉴 1개) | `location.replace()`로 그 앱으로 이동. 포털에 머무르려면 `?stay=1`(앱의 `🔐 통합 포털` 버튼이 이 주소로 돌아옵니다). |
 | 직원(메뉴 0개) | 메뉴 카드 없이 "접근 가능한 메뉴가 없습니다. 관리자에게 문의하세요." |
@@ -42,9 +42,9 @@
 
 ## 사용자별 선택 메뉴 (`menus`)
 
-계정마다 볼 메뉴를 정합니다. 값은 `["order", "worklog", "attendance", "parcel", "coupang", "shop"]` 중 고른 것만 들어갑니다.
+계정마다 볼 메뉴를 정합니다. 값은 `["order", "worklog", "attendance", "parcel", "coupang", "price", "shop", "raw", "prod"]` 중 고른 것만 들어갑니다.
 
-- **admin · 이름이 `박한성`인 계정** — 언제나 전체 메뉴 고정(`menus` 값을 저장하지 않고 항상 여섯 개). 목록에는 `전체 메뉴(고정)`으로 표시됩니다.
+- **admin · 이름이 `박한성`인 계정** — 언제나 전체 메뉴 고정(`menus` 값을 저장하지 않고 항상 아홉 개). 목록에는 `전체 메뉴(고정)`으로 표시됩니다.
 - **일반 직원** — 관리자가 `사용자 관리`에서 고른 메뉴만 접근·표시.
 - **`menus` 필드가 없는 예전 계정** — 기본값 `["order"]`. 지금까지처럼 발주만 보이고 발주 화면으로 바로 들어갑니다.
 - **초대 링크**(`#invite=`)에 그 직원의 `menus` 가 함께 들어가, 새 기기에서도 같은 메뉴로 시작합니다.
