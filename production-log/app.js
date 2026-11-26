@@ -428,13 +428,20 @@
     var q = $('#p-q') ? ($('#p-q').value || '') : '';
     var hit = (rawItems || []).filter(function (it) { return K.matchQuery(it.name, q) || K.matchQuery(it.aliases, q) || K.matchQuery(it.barcode, q); })
       .sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ko'); });
-    $('#p-list').innerHTML = hit.length ? hit.slice(0, 60).map(pickRowHtml).join('') :
+    $('#p-list').innerHTML = hit.length ? hit.slice(0, 120).map(pickRowHtml).join('') :
       '<div class="empty">' + (rawItems.length ? '검색 결과가 없습니다.' : '원물 정보를 불러오는 중입니다…<br>잠시 뒤 다시 열어 주세요. 처음이면 원물 정보 앱에서 품목을 먼저 등록해 주세요.') + '</div>';
   }
   function pickRowHtml(it) {
-    return '<div class="pickrow"><div><b>' + esc(it.name) + '</b><span>' +
-      esc([it.origin, K.fmtDateShort(expiryOf(it)), it.weight, it.barcode].filter(Boolean).join(' · ') || '—') + '</span></div>' +
-      '<button class="go" type="button" data-add="' + esc(it.id) + '">넣기</button></div>';
+    var vr = (it.expVariants || []).filter(function (v) { return v.date; }).map(function (v) {
+      var lb = String(v.label || '');
+      if (lb.indexOf(it.name) === 0) lb = lb.slice(it.name.length).trim();
+      return lb + ' ' + K.fmtDateShort(v.date);
+    }).join(' / ');
+    return '<div class="pickrow"><div><b>' + esc(it.name) +
+      (it.category ? '<span class="tagm">' + esc(it.category) + '</span>' : '') + '</b><span>' +
+      esc([it.origin, K.fmtDateShort(expiryOf(it)), it.weight, it.barcode].filter(Boolean).join(' · ') || '—') + '</span>' +
+      (vr ? '<span>규격별 ' + esc(vr) + '</span>' : '') +
+      '</div><button class="go" type="button" data-add="' + esc(it.id) + '">넣기</button></div>';
   }
   function expiryOf(it) {
     if (!it) return '';

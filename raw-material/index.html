@@ -96,6 +96,7 @@
     <input class="inp" id="q" type="search" placeholder="품목명·별칭·바코드·초성 검색 (예: ㅈㅊㅍ)" autocomplete="off">
     <button class="btn" id="btn-new-item" type="button" style="min-width:96px">＋ 새 원물</button>
   </div>
+  <div class="filters" id="filters"></div>
   <p class="mini" id="count-line" style="margin:0 0 9px 2px">-</p>
   <div class="list" id="list"></div>
   <div class="empty" id="list-empty" hidden>등록된 원물이 없습니다.<br>＋ 새 원물로 첫 품목을 등록해 보세요.</div>
@@ -130,6 +131,13 @@
           <input class="inp" id="f-name" type="text" placeholder="품목명"></div>
         <div class="field"><label class="lbl" for="f-aliases">별칭 · 검색어</label>
           <input class="inp" id="f-aliases" type="text" placeholder="쉼표로 구분 (예: 별칭1, 별칭2)"></div>
+        <div class="field"><label class="lbl" for="f-cat">분류</label>
+          <select class="inp" id="f-cat">
+            <option value="건어물">건어물</option><option value="수산물">수산물</option>
+            <option value="해조류">해조류</option><option value="견과류">견과류</option>
+            <option value="농산물">농산물</option><option value="공산품">공산품</option>
+            <option value="기타">기타</option>
+          </select></div>
         <div class="grid2">
           <div class="field"><label class="lbl" for="f-barcode">바코드</label>
             <input class="inp" id="f-barcode" type="text" inputmode="numeric" placeholder="숫자"></div>
@@ -197,6 +205,9 @@
           </div>
           <p class="note" id="exp-calc">제조년월일을 넣으면 유통기한이 자동으로 계산됩니다.</p>
         </div>
+        <div class="field"><label class="lbl" for="f-expvar">규격별 소비기한 (한 줄에 하나)</label>
+          <textarea class="inp" id="f-expvar" placeholder="예: M 2028-05-29&#10;2L 2028-04-28&#10;3L 2027-07-05"></textarea>
+          <p class="note">규격마다 소비기한이 다를 때 적어 두면 목록·생산일지 품목 고르기에 함께 보입니다.</p></div>
       </div>
 
       <div class="card" style="margin:0 0 10px">

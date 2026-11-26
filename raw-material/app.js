@@ -16,6 +16,8 @@
   var DEF_NOTE = '1일 영양성분 기준치에 대한 비율(%)은 2,000kcal 기준이므로 개인의 필요 열량에 따라 다를 수 있습니다.';
 
   var store = null, editing = null, viewItem = null, photoThumbs = {}, currentZoom = [], zoomAt = 0;
+  var fltCat = 'all', fltExp = 'all', sortBy = 'name';
+  var CATS = ['건어물', '수산물', '해조류', '견과류', '농산물', '공산품', '기타'];
 
   /* ───────── 시작 ───────── */
   function paintSync() {
@@ -115,21 +117,83 @@
 
   function render() {
     var q = $('#q').value || '';
-    var all = items().sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ko'); });
+    var all = items();
     var hit = all.filter(function (it) {
       return K.matchQuery(it.name, q) || K.matchQuery(it.aliases, q) || K.matchQuery(it.barcode, q) ||
-             K.matchQuery(it.maker, q) || K.matchQuery(it.reportNo, q);
+             K.matchQuery(it.maker, q) || K.matchQuery(it.reportNo, q) || K.matchQuery(it.category, q);
     });
-    $('#count-line').textContent = all.length ? ('원물 ' + all.length + '개' + (q ? ' · 검색 ' + hit.length + '개' : '')) : '등록된 원물이 없습니다';
-    $('#list-empty').hidden = hit.length > 0;
-    $('#list').innerHTML = hit.map(function (it) {
+    var cats = {};
+    hit.forEach(function (it) { var c = it.category || '기타'; cats[c] = (cats[c] || 0) + 1; });
+    var shown = hit.filter(function (it) {
+      if (fltCat !== 'all' && (it.category || '기타') !== fltCat) return false;
+      if (fltExp !== 'all') {
+        var d = expOf(it), left = d ? K.daysLeft(d) : null;
+        if (fltExp === 'yes' && !d) return false;
+        if (fltExp === 'no' && d) return false;
+        if (fltExp === 'soon' && (left == null || left > 30)) return false;
+      }
+      return true;
+    });
+    shown.sort(function (a, b) {
+      if (sortBy === 'exp') {
+        var da = expOf(a) || '9999-99-99', db = expOf(b) || '9999-99-99';
+        if (da !== db) return da < db ? -1 : 1;
+      } else if (sortBy === 'recent') {
+        return (b.updatedAt || 0) - (a.updatedAt || 0);
+      }
+      return String(a.name).localeCompare(String(b.name), 'ko');
+    });
+    var withExp = all.filter(function (it) { return !!expOf(it); }).length;
+    $('#count-line').textContent = all.length
+      ? ('원물 ' + all.length + '개 · 소비기한 있음 ' + withExp + '개' +
+         (q || fltCat !== 'all' || fltExp !== 'all' ? ' · 지금 보기 ' + shown.length + '개' : ''))
+      : '등록된 원물이 없습니다';
+    renderFilters(cats, hit.length);
+    $('#list-empty').hidden = shown.length > 0;
+    $('#list').innerHTML = shown.map(function (it) {
       return '<button class="item" type="button" data-open="' + esc(it.id) + '">' +
         '<span class="thumb" id="th-' + esc(it.id) + '">🧺</span>' +
-        '<span class="tx"><b>' + esc(it.name) + '</b>' +
-        '<span>' + esc([it.origin, it.weight, it.barcode].filter(Boolean).join(' · ') || '—') + '</span></span>' +
+        '<span class="tx"><b>' + esc(it.name) +
+        (it.category ? '<span class="tagm">' + esc(it.category) + '</span>' : '') + '</b>' +
+        '<span>' + esc([it.origin, it.weight, it.barcode].filter(Boolean).join(' · ') || '—') + '</span>' +
+        (it.expVariants && it.expVariants.length
+          ? '<span class="sub2">규격별 ' + esc(it.expVariants.map(function (v) {
+            var lb = String(v.label || '');
+            if (lb.indexOf(it.name) === 0) lb = lb.slice(it.name.length).trim();
+            return lb + ' ' + K.fmtDateShort(v.date);
+          }).join(' / ')) + '</span>' : '') +
+        '</span>' +
         '<span class="ar">' + expBadge(it) + '</span></button>';
     }).join('');
-    hit.slice(0, 40).forEach(function (it) { fillThumb(it); });
+    shown.slice(0, 40).forEach(function (it) { fillThumb(it); });
+  }
+  function renderFilters(cats, n) {
+    var box = $('#filters');
+    if (!box) return;
+    var catHtml = '<div class="frow" id="cat-chips">' +
+      '<button class="fchip' + (fltCat === 'all' ? ' on' : '') + '" type="button" data-cat="all">전체<span class="n">' + n + '</span></button>' +
+      CATS.filter(function (c) { return cats[c]; }).map(function (c) {
+        return '<button class="fchip' + (fltCat === c ? ' on' : '') + '" type="button" data-cat="' + esc(c) + '">' +
+          esc(c) + '<span class="n">' + cats[c] + '</span></button>';
+      }).join('') + '</div>';
+    var expHtml = '<div class="frow wrap" id="exp-chips">' +
+      [['all', '소비기한 전체'], ['yes', '소비기한 있음'], ['soon', '30일 내'], ['no', '기한 없음']].map(function (p) {
+        return '<button class="fchip' + (fltExp === p[0] ? ' on' : '') + '" type="button" data-exp="' + p[0] + '">' + p[1] + '</button>';
+      }).join('') + '</div>' +
+      '<div class="fsort"><span class="mini">정렬</span>' +
+      '<select id="sort-sel" aria-label="정렬">' +
+      '<option value="name"' + (sortBy === 'name' ? ' selected' : '') + '>이름순</option>' +
+      '<option value="exp"' + (sortBy === 'exp' ? ' selected' : '') + '>소비기한 빠른순</option>' +
+      '<option value="recent"' + (sortBy === 'recent' ? ' selected' : '') + '>최근 수정순</option>' +
+      '</select></div>';
+    box.innerHTML = catHtml + expHtml;
+    box.querySelectorAll('[data-cat]').forEach(function (b) {
+      b.onclick = function () { fltCat = b.getAttribute('data-cat'); render(); };
+    });
+    box.querySelectorAll('[data-exp]').forEach(function (b) {
+      b.onclick = function () { fltExp = b.getAttribute('data-exp'); render(); };
+    });
+    $('#sort-sel').onchange = function () { sortBy = this.value; render(); };
   }
   function repPhoto(it) {
     if (!it.photos || !it.photos.length) return null;
@@ -160,12 +224,14 @@
     viewItem = it;
     $('#v-name').textContent = it.name || '품목';
     var rows = [
-      ['품목명', it.name], ['별칭', it.aliases], ['바코드', it.barcode], ['품목보고번호', it.reportNo],
+      ['품목명', it.name], ['분류', it.category], ['별칭', it.aliases], ['바코드', it.barcode], ['품목보고번호', it.reportNo],
       ['류별·식품유형', it.type], ['원료·원산지', it.origin], ['원료명 및 함량', it.ingredients],
       ['알레르기', it.allergen], ['보관방법', it.storage], ['반품·교환', it.returnInfo], ['신고안내', it.notice],
       ['제조원', it.maker], ['주소', it.addr], ['TEL', it.tel], ['FAX', it.fax], ['제조가공지', it.place],
       ['중량·내용량', it.weight], ['제조년월일', it.madeDate ? K.fmtDateKo(it.madeDate) : ''],
       ['유통기한', expOf(it) ? (K.fmtDateKo(expOf(it)) + (it.expMode === 'date' ? '' : ' (제조일로부터 ' + expTermText(it) + ')')) : ''],
+      ['규격별 소비기한', (it.expVariants || []).map(function (v) { return v.label + ' ' + K.fmtDateShort(v.date); }).join(' / ')],
+      ['소비기한 출처', it.expSource],
       ['영양정보', nutSummary(it)], ['메모', it.memo]
     ].filter(function (r) { return r[1]; });
     var photos = (it.photos || []).map(function (p, i) {
@@ -226,6 +292,7 @@
       id: '', name: '', aliases: '', barcode: '', reportNo: '', type: '', origin: '', ingredients: '',
       allergen: '', storage: '', returnInfo: '', notice: '', maker: '', addr: '', tel: '', fax: '', place: '',
       weight: '', madeDate: '', expMode: 'term', expNum: '', expUnit: 'year', expiryDate: '',
+      category: '건어물', expVariants: [], expSource: '',
       nut: {}, memo: '', photos: []
     };
     $('#e-title').textContent = editing.name ? '원물 수정' : '새 원물';
@@ -238,6 +305,8 @@
     f('f-place', editing.place); f('f-weight', editing.weight); f('f-madedate', editing.madeDate);
     f('f-expnum', editing.expNum); f('f-expunit', editing.expUnit || 'year'); f('f-expdate', editing.expiryDate);
     f('f-memo', editing.memo);
+    f('f-cat', editing.category || '건어물');
+    f('f-expvar', (editing.expVariants || []).map(function (v) { return v.label + ' ' + v.date; }).join('\n'));
     var n = editing.nut || {};
     f('n-total', n.total || (editing.weight || '')); f('n-basis', n.basis || '100g당'); f('n-kcal', n.kcal);
     f('n-note', n.note || DEF_NOTE);
@@ -358,6 +427,16 @@
     editing.notice = v('f-notice'); editing.maker = v('f-maker'); editing.addr = v('f-addr');
     editing.tel = v('f-tel'); editing.fax = v('f-fax'); editing.place = v('f-place');
     editing.weight = v('f-weight'); editing.madeDate = v('f-madedate'); editing.memo = v('f-memo');
+    if ($('#f-cat')) editing.category = $('#f-cat').value || '기타';
+    if ($('#f-expvar')) {
+      editing.expVariants = v('f-expvar').split('\n').map(function (ln) {
+        var m = /^(.*?)\s+(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})$/.exec(ln.trim());
+        if (!m) return null;
+        var mm = m[3].length < 2 ? '0' + m[3] : m[3], dd = m[4].length < 2 ? '0' + m[4] : m[4];
+        return { label: m[1].trim(), date: m[2] + '-' + mm + '-' + dd };
+      }).filter(Boolean);
+    }
+    if (!editing.expSource && editing.expiryDate) editing.expSource = '직접 입력';
     readExpInputs();
     editing.expiryDate = expOf(editing);
     var nut = { total: v('n-total'), basis: v('n-basis'), kcal: v('n-kcal'), note: v('n-note') };
