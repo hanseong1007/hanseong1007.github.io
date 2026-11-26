@@ -530,6 +530,12 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
 
 /* ---------- 관리자: 상품 관리 ---------- */
 .prod-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+.prod-filter{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 11px;padding:10px;background:#F7F9FB;border:1px solid var(--line-2);border-radius:12px}
+.prod-filter input[type="search"]{flex:1 1 220px;min-width:0;height:36px;border:1px solid var(--line);border-radius:9px;padding:0 12px;font-size:13px;background:#fff;color:var(--navy)}
+.prod-filter select{flex:0 1 190px;height:36px;border:1px solid var(--line);border-radius:9px;padding:0 10px;font-size:13px;background:#fff;color:var(--navy)}
+.prod-filter .cnt{font-size:12px;color:var(--muted);font-weight:700;margin-left:auto}
+.prod-more{display:block;width:100%;margin:4px 0 14px;height:44px;border:1px dashed var(--line);border-radius:12px;background:#fff;color:var(--navy);font-size:13.5px;font-weight:800}
+.prod-more:hover{border-color:var(--mint);background:#F3FBF9}
 .prod-tools .btn{height:36px;font-size:12.5px;border-radius:9px;padding:0 13px}
 .prod-tools .btn.primary{background:var(--navy);color:#fff}
 .prod-tools .btn.primary:hover{background:var(--navy-2)}
@@ -1312,6 +1318,12 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
           <b>소비기한</b>은 <b>2027-06-30</b> 또는 <b>제조일로부터 12개월</b>처럼 적어 주세요. 엑셀로 한 번에 고쳐 올릴 수도 있습니다.
         </p>
         <p class="wm-sub">상품 <span id="prod-count"></span></p>
+        <div class="prod-filter">
+          <input type="search" id="prod-q" placeholder="상품명 · 상품ID · 분류 · 규격 검색" autocomplete="off" aria-label="상품 검색">
+          <select id="prod-cat" aria-label="분류 선택"><option value="">전체 분류</option></select>
+          <button type="button" class="btn xs" id="prod-filter-reset">초기화</button>
+          <span class="cnt" id="prod-filter-cnt"></span>
+        </div>
         <div id="prod-list" class="prod-list"></div>
       </section>
       <section data-adm-panel="common" hidden>
@@ -2521,14 +2533,51 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     '</div>';
   }
 
+  var prodQ = '', prodCat = '', prodLimit = 40;
+  var PROD_PAGE = 40;
+
+  function prodMatches(p){
+    if (prodCat && p.category !== prodCat) return false;
+    if (!prodQ) return true;
+    return (p.id + ' ' + p.name + ' ' + p.category + ' ' + (p.weight || '') + ' ' + (p.origin || '') + ' ' + (p.summary || ''))
+      .toLowerCase().indexOf(prodQ) >= 0;
+  }
+
+  function fillProdCatOptions(){
+    var sel = $('#prod-cat');
+    if (!sel) return;
+    var html = '<option value="">전체 분류</option>' + categoriesOf().filter(function(c){ return c !== '전체'; }).map(function(c){
+      return '<option value="' + esc(c) + '"' + (prodCat === c ? ' selected' : '') + '>' + esc(c) + '</option>';
+    }).join('');
+    if (sel.innerHTML !== html) sel.innerHTML = html;
+  }
+
   function renderProds(){
     var box = $('#prod-list');
     if (!box) return;
     var cnt = $('#prod-count');
     if (cnt) cnt.textContent = '(' + state.products.length + ')';
-    box.innerHTML = state.products.length
-      ? state.products.map(prodRowHTML).join('')
-      : '<div class="empty-note">상품이 없습니다. 「새 상품 추가」로 만들어 주세요.</div>';
+    fillProdCatOptions();
+    var list = state.products.filter(prodMatches);
+    var shown = list.slice(0, prodLimit);
+    var fcnt = $('#prod-filter-cnt');
+    if (fcnt){
+      fcnt.textContent = (list.length === state.products.length)
+        ? ('전체 ' + state.products.length + '개')
+        : (list.length + '개 찾음 / 전체 ' + state.products.length + '개');
+    }
+    var html = '';
+    if (!list.length){
+      html = state.products.length
+        ? '<div class="empty-note">검색 조건에 맞는 상품이 없습니다. 검색어나 분류를 바꿔 보세요.</div>'
+        : '<div class="empty-note">상품이 없습니다. 「새 상품 추가」로 만들어 주세요.</div>';
+    } else {
+      html = shown.map(prodRowHTML).join('');
+      if (list.length > shown.length){
+        html += '<button type="button" class="prod-more" id="prod-more">' + (list.length - shown.length) + '개 상품 더 보기</button>';
+      }
+    }
+    box.innerHTML = html;
     if (!prodSaving && !prodTimer) prodStatusBase();
   }
 
@@ -3372,9 +3421,12 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
 
   /* ---------------- 카테고리 ---------------- */
   function categoriesOf(){
-    var out = ['전체'];
-    state.products.forEach(function(p){ if (out.indexOf(p.category) < 0) out.push(p.category); });
-    return out;
+    var counts = {};
+    state.products.forEach(function(p){ counts[p.category] = (counts[p.category] || 0) + 1; });
+    var rest = Object.keys(counts).sort(function(a, b){
+      return (counts[b] - counts[a]) || String(a).localeCompare(String(b));
+    });
+    return ['전체'].concat(rest);
   }
   function renderChips(){
     var counts = {};
@@ -3427,7 +3479,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     var q = state.q.trim().toLowerCase();
     return state.products.filter(function(p){
       var okCat = state.cat === '전체' || p.category === state.cat;
-      var okQ = !q || (p.name + ' ' + p.summary + ' ' + p.category).toLowerCase().indexOf(q) >= 0;
+      var okQ = !q || (p.name + ' ' + p.summary + ' ' + p.category + ' ' + (p.weight || '')).toLowerCase().indexOf(q) >= 0;
       return okCat && okQ;
     });
   }
@@ -4235,7 +4287,19 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     });
     $('#admin-sync-now').addEventListener('click', syncNow);
     // 상품 관리
-    $('#prod-new').addEventListener('click', function(){ openProductForm(null); });
+    $('#prod-new').addEventListener('click', function(){ prodQ = ''; prodCat = ''; prodLimit = PROD_PAGE; if ($('#prod-q')) $('#prod-q').value = ''; if ($('#prod-cat')) $('#prod-cat').value = ''; openProductForm(null); });
+    (function(){
+      var pq = $('#prod-q'), pc = $('#prod-cat'), rst = $('#prod-filter-reset');
+      if (pq) pq.addEventListener('input', function(){ prodQ = this.value.trim().toLowerCase(); prodLimit = PROD_PAGE; renderProds(); });
+      if (pc) pc.addEventListener('change', function(){ prodCat = this.value; prodLimit = PROD_PAGE; renderProds(); });
+      if (rst) rst.addEventListener('click', function(){
+        prodQ = ''; prodCat = ''; prodLimit = PROD_PAGE;
+        if (pq) pq.value = '';
+        if (pc) pc.value = '';
+        renderProds();
+        if (pq) pq.focus();
+      });
+    })();
     $('#pn-close').addEventListener('click', function(){ closeWrap('pnew-backdrop'); pnEditId = null; });
     $('#pn-cancel').addEventListener('click', function(){ closeWrap('pnew-backdrop'); pnEditId = null; });
     $('#pnew-backdrop').addEventListener('click', function(e){
@@ -4295,6 +4359,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
     $('#prod-list').addEventListener('input', onProdEdit);
     $('#prod-list').addEventListener('change', onProdEdit);
     $('#prod-list').addEventListener('click', function(e){
+      if (e.target.closest('#prod-more')){ prodLimit += PROD_PAGE; renderProds(); return; }
       var btn = e.target.closest('[data-pact]');
       if (!btn) return;
       var row = btn.closest('[data-pid]');
