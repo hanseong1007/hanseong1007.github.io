@@ -1786,7 +1786,7 @@
     if(!S) return false;                       /* 보안 모듈이 없으면 예전 그대로 */
     if(!S.session()) return true;              /* 토큰 없음 */
     if(menu && !S.canUse(menu)) return true;   /* 앱이 거부할 메뉴로 보내지 않는다 */
-    if(!LOGIN_JUST && S.bouncedRecently(6000)) return true;  /* 방금 앱에서 되돌아옴 */
+    if(!LOGIN_JUST && S.bouncedRecently && S.bouncedRecently(6000)) return true;  /* 방금 앱에서 되돌아옴 */
     return false;
   }
   function menuPickHtml(u){
@@ -1933,7 +1933,7 @@
       setSessions(rec, keep);
       /* 방금 로그인했으니 앱으로 바로 보내도 된다 (되었돌아옴 표시를 지운다) */
       LOGIN_JUST = true;
-      var S1 = kdsec(); if(S1) S1.clearBounce();
+      var S1 = kdsec(); if(S1 && S1.clearBounce) S1.clearBounce();
       /* 택배주소출력 메뉴가 있으면 그 앱의 시트 토큰을 지금 받아 둔다 (앱에서 재로그인 없이) */
       seedParcelToken(rec, pw);
       /* 상품단가 메뉴가 있으면 단가표 열쇠를 풀 열쇠를 이 기기에 둔다 (앱에서 비밀번호 없이 입장) */
@@ -2173,7 +2173,7 @@
       stripStop();
       return;
     }
-    if(!LOGIN_JUST && S && (queryParam('stop') === '1' || S.bouncedRecently(6000))){
+    if(!LOGIN_JUST && S && (queryParam('stop') === '1' || (S.bouncedRecently && S.bouncedRecently(6000)))){
       showGate('「' + (MENU_LABEL[need] || need) + '」 화면으로 넘어가지 못했습니다 · 다시 로그인해 주세요');
       try{ history.replaceState(null, '', '/'); }catch(e){}
       return;
