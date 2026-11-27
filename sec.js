@@ -194,6 +194,7 @@
     if (denied) q.push('denied=' + encodeURIComponent(denied));
     if (extra && extra.stop) q.push('stop=1');
     if (extra && extra.idle) q.push('idle=1');
+    if (extra && extra.relogin) q.push('relogin=1');
     return '/' + (q.length ? '?' + q.join('&') : '');
   }
   function onPortal() {
@@ -219,7 +220,7 @@
       clear();                      /* 만료·없는 토큰의 흔적을 지운다 */
       var stop = bounces(10000) >= 2;
       bounceMark();
-      location.replace(loginUrl(menu || '', '', { stop: stop }));
+      location.replace(loginUrl(menu || '', '', { stop: stop, relogin: true }));
       return false;
     }
     if (menu && !canUse(menu)) {

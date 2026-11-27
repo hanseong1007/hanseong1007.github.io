@@ -1869,12 +1869,9 @@
       }
       /* 서버가 확인한 계정(염·해시 포함)을 이 기기 계정 목록에 먼저 반영한다 — 새 기기에서도 바로 로그인된다 */
       applyServerUser(j);
-      /* 시트 계정 목록 동기화가 느려도 로그인을 붙잡지 않는다 (8초까지만 기다린다) */
-      var wait = syncUsersFromSheet({ quiet:true }).catch(function(){});
-      var timeup = new Promise(function(res){ setTimeout(res, 8000); });
-      return Promise.race([wait, timeup]).then(function(){
-        doLoginLocal(idv, pw, keep);
-      });
+      /* 시트 계정 목록은 뒤에서 조용히 받아 둔다 — 로그인을 기다리게 하지 않는다 */
+      syncUsersFromSheet({ quiet:true }).catch(function(){});
+      doLoginLocal(idv, pw, keep);
     }).catch(function(){
       BUSY = false; btn.disabled = false;
       setMsg(msg, '보안 서버에 연결하지 못했습니다 · 인터넷을 확인하고 잠시 뒤 다시 시도해 주세요', true);
@@ -2124,6 +2121,11 @@
     else if(!S) syncUsersFromSheet({ seed:false }).then(syncAfterApply);   /* 보안 모듈이 없을 때만 옛 방식 */
     if(u){
       if(queryParam('stop') === '1') stripStop();        /* 이미 로그인했으면 멈춤 표시는 지운다 */
+      var dny = queryParam('denied');
+      if(dny){
+        toast('「' + (MENU_LABEL[dny] || dny) + '」 화면을 쓸 권한이 없습니다 · 관리자에게 요청하세요', true);
+        try{ history.replaceState(null, '', '/'); }catch(e){}
+      }
       openDash();
       if(S && S.needChange()) S.forceChange({ onDone:function(){ location.reload(); } });
       goNeedMenu();
@@ -2138,6 +2140,7 @@
       if(denied) note = '「' + (MENU_LABEL[denied] || denied) + '」 화면을 쓸 권한이 없습니다 · 관리자에게 메뉴 권한을 요청하세요';
       if(queryParam('idle') === '1') note = '30분 동안 사용하지 않아 자동으로 로그아웃했습니다 · 다시 로그인해 주세요';
       if(!note && queryParam('stop') === '1') note = '화면을 여는 중 멈춰서 자동 이동을 멈췄습니다 · 다시 로그인해 주세요';
+      if(!note && queryParam('relogin') === '1') note = '로그인이 끝났습니다 · 보안을 위해 다시 로그인해 주세요';
       if(!note && stale) note = '보안이 강화되었습니다 · 이 기기에 남아 있던 예전 로그인 정보를 정리했습니다. 다시 로그인해 주세요';
       showGate(note);
     }
