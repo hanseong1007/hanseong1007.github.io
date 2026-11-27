@@ -1855,6 +1855,8 @@
         $('#login-pw').value = ''; $('#login-pw').focus();
         return;
       }
+      /* 서버가 확인한 계정(염·해시 포함)을 이 기기 계정 목록에 먼저 반영한다 — 새 기기에서도 바로 로그인된다 */
+      applyServerUser(j);
       return syncUsersFromSheet({ quiet:true }).catch(function(){}).then(function(){
         doLoginLocal(idv, pw, keep);
       });
@@ -1863,10 +1865,29 @@
       setMsg(msg, '보안 서버에 연결하지 못했습니다 · 인터넷을 확인하고 잠시 뒤 다시 시도해 주세요', true);
     });
   }
+  /* 서버 로그인 응답의 계정(염·해시·메뉴·mustChange)을 이 기기 계정 목록에 반영 */
+  function applyServerUser(j){
+    if(!j || !j.user) return;
+    var u = j.user, id = normId(u.id);
+    if(!id) return;
+    var d = portalDoc(), cur = findIn(d.users, id);
+    if(!cur){
+      cur = { id:id, name:u.name || id, role:roleOf(id, u.name), createdAt:Date.now(), mustChange:false };
+      d.users.push(cur);
+    }
+    if(u.name) cur.name = String(u.name).slice(0, 20);
+    cur.role = roleOf(id, cur.name);
+    if(id !== 'admin' && Array.isArray(u.menus)) cur.menus = normMenus(u.menus) || cur.menus;
+    if(id === 'admin' && cur.menus !== undefined) delete cur.menus;
+    cur.mustChange = u.mustChange === true;
+    if(j.salt && j.hash){ cur.salt = String(j.salt); cur.hash = String(j.hash); cur.sheetSalt = String(j.salt); }
+    if(j.hashes) cur.sheetHashes = j.hashes;
+    savePortal(d);
+    return cur;
+  }
   function doLoginLocal(idv, pw, keep){
     var msg = $('#login-msg'), btn = $('#login-btn');
-    var v = verify(idv, pw);
-    if(!v.ok){
+    var v = verify(idv, pw);    if(!v.ok){
       if(syncNeededBeforeLogin()){
         setMsg(msg, '계정 정보를 확인하는 중…', false);
         syncUsersFromSheet({}).then(function(){ doLoginLocal(idv, pw, keep); });
