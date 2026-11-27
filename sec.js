@@ -117,6 +117,7 @@
           user: j.user, salt: j.salt || '', hash: j.hash || '', hashes: j.hashes || {}
         };
         write(s);
+        clearBounce();
         startIdle();
         return j;
       });
@@ -139,15 +140,46 @@
     return p;
   }
 
+  /* 세션(토큰)을 지울 때는 이 기기의 '로그인됨' 흔적을 함께 지운다.
+     흔적만 남으면 포털은 로그인된 줄 알고 앱은 토큰이 없어 되돌려보내,
+     포털 ↔ 앱 무한 왕복(깜빡임·멈춤)이 생긴다. (2026-11-27 장애 대응) */
+  var SESS_KEYS = ['kd.portal.sso.v1', 'kd.portal.session.v1', 'kd.portal.session.tmp.v1',
+                   'kd.session.v1', 'kd.session.tmp.v1',
+                   'kdw.session.v1', 'kdw.session.tmp.v1',
+                   'att.session.v1', 'att.session.tmp.v1',
+                   'pl.session.v1', 'cp.session.v1', 'pm.session.v1', 'rm.session.v1', 'prod.session.v1'];
   function clear() {
     lrm(KEY);
-    /* 포털 SSO 기록도 함께 지운다 */
+    for (var i = 0; i < SESS_KEYS.length; i++) {
+      lrm(SESS_KEYS[i]);
+      try { win.sessionStorage.removeItem(SESS_KEYS[i]); } catch (e) {}
+    }
+  }
+
+  /* ---------- 왕복(깜빡임) 감지 ----------
+     앱과 포털이 서로 되돌려보내는 일이 반복되면 자동 이동을 멈춘다. */
+  var BOUNCE_KEY = 'kd.sec.bounce.v1';
+  function bounceRead() {
     try {
-      var sso = win.localStorage.getItem('kd.portal.sso.v1');
-      if (!sso) return;
-      lrm('kd.portal.sso.v1');
+      var o = JSON.parse(win.sessionStorage.getItem(BOUNCE_KEY) || 'null');
+      if (!o || !Array.isArray(o.t)) return [];
+      return o.t;
+    } catch (e) { return []; }
+  }
+  function bounceMark() {
+    try {
+      var now = Date.now(), list = bounceRead().filter(function (x) { return now - x < 10000; });
+      list.push(now);
+      win.sessionStorage.setItem(BOUNCE_KEY, JSON.stringify({ t: list }));
     } catch (e) {}
   }
+  function bounces(withinMs) {
+    var now = Date.now(), ms = withinMs || 10000, n = 0;
+    bounceRead().forEach(function (x) { if (now - x < ms) n++; });
+    return n;
+  }
+  function bouncedRecently(withinMs) { return bounces(withinMs || 6000) > 0; }
+  function clearBounce() { try { win.sessionStorage.removeItem(BOUNCE_KEY); } catch (e) {} }
 
   /* ---------- 로그인 화면으로 ---------- */
   function portalBase() {
@@ -156,25 +188,47 @@
     var m = p.match(/^\/([^\/]+)\//);
     return '/';
   }
-  function loginUrl(need, denied) {
+  function loginUrl(need, denied, extra) {
     var q = [];
     if (need) q.push('need=' + encodeURIComponent(need));
     if (denied) q.push('denied=' + encodeURIComponent(denied));
+    if (extra && extra.stop) q.push('stop=1');
+    if (extra && extra.idle) q.push('idle=1');
     return '/' + (q.length ? '?' + q.join('&') : '');
   }
-  function redirectLogin() {
-    if (location.pathname.replace(/index\.html$/, '') === '/' || /\/(portal)\/$/.test(location.pathname)) {
-      return;    /* 포털 자신은 화면에서 처리한다 */
+  function onPortal() {
+    return location.pathname.replace(/index\.html$/, '') === '/' || /\/(portal)\/$/.test(location.pathname);
+  }
+  function redirectLogin(extra) {
+    if (onPortal()) {
+      /* 포털에서 서버가 '다시 로그인'이라 하면 화면을 새로 그려 로그인 창을 띄운다 */
+      if (extra && extra.keep) return;
+      location.reload();
+      return;
     }
-    location.replace(loginUrl());
+    location.replace(loginUrl((extra && extra.need) || '', (extra && extra.denied) || '', extra));
   }
 
   /* ---------- 화면 지킴 ---------- */
-  /* menu: 'order' 등 / 스크린(선택): 막을 때 보여 줄 요소 */
+  /* menu: 'order' 등 / 스크린(선택): 막을 때 보여 줄 요소
+     - 토큰이 없거나 권한이 없으면 포털 로그인 화면으로 되돌린다.
+     - 되돌아가는 일이 반복되면 stop=1 로 보내 포털이 다시 앱으로 보내지 않게 한다. (무한 왕복 차단) */
   function guard(menu) {
     var s = session();
-    if (!s) { location.replace(loginUrl(menu || '')); return false; }
-    if (menu && !canUse(menu)) { location.replace(loginUrl('', menu)); return false; }
+    if (!s) {
+      clear();                      /* 만료·없는 토큰의 흔적을 지운다 */
+      var stop = bounces(10000) >= 2;
+      bounceMark();
+      location.replace(loginUrl(menu || '', '', { stop: stop }));
+      return false;
+    }
+    if (menu && !canUse(menu)) {
+      var stop2 = bounces(10000) >= 2;
+      bounceMark();
+      location.replace(loginUrl('', menu, { stop: stop2 }));
+      return false;
+    }
+    clearBounce();
     startIdle();
     return true;
   }
@@ -212,8 +266,8 @@
       win.__kdwIdleShown = true;
       alert('30분 동안 사용하지 않아 자동으로 로그아웃했습니다.\n보안을 위해 다시 로그인해 주세요.');
     } catch (e) {}
-    redirectLogin();
-    location.reload();
+    clear();
+    location.replace('/?idle=1&t=' + Date.now());   /* 포털 로그인 화면으로 (자동 로그아웃 안내와 함께) */
   }
 
   /* ---------- 처음 비밀번호 강제 변경 ---------- */
@@ -310,6 +364,8 @@
     session: session, user: user, token: token, isAdmin: isAdmin, menus: menus, canUse: canUse,
     login: login, logout: logout, post: post, api: api, get: get, clear: clear, update: update,
     guard: guard, startIdle: startIdle, touch: touch,
+    bouncedRecently: bouncedRecently, bounces: bounces, clearBounce: clearBounce, onPortal: onPortal,
+    clearSessionKeys: clear,
     needChange: needChange, forceChange: forceChange, loginMessage: loginMessage,
     usersGet: usersGet, usersSave: usersSave,
     loginUrl: loginUrl, redirectLogin: redirectLogin, MENU_LABEL: MENU_LABEL,

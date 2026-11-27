@@ -1559,6 +1559,7 @@
   }
   function logout(){
     var S = kdsec();
+    LOGIN_JUST = false;
     if(S) S.logout({ silent:true });      /* 서버 세션(토큰)도 함께 끈다 */
     clearAll();
     document.documentElement.setAttribute('data-role', '');
@@ -1764,8 +1765,9 @@
     var admin = isAdminUser(u);
     var ms = menusOf(u);
     document.documentElement.setAttribute('data-role', admin ? 'admin' : 'user');
-    /* 메뉴가 하나뿐인 직원은 그 화면으로 바로 — ?stay=1 이면 포털에 남는다 */
-    if(!admin && ms.length === 1 && !stayRequested()){
+    /* 메뉴가 하나뿐인 직원은 그 화면으로 바로 — ?stay=1 이면 포털에 남는다
+       (토큰이 없거나 그 화면 권한이 없거나 방금 되돌아왔으면 보내지 않는다) */
+    if(!admin && ms.length === 1 && !stayRequested() && !autoForwardBlocked(ms[0])){
       var only = MENU_APP[ms[0]];
       if(ms[0] === 'shop'){ location.replace(menuUrl('shop')); return; }
       if(ms[0] === 'raw'){ location.replace(appBase() + 'raw-material/'); return; }
@@ -1777,6 +1779,15 @@
     document.body.setAttribute('data-view', 'dash');
     renderDash(u);
     syncSessionAccount();        /* 열린 화면에서도 시트 계정 이름·권한을 조용히 확인 (60초 스로틀) */
+  }
+  /* 자동으로 앱에 보내면 안 되는 경우 — 반환 true 면 포털에 머문다 */
+  function autoForwardBlocked(menu){
+    var S = kdsec();
+    if(!S) return false;                       /* 보안 모듈이 없으면 예전 그대로 */
+    if(!S.session()) return true;              /* 토큰 없음 */
+    if(menu && !S.canUse(menu)) return true;   /* 앱이 거부할 메뉴로 보내지 않는다 */
+    if(!LOGIN_JUST && S.bouncedRecently(6000)) return true;  /* 방금 앱에서 되돌아옴 */
+    return false;
   }
   function menuPickHtml(u){
     if(isAdminUser(u)) return '<span class="tag gray">전체 메뉴(고정)</span>';
@@ -1829,7 +1840,8 @@
   }
   function go(app){
     var u = currentUser();
-    if(!u){ showGate(''); return; }
+    var S = kdsec();
+    if(!u || (S && !S.session())){ showGate('로그인이 만료되었습니다 · 다시 로그인해 주세요'); return; }
     setSessions(u, keepOf());
     if(app === 'pl' && PL_SEED){ waitParcelSeed().then(function(){ location.href = appUrl(app); }); return; }
     location.href = appUrl(app);
@@ -1857,7 +1869,10 @@
       }
       /* 서버가 확인한 계정(염·해시 포함)을 이 기기 계정 목록에 먼저 반영한다 — 새 기기에서도 바로 로그인된다 */
       applyServerUser(j);
-      return syncUsersFromSheet({ quiet:true }).catch(function(){}).then(function(){
+      /* 시트 계정 목록 동기화가 느려도 로그인을 붙잡지 않는다 (8초까지만 기다린다) */
+      var wait = syncUsersFromSheet({ quiet:true }).catch(function(){});
+      var timeup = new Promise(function(res){ setTimeout(res, 8000); });
+      return Promise.race([wait, timeup]).then(function(){
         doLoginLocal(idv, pw, keep);
       });
     }).catch(function(){
@@ -1919,6 +1934,9 @@
       if(unified) syncPushAfterLogin(user.id);
       var rec = findPortal(user.id) || user;
       setSessions(rec, keep);
+      /* 방금 로그인했으니 앱으로 바로 보내도 된다 (되었돌아옴 표시를 지운다) */
+      LOGIN_JUST = true;
+      var S1 = kdsec(); if(S1) S1.clearBounce();
       /* 택배주소출력 메뉴가 있으면 그 앱의 시트 토큰을 지금 받아 둔다 (앱에서 재로그인 없이) */
       seedParcelToken(rec, pw);
       /* 상품단가 메뉴가 있으면 단가표 열쇠를 풀 열쇠를 이 기기에 둔다 (앱에서 비밀번호 없이 입장) */
@@ -2088,15 +2106,25 @@
     var inv = importInviteHash();
     mergeFromApps();
     bind();
+    var S = kdsec(), tok = S ? S.session() : null, stale = false;
+    /* 2026-11-27 장애 대응 — 포털도 앱과 똑같이 '서버 토큰'을 로그인 기준으로 삼는다.
+       토큰이 없는데 예전 기기의 로그인 흔적(kd.portal.session/sso)만 남아 있으면,
+       포털은 로그인된 줄 알고 앱은 토큰이 없어 되돌려보내 '포털 ↔ 앱' 무한 왕복(깜빡임·멈춤)이 생긴다. */
+    if(S && !tok){
+      stale = !!(currentUser() || jget(P_SSO, null));
+      clearAll();        /* 이 기기의 로그인 흔적만 지운다 (계정 목록은 그대로) */
+      S.clear();
+      document.documentElement.setAttribute('data-role', '');
+    }
     var u = currentUser();
     /* 보안 세션(토큰)은 살아 있는데 이 화면 세션만 없으면(새로 고침·다른 앱에서 돌아옴) 토큰 계정으로 되살린다 */
-    if(!u) u = restoreFromToken();
+    if(!u && tok) u = restoreFromToken();
     renderMenu(u);
     if(u) syncSessionAccount();                          /* 로그인된 세션 — 시트 계정을 조용히 한 번 확인 */
-    else syncUsersFromSheet({ seed:false }).then(syncAfterApply);
+    else if(!S) syncUsersFromSheet({ seed:false }).then(syncAfterApply);   /* 보안 모듈이 없을 때만 옛 방식 */
     if(u){
+      if(queryParam('stop') === '1') stripStop();        /* 이미 로그인했으면 멈춤 표시는 지운다 */
       openDash();
-      var S = kdsec();
       if(S && S.needChange()) S.forceChange({ onDone:function(){ location.reload(); } });
       goNeedMenu();
     }else{
@@ -2108,25 +2136,43 @@
       }
       var denied = queryParam('denied');
       if(denied) note = '「' + (MENU_LABEL[denied] || denied) + '」 화면을 쓸 권한이 없습니다 · 관리자에게 메뉴 권한을 요청하세요';
-      if(queryParam('idle') === '1') note = '30분 동안 사용하지 않아 자동으로 로그아웃했습니다';
+      if(queryParam('idle') === '1') note = '30분 동안 사용하지 않아 자동으로 로그아웃했습니다 · 다시 로그인해 주세요';
+      if(!note && queryParam('stop') === '1') note = '화면을 여는 중 멈춰서 자동 이동을 멈췄습니다 · 다시 로그인해 주세요';
+      if(!note && stale) note = '보안이 강화되었습니다 · 이 기기에 남아 있던 예전 로그인 정보를 정리했습니다. 다시 로그인해 주세요';
       showGate(note);
     }
     document.documentElement.setAttribute('data-portal-ready', '1');
+  }
+  /* 주소에서 stop=1 만 지운다 (need 는 남겨 로그인 뒤 그 화면으로 갈 수 있게) */
+  function stripStop(){
+    try{
+      var need = queryParam('need');
+      history.replaceState(null, '', '/' + (need ? '?need=' + encodeURIComponent(need) : ''));
+    }catch(e){}
   }
 
   function queryParam(k){
     try{ return new URLSearchParams(location.search).get(k) || ''; }catch(e){ return ''; }
   }
-  /* 앱 주소를 직접 쳐서 들어왔는데 권한이 없으면, 로그인 뒤 원래 가려던 화면으로 */
+  /* 앱 주소를 직접 쳐서 들어왔는데 권한이 없으면, 로그인 뒤 원래 가려던 화면으로
+     — 단, 토큰이 없거나 방금 앱에서 되돌아온 직후에는 보내지 않는다(무한 왕복 차단) */
+  var LOGIN_JUST = false;      /* 방금 로그인했다 — 이때는 왕복 표시를 무시한다 */
   function goNeedMenu(){
     var need = queryParam('need');
     if(!need) return;
     var S = kdsec();
-    if(S && S.needChange()) return;
     var u = currentUser();
     if(!u) return;
-    if(menusOf(u).indexOf(need) < 0){
+    if(S && !S.session()) return;                        /* 토큰 없음 — 로그인 화면에서 처리한다 */
+    if(S && S.needChange()) return;
+    if(menusOf(u).indexOf(need) < 0 || (S && !S.canUse(need))){
       toast('「' + (MENU_LABEL[need] || need) + '」 화면을 쓸 권한이 없습니다', true);
+      stripStop();
+      return;
+    }
+    if(!LOGIN_JUST && S && (queryParam('stop') === '1' || S.bouncedRecently(6000))){
+      showGate('「' + (MENU_LABEL[need] || need) + '」 화면으로 넘어가지 못했습니다 · 다시 로그인해 주세요');
+      try{ history.replaceState(null, '', '/'); }catch(e){}
       return;
     }
     setTimeout(function(){ location.replace(menuUrl(need)); }, 60);
