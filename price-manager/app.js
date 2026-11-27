@@ -1216,6 +1216,8 @@
   function boot() {
     paintWho();
     $('#gate-portal').href = '../';
+    /* 보안(2026-11-27): 서버 토큰이 없거나 이 화면 권한이 없으면 포털 로그인으로 */
+    if (window.KDWSEC && !KDWSEC.guard('price')) return;
     var demo = /(\?|&)demo=1/.test(location.search);
     if (demo) {
       S.demo = true;

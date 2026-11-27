@@ -1570,6 +1570,7 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="/sec.js"></script>
 <script>
 (function(){
   'use strict';
@@ -3102,12 +3103,18 @@ footer{background:var(--navy-3);color:#93A9BC;font-size:12.5px;padding:54px 0 40
   function sheetPost(payload, timeoutMs){
     var url = syncUrl();
     if (!url) return Promise.reject(new Error('시트 주소가 없습니다'));
+    var body = {}, k;
+    for (k in payload) body[k] = payload[k];
+    try{
+      if (window.KDWSEC && KDWSEC.token()) body.token = KDWSEC.token();   /* 2026-11-27 서버 세션 토큰(관리자 작업) */
+      body.ua = (navigator.userAgent || '').slice(0, 90);
+    }catch(e){}
     var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var tm = setTimeout(function(){ if (ctl) ctl.abort(); }, timeoutMs || 12000);
     return fetch(url, {
       method:'POST', cache:'no-store', redirect:'follow',
       headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
       signal: ctl ? ctl.signal : undefined
     }).then(function(r){
       clearTimeout(tm);

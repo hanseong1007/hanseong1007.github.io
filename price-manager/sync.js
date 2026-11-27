@@ -39,12 +39,18 @@
   function api(payload, timeoutMs) {
     var ms = timeoutMs || 25000;
     if (!SYNC_URL) return Promise.reject(new Error('동기화 주소가 없습니다'));
+    var body = {}, k;
+    for (k in payload) body[k] = payload[k];
+    try {
+      if (global.KDWSEC && KDWSEC.token()) body.token = KDWSEC.token();   /* 2026-11-27 서버 세션 토큰 */
+      body.ua = (navigator.userAgent || '').slice(0, 90);
+    } catch (e) {}
     var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var t = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
     return fetch(SYNC_URL, {
       method: 'POST', cache: 'no-store', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
       signal: ctl ? ctl.signal : undefined
     }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -62,6 +68,7 @@
 
   function apiGet(params, timeoutMs) {
     var q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    try { if (global.KDWSEC && KDWSEC.token()) q += '&token=' + encodeURIComponent(KDWSEC.token()); } catch (e) {}
     var ms = timeoutMs || 20000;
     var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var t = setTimeout(function () { if (ctl) ctl.abort(); }, ms);

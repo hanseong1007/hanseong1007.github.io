@@ -924,6 +924,7 @@ main{flex:1;min-height:0;padding:8px 18px 10px;display:flex;overflow:hidden}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="xlsx.full.min.js"></script>
+<script src="/sec.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1161,10 +1162,13 @@ function renderWho(){
   var p=$('#btn-portal'); if(p) p.href=portalHome();
 }
 function fetchSharedUsers(){
-  return fetch(SHARED_USERS+'?action=users_get&_='+Date.now(),{cache:'no-store',redirect:'follow'})
+  var q='?action=users_get&_='+Date.now();
+  if(window.KDWSEC && KDWSEC.token()) q+='&token='+encodeURIComponent(KDWSEC.token());
+  return fetch(SHARED_USERS+q,{cache:'no-store',redirect:'follow'})
     .then(function(r){ return r.text(); })
     .then(function(txt){
       var j=JSON.parse(txt);
+      if(j && j.needLogin) throw new Error('로그인이 필요합니다');
       var doc=JSON.parse(j.usersJson||'{}');
       if(!doc||!Array.isArray(doc.users)) throw new Error('계정 목록을 읽지 못했습니다');
       return doc.users;
@@ -2394,6 +2398,8 @@ function wire(){
 /* ---------------- boot ---------------- */
 function boot(){
   wire();
+  /* 보안(2026-11-27): 서버 토큰이 없거나 권한이 없으면 포털 로그인으로 */
+  if(window.KDWSEC && !KDWSEC.guard('coupang')) return;
   var sso=portalSSO();
   if(sso){
     var u=findUser(sso.userId);

@@ -32,6 +32,8 @@
     $('#app').hidden = !!which;
   }
   function boot() {
+    /* 보안(2026-11-27): 서버 토큰이 없거나 이 화면 권한이 없으면 포털 로그인으로 */
+    if (window.KDWSEC && !KDWSEC.guard('prod')) return;
     me = K.session();
     if (!me) { show('gate-nosession'); return; }
     role = myRole();

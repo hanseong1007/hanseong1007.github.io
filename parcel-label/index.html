@@ -406,6 +406,7 @@ main{display:grid;grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:14
   </main>
 </div>
 
+<script src="/sec.js"></script>
 <script>
 /* ============================================================
    경덕농수산 · 택배주소출력
@@ -694,12 +695,15 @@ function applyPaperUI(){
 function api(payload,timeoutMs){
   var ms=timeoutMs||25000;
   if(!PL_URL) return Promise.reject(new Error('시트 주소가 아직 설정되지 않았습니다'));
+  var body={}, k;
+  for(k in payload){ body[k]=payload[k]; }
+  if(window.KDWSEC && KDWSEC.token()) body.token=KDWSEC.token();      /* 2026-11-27 서버 세션 토큰 */
   var ctl=(typeof AbortController!=='undefined')?new AbortController():null;
   var t=setTimeout(function(){ if(ctl) ctl.abort(); }, ms);
   return fetch(PL_URL,{
     method:'POST', cache:'no-store', redirect:'follow',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify(payload),
+    body:JSON.stringify(body),
     signal:ctl?ctl.signal:undefined
   }).then(function(r){
     if(!r.ok) throw new Error('HTTP '+r.status);
@@ -717,10 +721,13 @@ function api(payload,timeoutMs){
   });
 }
 function sharedUsers(){
-  return fetch(SHARED_USERS+'?action=users_get&_='+Date.now(),{cache:'no-store',redirect:'follow'})
+  var q='?action=users_get&_='+Date.now();
+  if(window.KDWSEC && KDWSEC.token()) q+='&token='+encodeURIComponent(KDWSEC.token());
+  return fetch(SHARED_USERS+q,{cache:'no-store',redirect:'follow'})
     .then(function(r){ return r.text(); })
     .then(function(txt){
       var j=JSON.parse(txt);
+      if(j && j.needLogin) throw new Error('로그인이 필요합니다');
       var doc=JSON.parse(j.usersJson||'{}');
       if(!doc||!Array.isArray(doc.users)) throw new Error('계정 목록을 읽지 못했습니다');
       return doc.users;
@@ -1178,7 +1185,21 @@ function doLogin(){
   if(S.busy) return;
   var id=$('#lg-id').value.trim(), pw=$('#lg-pw').value, keep=$('#lg-keep').checked;
   if(!id||!pw){ setLoginMsg('아이디와 비밀번호를 넣어 주세요'); return; }
-
+  var SEC=window.KDWSEC;
+  if(!SEC){ doLoginLocal(id,pw,keep); return; }
+  S.busy=true; $('#lg-btn').disabled=true;
+  setLoginMsg('보안 서버에서 확인 중…',true);
+  SEC.login(id,pw,{app:'parcel'}).then(function(j){
+    if(!j||j.ok!==true){ S.busy=false; $('#lg-btn').disabled=false; setLoginMsg(SEC.loginMessage(j)); $('#lg-pw').value=''; return; }
+    setLoginMsg('',false);
+    doLoginLocal(id,pw,keep);
+  }).catch(function(){
+    S.busy=false; $('#lg-btn').disabled=false;
+    setLoginMsg('보안 서버에 연결하지 못했습니다 · 잠시 뒤 다시 시도해 주세요');
+  });
+}
+function doLoginLocal(id,pw,keep){
+  if(S.busy && S.user) return;
   /* 이 기기에 저장된 계정으로 먼저 확인 — 맞으면 바로 들어간다(시트는 뒤에서 확인) */
   var fast=findLocal(id);
   if(fast&&fast.hash&&fast.salt&&fast.active!==false&&hpHash(pw,fast.salt)===fast.hash){
@@ -1248,6 +1269,7 @@ function trySSO(){
   return true;
 }
 function logout(){
+  try{ if(window.KDWSEC) KDWSEC.logout({ silent:true }); }catch(e){}
   clearSession();
   LS.del(K_SSO);
   try{ localStorage.removeItem('kd.portal.session.v1'); sessionStorage.removeItem('kd.portal.session.tmp.v1'); }catch(e){}
@@ -1470,6 +1492,8 @@ function boot(){
   applyPaperUI();
   applyFmtUI();
   wire();
+  /* 보안(2026-11-27): 서버 토큰이 없거나 이 화면 권한이 없으면 포털 로그인으로 */
+  if(window.KDWSEC && !KDWSEC.guard('parcel')) return;
   if(trySSO()) return;
   var sso=portalSSO();
   if(sso&&sso.userId&&!localUsers().length){
