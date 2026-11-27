@@ -581,6 +581,8 @@
   function normId(id){ return String(id || '').trim().toLowerCase(); }
   /* 관리자 계정 아이디 — 2026-11-27 phs7604 로 바꾸었고, 옛 admin 도 같은 관리자로 본다 */
   function isAdminId(id){ var n = normId(id); return n === 'admin' || n === 'phs7604'; }
+  /* 지금의 관리자 계정 아이디 — 이 계정만 기기 계정 목록에서 지우지 않는다 (옛 admin 은 지울 수 있다) */
+  function isRootId(id){ return normId(id) === 'phs7604'; }
   function roleOf(idOrUser, name){
     var isObj = idOrUser && typeof idOrUser === 'object';
     var id = normId(isObj ? idOrUser.id : idOrUser);
@@ -1365,17 +1367,17 @@
     /* 지운 계정 목록(deletedIds)에 명시된 아이디만 지운다.
        시트에 없는 로컬 계정은 지우지 않고 그대로 보존(병합)한다 — 다른 기기의 계정이 사라지지 않게. */
     var delIds = {};
-    deletedIdsOf(doc).forEach(function(x){ var id = normId(x); if(id && !isAdminId(id)) delIds[id] = 1; });
+    deletedIdsOf(doc).forEach(function(x){ var id = normId(x); if(id && !isRootId(id)) delIds[id] = 1; });
     if(!fresh){
       var d = portalDoc(), out = [], gone = 0;
       d.users.forEach(function(u){
-        if(isAdminId(u.id)){ out.push(u); return; }
+        if(isRootId(u.id)){ out.push(u); return; }
         if(delIds[u.id]){ gone++; return; }
         out.push(u);
       });
       if(gone){ d.users = out; savePortal(d); applied++; }
       ORDER.forEach(function(a){
-        var ad = appDoc(a), rest = ad.users.filter(function(u){ return isAdminId(u.id) || !delIds[u.id]; });
+        var ad = appDoc(a), rest = ad.users.filter(function(u){ return isRootId(u.id) || !delIds[u.id]; });
         if(rest.length !== ad.users.length){ ad.users = rest; saveApp(a, ad); applied++; }
       });
     }
