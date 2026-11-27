@@ -646,13 +646,9 @@
         if(isAdminUser(u) || mm === null) delete u.menus; else u.menus = mm;
       }
     });
-    var hasAdmin = false;
-    d.users.forEach(function(u){ if(isAdminId(u.id)) hasAdmin = true; });
-    if(!hasAdmin && !jget(P_NOSEED, false) && !anyAppAdmin()){
-      var salt = newSalt();
-      d.users.unshift({ id:'admin', name:'관리자', role:'admin', salt:salt, hash:hpHash('admin1234', salt),
-                        createdAt:Date.now(), mustChange:true });
-    }
+    /* 2026-11-27: 이 기기에 기본 admin/admin1234 계정을 심지 않는다.
+       관리자 계정은 서버(보안 서버)가 확인해 내려 주는 phs7604 하나뿐이고,
+       옛 admin 은 서버에서 사용중지·삭제된 계정이라 어디에서도 열리지 않아야 한다. */
     d.v = 1;
     jset(P_USERS, d);
     return d;
