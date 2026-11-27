@@ -1182,7 +1182,10 @@
   }
   function syncLocalDoc(){
     var d = portalDoc(), users = [];
-    d.users.forEach(function(u){ if(u && u.id) users.push(syncRecordOf(u)); });
+    /* 지운 계정(옛 admin 등)은 시트로 다시 올리지 않는다 — 다시 살아나면 안 된다 */
+    var gone = {};
+    deletedIdsOf(d).forEach(function(x){ var n = normId(x); if(n) gone[n] = 1; });
+    d.users.forEach(function(u){ if(u && u.id && !gone[u.id]) users.push(syncRecordOf(u)); });
     return { v:1, updatedAt:'', kcat:(jget(SYNC_KCAT_KEY, '') || ''), users:users,
              deletedIds:deletedIdsOf(d) };
   }

@@ -8,7 +8,7 @@
  * - localStorage · IndexedDB · 쿠키는 건드리지 않는다(로그인·암호화 열쇠·시트 동기화 그대로).
  * - 주소는 이 파일 위치 기준 상대 경로라, 루트(/)에 올려도 하위 폴더에서 시험해도 같게 동작한다.
  */
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CACHE = 'kdw-portal-' + VERSION;
 const BASE = new URL('./', self.location.href);          /* 배포: https://hanseong1007.github.io/ */
 const PRECACHE = ['index.html', 'offline.html', 'manifest.webmanifest', 'sec.js',
